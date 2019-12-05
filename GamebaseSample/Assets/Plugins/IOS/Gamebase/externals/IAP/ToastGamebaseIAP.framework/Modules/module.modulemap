@@ -1,0 +1,6 @@
+framework module ToastGamebaseIAP {
+  umbrella header "ToastGamebaseIAP.h"
+
+  export *
+  module * { export * }
+}
