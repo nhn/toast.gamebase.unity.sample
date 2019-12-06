@@ -1,0 +1,6 @@
+framework module ToastUnityCore {
+  umbrella header "ToastUnityCore.h"
+
+  export *
+  module * { export * }
+}

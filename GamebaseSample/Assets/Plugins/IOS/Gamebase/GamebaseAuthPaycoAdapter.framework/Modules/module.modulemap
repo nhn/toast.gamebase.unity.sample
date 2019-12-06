@@ -1,0 +1,6 @@
+framework module GamebaseAuthPaycoAdapter {
+  umbrella header "GamebaseAuthPaycoAdapter.h"
+
+  export *
+  module * { export * }
+}

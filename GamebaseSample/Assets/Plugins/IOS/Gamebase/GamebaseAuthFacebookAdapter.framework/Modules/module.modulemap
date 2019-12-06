@@ -1,0 +1,6 @@
+framework module GamebaseAuthFacebookAdapter {
+  umbrella header "GamebaseAuthFacebookAdapter.h"
+
+  export *
+  module * { export * }
+}
