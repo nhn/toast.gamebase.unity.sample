@@ -2,7 +2,7 @@
 <network-security-config>
   <domain-config cleartextTrafficPermitted="true">
     <!-- Smart Downloader start -->
-    <domain includeSubdomains="true">cdn.toastcloud.com</domain>
+    <domain includeSubdomains="true">toastcdn.net</domain>
     <!-- Smart Downloader end -->
   </domain-config>
 </network-security-config>
