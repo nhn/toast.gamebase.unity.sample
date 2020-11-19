@@ -117,9 +117,9 @@ namespace GamebaseSample
         private IEnumerator LoadWebFile(string filePath, System.Action<string> callback)
         {
 #if !UNITY_EDITOR && UNITY_ANDROID
-        WWW www = new WWW(filePath);
-        yield return www;
-        callback(www.text);
+            WWW www = new WWW(filePath);
+            yield return www;
+            callback(www.text);
 #else
             UnityWebRequest www = UnityWebRequest.Get(filePath);
             www.timeout = 10;

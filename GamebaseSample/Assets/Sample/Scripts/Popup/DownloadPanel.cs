@@ -48,10 +48,10 @@ namespace GamebaseSample
                 messageText.text = string.Empty;
 
                 uint completedCount = progress.CompletedFileCount;
-                uint totalCount = progress.TotalFileNumber;
+                uint totalCount = progress.TotalFileCount;
 
                 totalDownloadStatusText.text = string.Format("{0}/{1} ({2}/{3})",
-                    StringUtil.BytesToString(progress.TotalReceivedBytes), StringUtil.BytesToString(progress.TotalFileBytes),
+                    StringUtil.BytesToString(progress.DownloadedBytes), StringUtil.BytesToString(progress.TotalFileBytes),
                     completedCount, totalCount);
 
                 if (progress.FileMap != null)

@@ -38,22 +38,22 @@ namespace GamebaseSample
         private void Update()
         {
 #if !UNITY_EDITOR && UNITY_ANDROID
-		if (Input.GetKeyDown(KeyCode.Escape) == true)
-        {
-            Application.Quit();
-        }
+		    if (Input.GetKeyDown(KeyCode.Escape) == true)
+            {
+                Application.Quit();
+            }
 #endif
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-        if (0 < Input.touchCount)
-        {
-            for (int i = 0; i < Input.touchCount; ++i)
+            if (0 < Input.touchCount)
             {
-                if (Input.GetTouch(i).phase == TouchPhase.Began)
+                for (int i = 0; i < Input.touchCount; ++i)
                 {
-                    CreateTouchEffect(Input.GetTouch(i).position);
+                    if (Input.GetTouch(i).phase == TouchPhase.Began)
+                    {
+                        CreateTouchEffect(Input.GetTouch(i).position);
+                    }
                 }
             }
-        }
 #else
             if (Input.GetMouseButtonDown(0) == true)
             {
@@ -182,7 +182,7 @@ namespace GamebaseSample
         private void EndSession()
         {
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-        SceneManager.LoadSceneAsync("login");
+            SceneManager.LoadSceneAsync("login");
 #else
             Loading.GetInstance().ShowLoading(gameObject);
 

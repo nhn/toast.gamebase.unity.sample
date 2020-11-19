@@ -25,12 +25,12 @@ namespace GamebaseSample
             {
                 return
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Seperator + LEAF_DIRECTORY;
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Seperator + LEAF_DIRECTORY;
 #elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-                // MacOS Path : /Users/{USER_NAME}/Documents/SmartDLDownloads
-                Environment.GetFolderPath(Environment.SpecialFolder.Personal) + Seperator + "Documents" + Seperator + LEAF_DIRECTORY;
+                    // MacOS Path : /Users/{USER_NAME}/Documents/SmartDLDownloads
+                    Environment.GetFolderPath(Environment.SpecialFolder.Personal) + Seperator + "Documents" + Seperator + LEAF_DIRECTORY;
 #else
-                Application.persistentDataPath + Seperator + LEAF_DIRECTORY;
+                    Application.persistentDataPath + Seperator + LEAF_DIRECTORY;
 #endif
             }
         }
@@ -60,7 +60,7 @@ namespace GamebaseSample
                 DataManager.Launching.smartdl.appkey,
                 DataManager.Launching.smartdl.service_android,
                 DownloadPath,
-                result => { callback(result.IsSuccessful); });
+                result => { callback(result.Code == ResultCode.SUCCESS || result.Code == ResultCode.SUCCESS_NO_DIFFERENCE); });
         }
 
         public void StopDownload()
