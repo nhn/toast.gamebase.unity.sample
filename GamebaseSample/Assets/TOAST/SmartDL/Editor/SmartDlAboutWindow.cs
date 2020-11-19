@@ -50,7 +50,7 @@ namespace Toast.SmartDownloader.Infomation
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     GUILayout.Label(TEXT_VERSION, GUILayout.ExpandWidth(false));
-                    GUILayout.Label(SdkVersion.Version);
+                    GUILayout.Label(SdkVersion.VERSION);
                 }
 
                 GUILayout.Space(4);

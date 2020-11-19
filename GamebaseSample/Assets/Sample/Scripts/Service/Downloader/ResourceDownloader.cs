@@ -60,7 +60,7 @@ namespace GamebaseSample
                 DataManager.Launching.smartdl.appkey,
                 DataManager.Launching.smartdl.service_android,
                 DownloadPath,
-                result => { callback(result.IsSuccessful); });
+                result => { callback(result.Code == ResultCode.SUCCESS || result.Code == ResultCode.SUCCESS_NO_DIFFERENCE); });
         }
 
         public void StopDownload()
