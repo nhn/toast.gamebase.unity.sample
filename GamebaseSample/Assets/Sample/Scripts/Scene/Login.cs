@@ -67,23 +67,23 @@ namespace GamebaseSample
         private void Update()
         {
 #if !UNITY_EDITOR && UNITY_ANDROID
-		if (Input.GetKeyDown(KeyCode.Escape) == true)
-        {
-			Application.Quit();
-        }
+		    if (Input.GetKeyDown(KeyCode.Escape) == true)
+            {
+			    Application.Quit();
+            }
 #endif
 
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-        if (0 < Input.touchCount)
-        {
-            for (int i = 0; i < Input.touchCount; ++i)
+            if (0 < Input.touchCount)
             {
-                if (Input.GetTouch(i).phase == TouchPhase.Began)
+                for (int i = 0; i < Input.touchCount; ++i)
                 {
-                    CreateTouchEffect(Input.GetTouch(i).position);
+                    if (Input.GetTouch(i).phase == TouchPhase.Began)
+                    {
+                        CreateTouchEffect(Input.GetTouch(i).position);
+                    }
                 }
             }
-        }
 #else
             if (Input.GetMouseButtonDown(0) == true)
             {
@@ -192,7 +192,7 @@ namespace GamebaseSample
         private void GamebaseLogin()
         {
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-        LoginForLastLoggedInProvider();
+            LoginForLastLoggedInProvider();
 #else
             ActiveButton(true);
             Loading.GetInstance().HideLoading();
@@ -246,10 +246,10 @@ namespace GamebaseSample
                 if (Gamebase.IsSuccess(error) == true)
                 {
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-                ActiveButton(false);                
-                Push.CheckPushSettings(gameObject, ()=> { OnLogin(); });
+                    ActiveButton(false);                
+                    Push.CheckPushSettings(gameObject, ()=> { OnLogin(); });
 #else
-                OnLogin();
+                    OnLogin();
 #endif
             }
                 else
@@ -288,12 +288,12 @@ namespace GamebaseSample
                     {
                         DataManager.User.Id = Gamebase.GetUserID();
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-                    DataManager.User.IdP = Gamebase.GetLastLoggedInProvider();
+                        DataManager.User.IdP = Gamebase.GetLastLoggedInProvider();
 #else
-                    DataManager.User.IdP = "guest";
+                        DataManager.User.IdP = "guest";
 #endif
 
-                    SceneManager.LoadSceneAsync("main");
+                        SceneManager.LoadSceneAsync("main");
                     }
                     else
                     {
@@ -320,11 +320,11 @@ namespace GamebaseSample
             cacheDeleteButton.SetActive(isActive);
 
 #if !UNITY_EDITOR && UNITY_IOS
-        gamecenterButton.SetActive(isActive);
-        otherButtonContainer.SetActive(isActive);
+            gamecenterButton.SetActive(isActive);
+            otherButtonContainer.SetActive(isActive);
 #elif !UNITY_EDITOR && UNITY_ANDROID
-        googleButton.SetActive(isActive);
-        otherButtonContainer.SetActive(isActive);
+            googleButton.SetActive(isActive);
+            otherButtonContainer.SetActive(isActive);
 #elif UNITY_EDITOR
             googleButton.SetActive(false);
             gamecenterButton.SetActive(false);

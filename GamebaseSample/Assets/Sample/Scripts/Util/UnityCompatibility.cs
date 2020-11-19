@@ -9,7 +9,7 @@ namespace GamebaseSample
             public static AsyncOperation Send(UnityEngine.Networking.UnityWebRequest request)
             {
 #if UNITY_2017_2_OR_NEWER
-            return request.SendWebRequest();
+                return request.SendWebRequest();
 #else
                 return request.Send();
 #endif
@@ -18,7 +18,7 @@ namespace GamebaseSample
             public static bool IsError(UnityEngine.Networking.UnityWebRequest request)
             {
 #if UNITY_2017_1_OR_NEWER
-            return request.isNetworkError;
+                return request.isNetworkError;
 #else
                 return request.isError;
 #endif
