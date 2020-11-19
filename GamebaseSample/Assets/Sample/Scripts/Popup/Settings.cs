@@ -117,17 +117,17 @@ namespace GamebaseSample
             ChangeLanguageButton();
 
 #if !UNITY_EDITOR && UNITY_IOS
-        mappingView.SetActive(true);
-        googleButton.SetActive(false);
-        gamecenterButton.SetActive(true);
-        facebookButton.SetActive(true);
-        paycoButton.SetActive(true);
+            mappingView.SetActive(true);
+            googleButton.SetActive(false);
+            gamecenterButton.SetActive(true);
+            facebookButton.SetActive(true);
+            paycoButton.SetActive(true);
 #elif !UNITY_EDITOR && UNITY_ANDROID
-        mappingView.SetActive(true);
-        googleButton.SetActive(true);
-        gamecenterButton.SetActive(false);
-        facebookButton.SetActive(true);
-        paycoButton.SetActive(true);
+            mappingView.SetActive(true);
+            googleButton.SetActive(true);
+            gamecenterButton.SetActive(false);
+            facebookButton.SetActive(true);
+            paycoButton.SetActive(true);
 #else
             pushSettingButton.color = PUSH_BUTTON_DIMMED;
 
@@ -227,7 +227,7 @@ namespace GamebaseSample
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.COMMON_OK_BUTTON),
                 null);
 #else
-        Push.OpenPush(gameObject, () => { }, true);
+            Push.OpenPush(gameObject, () => { }, true);
 #endif
         }
 
