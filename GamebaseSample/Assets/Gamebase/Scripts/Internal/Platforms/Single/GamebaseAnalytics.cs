@@ -7,6 +7,25 @@ namespace Toast.Gamebase.Internal.Single
 {
     public sealed class GamebaseAnalytics
     {
+        private string domain;
+
+        public string Domain
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(domain) == true)
+                {
+                    return typeof(GamebaseAnalytics).Name;
+                }
+
+                return domain;
+            }
+            set
+            {
+                domain = value;
+            }
+        }
+
         private const string PRODUCT_ID = "presence";
 
         private const string KEY_USER_LEVEL = "userLevel";
@@ -36,11 +55,12 @@ namespace Toast.Gamebase.Internal.Single
 
         public static GamebaseAnalytics Instance = new GamebaseAnalytics();
 
-        public void CompletePurchase(GamebaseResponse.Purchase.PurchasableReceipt purchasableReceipt)
+        public void CompletePurchase(GamebaseResponse.Purchase.PurchasableReceipt purchasableReceipt, GamebaseCallback.ErrorDelegate callback)
         {
             if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
             {
                 GamebaseLog.Warn("Not LoggedIn", this, "CompletePurchase");
+                callback(new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
                 return;
             }
 
@@ -75,15 +95,19 @@ namespace Toast.Gamebase.Internal.Single
                             GamebaseJsonUtil.ToPrettyJsonString(error)),
                         this,
                         "CompletePurchase");
+                    callback(error);
+                    return;
                 }
+                callback(error);
             });
         }
 
-        public void SetUserMeta(RequestType type)
+        public void SetUserMeta(RequestType type, GamebaseCallback.ErrorDelegate callback)
         {
             if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
             {
                 GamebaseLog.Warn("Not LoggedIn", this, "SetUserMeta");
+                callback(new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
                 return;
             }
 
@@ -126,7 +150,10 @@ namespace Toast.Gamebase.Internal.Single
                             GamebaseJsonUtil.ToPrettyJsonString(error)),
                         this,
                         "SetUserMeta");
+                    callback(error);
+                    return;
                 }
+                callback(error);
             });
         }
 
@@ -162,7 +189,7 @@ namespace Toast.Gamebase.Internal.Single
             return dict;
         }
 
-        public void ResetUserMeta()
+        public void ResetUserMeta(GamebaseCallback.VoidDelegate callback)
         {
             UserLevel = 0;
             LevelUpTime = -1;
@@ -170,6 +197,7 @@ namespace Toast.Gamebase.Internal.Single
             ChannelId = string.Empty;
             CharacterId = string.Empty;
             CharacterClassId = string.Empty;
+            callback();
         }
     }
 }

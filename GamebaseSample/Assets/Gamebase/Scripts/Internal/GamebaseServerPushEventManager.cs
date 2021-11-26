@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal
 {

@@ -1,6 +1,5 @@
-﻿using System;
-using JetBrains.Annotations;
-using UnityEngine;
+﻿using JetBrains.Annotations;
+using System;
 
 namespace Toast.Internal
 {
@@ -63,7 +62,7 @@ namespace Toast.Internal
             }
             else
             {
-                ToastLog.Developer("Call : Fail\nCode : {0}\nMessage : {1}", 
+                ToastLog.Developer("Call : Fail\nCode : {0}\nMessage : {1}",
                     response.Result.Code,
                     response.Result.Message);
             }

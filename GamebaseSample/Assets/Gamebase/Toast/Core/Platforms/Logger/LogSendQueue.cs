@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
 using Toast.Internal;
+using UnityEngine;
 
 namespace Toast.Core
 {
@@ -53,22 +51,39 @@ namespace Toast.Core
         public bool EnqueueInFile()
         {
 #if UNITY_STANDALONE || UNITY_EDITOR 
-            //string firstFile = ToastFileManager.GetFirstFile(ToastLoggerCommonLogic.AppKey);
+            string firstFile = BackupLogManager.GetFirstFile(ToastInstanceLoggerCommonLogic.AppKey);
 
-            //if (!string.IsNullOrEmpty(firstFile))
-            //{
-            //    LogBulkData bulkLog = new LogBulkData();
+            if (!string.IsNullOrEmpty(firstFile))
+            {
+                LogBulkData bulkLog = new LogBulkData();
 
-            //    string[] subString = firstFile.Split('_');
-            //    bulkLog.CreateTime = long.Parse(subString[0]);
-            //    bulkLog.TransactionId = subString[1];
+                string fileName = firstFile.Substring(firstFile.LastIndexOf("\\", StringComparison.OrdinalIgnoreCase) + 1);
+                if (firstFile.LastIndexOf("\\", StringComparison.OrdinalIgnoreCase) == -1)
+                {
+                    fileName = firstFile.Substring(firstFile.LastIndexOf("/", StringComparison.OrdinalIgnoreCase) + 1);
+                }
+                string[] subString = fileName.Split('_');
+                long createTime;
 
-            //    string strLogContents = ToastFileManager.FileLoad(ToastLoggerCommonLogic.AppKey, bulkLog.CreateTime, bulkLog.TransactionId);
-            //    bulkLog.LogContents = strLogContents;
-            //    _queueBulkLog.Enqueue(bulkLog);
+                if (long.TryParse(subString[0], out createTime))
+                {
+                    bulkLog.CreateTime = createTime;
+                    bulkLog.TransactionId = subString[1];
 
-            //    return true;
-            //}
+                    string strLogContents = BackupLogManager.FileLoad(ToastInstanceLoggerCommonLogic.AppKey, bulkLog.CreateTime, bulkLog.TransactionId);
+                    BackupLogManager.FileDelete(ToastInstanceLoggerCommonLogic.AppKey, bulkLog.CreateTime, bulkLog.TransactionId);
+                    if (!string.IsNullOrEmpty(strLogContents))
+                    {
+                        bulkLog.LogContents = strLogContents;
+                        _queueBulkLog.Enqueue(bulkLog);
+                        return true;
+                    }
+                    return false;
+                }
+                 
+
+                return false;
+            }
 #endif
 
             return false;

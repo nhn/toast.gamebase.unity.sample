@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Toast.Internal
@@ -9,7 +7,7 @@ namespace Toast.Internal
     {
         private static string _language;
         private static string _sessionId;
-        private static string _launchedId;
+        private static string _launchedId; 
 
         public static string GetApplicationVersion()
         {
@@ -47,7 +45,7 @@ namespace Toast.Internal
 
         public static string GetCountryCode()
         {
-            return GetCountryCodeFromSystemLanguage(); 
+            return GetCountryCodeFromSystemLanguage();
         }
 
         public static string GetLanguageCodeFromSystemLanguage()
@@ -104,8 +102,8 @@ namespace Toast.Internal
                 case SystemLanguage.ChineseSimplified : _language = "zh"; break;
                 case SystemLanguage.ChineseTraditional : _language = "zh"; break;
 #endif
-                case SystemLanguage.Unknown : _language = "zz"; break;
-                case SystemLanguage.Hungarian : _language = "hu"; break;
+                case SystemLanguage.Unknown: _language = "zz"; break;
+                case SystemLanguage.Hungarian: _language = "hu"; break;
 
             }
 
@@ -181,6 +179,11 @@ namespace Toast.Internal
                 _sessionId = Guid.NewGuid().ToString();
             }
             return _sessionId;
+        }
+
+        public static string GetAuditKey()
+        {
+            return "6WYMWnQLwJwGjpot";
         }
     }
 }

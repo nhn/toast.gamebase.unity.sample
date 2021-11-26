@@ -25,5 +25,9 @@
         void AddServerPushEvent(int handle);
         void RemoveServerPushEvent();
         void RemoveAllServerPushEvent();
+
+        void AddEventHandler(int handle);
+        void RemoveEventHandler();
+        void RemoveAllEventHandler();
     }
 }

@@ -76,15 +76,19 @@ namespace Toast.Gamebase
         ///         {
         ///             Debug.Log("Initialization succeeded.");
         /// 
-        ///             var noticeMessage = launchingInfo.launching.notice.message;
-        ///             if (string.IsNullOrEmpty(noticeMessage) == false)
+        ///             //Following notices are registered in the Gamebase Console
+        ///             var notice = launchingInfo.launching.notice;
+        ///             if (notice != null)
         ///             {
-        ///                 Debug.Log(string.Format("Notice title:{0}", launchingInfo.launching.notice.title));
-        ///                 Debug.Log(string.Format("Notice message:{0}", noticeMessage));
-        ///                 Debug.Log(string.Format("Notice url:{0}", launchingInfo.launching.notice.url));
+        ///                 if (string.IsNullOrEmpty(notice.message) == false)
+        ///                 {
+        ///                     Debug.Log(string.Format("title:{0}", notice.title));
+        ///                     Debug.Log(string.Format("message:{0}", notice.message));
+        ///                     Debug.Log(string.Format("url:{0}", notice.url));
+        ///                 }
         ///             }
         /// 
-        ///             //Status information of game app version set in the Gamebase Unity SDK initialization.
+        ///             // Status information of game app version set in the Gamebase Unity SDK initialization.
         ///             var status = launchingInfo.launching.status;
         /// 
         ///             // Game status code (e.g. Under maintenance, Update is required, Service has been terminated)
@@ -115,6 +119,15 @@ namespace Toast.Gamebase
         ///         {
         ///             // Check the error code and handle the error appropriately.
         ///             Debug.Log(string.Format("Initialization failed. error is {0}", error));
+        ///             
+        ///             if (error.code == GamebaseErrorCode.LAUNCHING_UNREGISTERED_CLIENT)
+        ///             {
+        ///                 GamebaseResponse.Launching.UpdateInfo updateInfo = GamebaseResponse.Launching.UpdateInfo.From(error);
+        ///                 if (updateInfo != null)
+        ///                 {
+        ///                     // Update is require.
+        ///                 }
+        ///             }
         ///         }
         ///     });
         /// }
@@ -135,38 +148,39 @@ namespace Toast.Gamebase
         /// <example> 
         /// Example Usage : 
         /// <code>
-        /// public void InitializeWithConfigurationSample(
-        ///     string appID, string appVersion, 
-        ///     string displayLanguage, 
-        ///     bool enablePopup, 
-        ///     bool enableLaunchingStatusPopup, 
-        ///     bool enableBanPopup, 
-        ///     string storeCode, 
-        ///     string fcmSenderId)
+        /// public void InitializeWithConfigurationSample(string appID, string appVersion)
         /// {
         ///     var configuration = new GamebaseRequest.GamebaseConfiguration();
         ///     configuration.appID = appID;
         ///     configuration.appVersion = appVersion;
-        ///     configuration.zoneType = "real";
-        ///     configuration.displayLanguageCode = displayLanguage;
-        ///     configuration.enablePopup = enablePopup;
-        ///     configuration.enableLaunchingStatusPopup = enableLaunchingStatusPopup;
-        ///     configuration.enableBanPopup = enableBanPopup;
-        ///     configuration.storeCode = storeCode;
-        ///     configuration.fcmSenderId = fcmSenderId;
-        ///     
+        ///     configuration.displayLanguageCode = GamebaseDisplayLanguageCode.English;
+        /// #if UNITY_ANDROID
+        ///     configuration.storeCode = GamebaseStoreCode.GOOGLE;
+        /// #elif UNITY_IOS
+        ///     configuration.storeCode = GamebaseStoreCode.APPSTORE;
+        /// #elif UNITY_WEBGL
+        ///     configuration.storeCode = GamebaseStoreCode.WEBGL;
+        /// #elif UNITY_STANDALONE
+        ///     configuration.storeCode = GamebaseStoreCode.WINDOWS;
+        /// #else
+        ///     configuration.storeCode = GamebaseStoreCode.WINDOWS;
+        /// #endif
         ///     Gamebase.Initialize(configuration, (launchingInfo, error) =>
         ///     {
         ///         if (Gamebase.IsSuccess(error) == true)
         ///         {
         ///             Debug.Log("Initialization succeeded.");
         /// 
-        ///             var noticeMessage = launchingInfo.launching.notice.message;
-        ///             if (string.IsNullOrEmpty(noticeMessage) == false)
+        ///             //Following notices are registered in the Gamebase Console
+        ///             var notice = launchingInfo.launching.notice;
+        ///             if (notice != null)
         ///             {
-        ///                 Debug.Log(string.Format("Notice title:{0}", launchingInfo.launching.notice.title));
-        ///                 Debug.Log(string.Format("Notice message:{0}", noticeMessage));
-        ///                 Debug.Log(string.Format("Notice url:{0}", launchingInfo.launching.notice.url));
+        ///                 if (string.IsNullOrEmpty(notice.message) == false)
+        ///                 {
+        ///                     Debug.Log(string.Format("title:{0}", notice.title));
+        ///                     Debug.Log(string.Format("message:{0}", notice.message));
+        ///                     Debug.Log(string.Format("url:{0}", notice.url));
+        ///                 }
         ///             }
         /// 
         ///             //Status information of game app version set in the Gamebase Unity SDK initialization.
@@ -200,6 +214,15 @@ namespace Toast.Gamebase
         ///         {
         ///             // Check the error code and handle the error appropriately.
         ///             Debug.Log(string.Format("Initialization failed. error is {0}", error));
+        ///             
+        ///             if (error.code == GamebaseErrorCode.LAUNCHING_UNREGISTERED_CLIENT)
+        ///             {
+        ///                 GamebaseResponse.Launching.UpdateInfo updateInfo = GamebaseResponse.Launching.UpdateInfo.From(error);
+        ///                 if (updateInfo != null)
+        ///                 {
+        ///                     // Update is require.
+        ///                 }
+        ///             }
         ///         }
         ///     });
         /// }
@@ -211,222 +234,273 @@ namespace Toast.Gamebase
         }
 
         /// <summary>
-        /// Add a observer to be called when network status, launching status or user status is changed.
-        /// @since Added 1.8.0
+        /// Add a Gamebase event handler to be called when every events are arrived.
+        /// You have to convert the message data to VO below according to the category value.
+        ///  - GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT : GamebaseEventServerPushData
+        ///  - GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT : GamebaseEventServerPushData
+        ///  - GamebaseEventCategory.OBSERVER_LAUNCHING : GamebaseEventObserverData
+        ///  - GamebaseEventCategory.OBSERVER_HEARTBEAT : GamebaseEventObserverData
+        ///  - GamebaseEventCategory.OBSERVER_NETWORK : GamebaseEventObserverData
+        ///  - GamebaseEventCategory.OBSERVER_WEBVIEW : GamebaseEventObserverData
+        ///  - GamebaseEventCategory.OBSERVER_INTROSPECT : GamebaseEventObserverData
+        ///  - GamebaseEventCategory.PURCHASE_UPDATED : PurchasableReceipt
+        ///  - GamebaseEventCategory.PUSH_RECEIVED_MESSAGE : PushMessage
+        ///  - GamebaseEventCategory.PUSH_CLICK_MESSAGE : PushMessage
+        ///  - GamebaseEventCategory.PUSH_CLICK_ACTION : PushAction
+        ///  
+        /// SERVER_PUSH : Receive messages from the Gamebase server.
+        /// 
+        /// OBSERVER : This is an event that fires when the launch, login account(hearbeat), or network connection 'status changes', webview event, introspect fail event.
+        /// 
+        /// PURCHASE_UPDATED : Promotion payment events can be received.
+        /// 
+        /// PUSH_RECEIVED_MESSAGE : This event operates when a Push message is received. It has a 'isForeground' boolean value in the extras field.
+        /// 
+        /// PUSH_CLICK_MESSAGE : This event is executed when the Push message is clicked. Note that there is no 'isForeground' boolean value.
+        /// 
+        /// PUSH_CLICK_ACTION : This is an event that is triggered when the action button added through the rich message function is clicked.
+        /// @since Added 2.10.0
         /// </summary>
-        /// <param name="observer">The callback that will run.</param>
+        /// <param name="eventHandler">The callback that will run.</param>
         /// <example> 
         /// Example Usage : 
         /// <code>
-        /// private const string KEY_CODE = "code";
-        /// private const string KEY_MESSAGE = "message";
-        /// 
-        /// public void AddObserverSample()
+        /// public void AddEventHandlerSample()
         /// {
-        ///     Gamebase.AddObserver(GamebaseObserverHandler);
+        ///     Gamebase.AddEventHandler(GamebaseObserverHandler);
         /// }
         /// 
-        /// private void GamebaseObserverHandler(GamebaseResponse.SDK.ObserverMessage message)
+        /// private void GamebaseObserverHandler(GamebaseResponse.Event.GamebaseEventMessage message)
         /// {
-        ///     switch (message.type)
+        ///     switch (message.category)
         ///     {
-        ///         case GamebaseObserverType.LAUNCHING:
-        ///         {
-        ///             // Refer to GamebaseLaunchingStatus.
-        ///             int launchingStatus = GetDictionaryValue&lt;int>(message.data, KEY_CODE);
-        ///             string launghingMessage = GetDictionaryValue&lt;string>(message.data, KEY_MESSAGE);
-        ///
-        ///             Debug.Log(string.Format("Update launching status to {0}, message:{1}", launchingStatus, launghingMessage));
-        ///
-        ///             // You can check the changed launching status in here.
-        ///             switch (status.code)
+        ///         case GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT:
+        ///         case GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT:
         ///             {
-        ///                 case GamebaseLaunchingStatus.IN_SERVICE:
+        ///                 GamebaseResponse.Event.GamebaseEventServerPushData serverPushData = GamebaseResponse.Event.GamebaseEventServerPushData.From(message.data);
+        ///                 if (serverPushData != null)
         ///                 {
-        ///                     // Service is now normally provided.
-        ///                     break;
+        ///                     CheckServerPush(message.category, serverPushData);
         ///                 }
-        ///                 // ... 
-        ///                 case GamebaseLaunchingStatus.INTERNAL_SERVER_ERROR:
-        ///                 {
-        ///                     // Error in internal server.
-        ///                     break;
-        ///                 }
+        ///                 break;
         ///             }
-        ///
-        ///             break;
-        ///         }
-        ///         case GamebaseObserverType.HEARTBEAT:
-        ///         {
-        ///             int heartbeatCode = GetDictionaryValue&lt;int>(message.data, KEY_CODE);
-        ///
-        ///             switch (heartbeatCode)
+        ///         case GamebaseEventCategory.OBSERVER_LAUNCHING:
         ///             {
-        ///                 case GamebaseErrorCode.INVALID_MEMBER:
+        ///                 GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+        ///                 if(observerData != null)
         ///                 {
-        ///                     Debug.Log("Invalid member");
-        ///                     // You should to write the code necessary in game. (End the session.)
-        ///                     break;
+        ///                     CheckLaunchingStatus(observerData);
         ///                 }
-        ///                 case GamebaseErrorCode.BANNED_MEMBER:
-        ///                 {
-        ///                     Debug.Log("Banned member");
-        ///                     // The ban information can be found by using the GetBanInfo API.
-        ///                     // Show kickout message to user and need kickout in game.
-        ///                     break;
-        ///                 }
-        ///                 default:
-        ///                 {
-        ///                     GamebaseLog.Debug(string.Format("The heartbeat status has been changed to {0}", heartbeatCode), this, "CheckHeartbeat");
-        ///                     break;
-        ///                 }
+        ///                 break;
         ///             }
-        ///
-        ///             break;
-        ///         }
-        ///         case GamebaseObserverType.NETWORK:
-        ///         {
-        ///             //Refer to GamebaseNetworkType.
-        ///             int networkStatus = GetDictionaryValue&lt;int>(message.data, KEY_CODE);
-        ///             string networkType = GetDictionaryValue&lt;string>(message.data, KEY_MESSAGE);
-        ///
-        ///             Debug.Log(string.Format("The network type has been changed to {0}, network status is {1}", networkType, networkStatus));
-        ///
-        ///             break;
-        ///         }
+        ///         case GamebaseEventCategory.OBSERVER_NETWORK:
+        ///             {
+        ///                 GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+        ///                 if (observerData != null)
+        ///                 {
+        ///                     CheckNetwork(observerData);
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.OBSERVER_HEARTBEAT:
+        ///             {
+        ///                 GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+        ///                 if (observerData != null)
+        ///                 {
+        ///                     CheckHeartbeat(observerData);
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.OBSERVER_WEBVIEW:
+        ///             {
+        ///                 GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+        ///                 if (observerData != null)
+        ///                 {
+        ///                     CheckWebView(observerData);
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.OBSERVER_INTROSPECT:
+        ///             {
+        ///                 // Introspect error
+        ///                 GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+        ///                 int errorCode = observerData.code;
+        ///                 string errorMessage = observerData.message;
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.PURCHASE_UPDATED:
+        ///             {
+        ///                 GamebaseResponse.Event.PurchasableReceipt purchasableReceipt = GamebaseResponse.Event.PurchasableReceipt.From(message.data);
+        ///                 if (purchasableReceipt != null)
+        ///                 {
+        ///                     // If the user got item by 'Promotion Code',
+        ///                     // this event will be occurred.
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.PUSH_RECEIVED_MESSAGE:
+        ///             {
+        ///                 GamebaseResponse.Event.PushMessage pushMessage = GamebaseResponse.Event.PushMessage.From(message.data);
+        ///                 if (pushMessage != null)
+        ///                 {
+        ///                     // When you received push message.
+        ///                     
+        ///                     // By converting the extras field of the push message to JSON,
+        ///                     // you can get the custom information added by the user when sending the push.
+        ///                     // (For Android, an 'isForeground' field is included so that you can check if received in the foreground state.
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.PUSH_CLICK_MESSAGE:
+        ///             {
+        ///                 GamebaseResponse.Event.PushMessage pushMessage = GamebaseResponse.Event.PushMessage.From(message.data);
+        ///                 if (pushMessage != null)
+        ///                 {
+        ///                     // When you clicked push message.
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.PUSH_CLICK_ACTION:
+        ///             {
+        ///                 GamebaseResponse.Event.PushAction pushAction = GamebaseResponse.Event.PushAction.From(message.data);
+        ///                 if (pushAction != null)
+        ///                 {
+        ///                     // When you clicked action button by 'Rich Message'.
+        ///                 }
+        ///                 break;
+        ///             }
         ///     }
         /// }
         /// 
-        /// private T GetDictionaryValue&lt;T>(Dictionary&lt;string, object> dictionary, string key)
+        /// private void CheckServerPush(string category, GamebaseResponse.Event.GamebaseEventServerPushData data)
         /// {
-        ///     if (dictionary.ContainsKey(key) == true)
+        ///     if (category.Equals(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT) == true)
         ///     {
-        ///         return (T)Convert.ChangeType(dictionary[key], typeof(T));
+        ///         // Kicked out from Gamebase server.(Maintenance, banned or etc.)
+        ///         // Return to title and initialize Gamebase again.
         ///     }
-        ///     else
+        ///     else if (category.Equals(GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT) == true)
         ///     {
-        ///         return default(T);
+        ///         // If the user wants to move the guest account to another device,
+        ///         // if the account transfer is successful,
+        ///         // the login of the previous device is released,
+        ///         // so go back to the title and try to log in again.
         ///     }
-        /// }
-        /// </code>
-        /// </example>
-        public static void AddObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
-        {
-            GamebaseImplementation.Instance.AddObserver(observer);
-        }
-
-        /// <summary>
-        /// Remove a observer listener.
-        /// @since Added 1.8.0
-        /// </summary>
-        /// <param name="observer">The callback that will run.</param>
-        /// <example> 
-        /// Example Usage : 
-        /// <code>
-        /// public void RemoveObserverSample(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
-        /// {
-        ///     Gamebase.RemoveObserver(observer);
-        /// }
-        /// </code>
-        /// </example>
-        public static void RemoveObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
-        {
-            GamebaseImplementation.Instance.RemoveObserver(observer);
-        }
-
-        /// <summary>
-        /// Remove all observer listener.
-        /// @since Added 1.8.0
-        /// </summary>
-        /// <example> 
-        /// Example Usage : 
-        /// <code>
-        /// public void RemoveAllObserverSample()
-        /// {
-        ///     Gamebase.RemoveAllObserver();
-        /// }
-        /// </code>
-        /// </example>
-        public static void RemoveAllObserver()
-        {
-            GamebaseImplementation.Instance.RemoveAllObserver();
-        }
-
-        /// <summary>
-        /// Add a server push event listener to be called when server push message is arrived.
-        /// @since Added 1.8.0
-        /// </summary>
-        /// <param name="serverPushEvent">The callback that will run.</param>
-        /// <example> 
-        /// Example Usage : 
-        /// <code>
-        /// public void AddServerPushEventSample()
-        /// {
-        ///     Gamebase.AddServerPushEvent(GamebaseServerPushHandler);
         /// }
         /// 
-        /// private void GamebaseServerPushHandler(GamebaseResponse.SDK.ServerPushMessage message)
+        /// private void CheckLaunchingStatus(GamebaseResponse.Event.GamebaseEventObserverData observerData)
         /// {
-        ///     switch (message.type)
+        ///     switch (observerData.code)
         ///     {
-        ///         case GamebaseServerPushType.APP_KICKOUT:
-        ///         {
-        ///             Debug.Log("APP_KICKOUT");
-        ///
-        ///             // Show kickout message to user and need kickout in game.
-        ///             break;
-        ///         }
-        ///         case GamebaseServerPushType.TRANSFER_KICKOUT:
-        ///         {
-        ///             Debug.Log("TRANSFER_KICKOUT");
-        ///
-        ///             // Show kickout message to user and need kickout in game.
-        ///             break;
-        ///         }
+        ///         case GamebaseLaunchingStatus.IN_SERVICE:
+        ///             {
+        ///                 // Service is now normally provided.
+        ///                 break;
+        ///             }
+        ///         // ... 
+        ///         case GamebaseLaunchingStatus.INTERNAL_SERVER_ERROR:
+        ///             {
+        ///                 // Error in internal server.
+        ///                 break;
+        ///             }
+        ///     }
+        /// }
+        /// 
+        /// private void CheckNetwork(GamebaseResponse.Event.GamebaseEventObserverData observerData)
+        /// {
+        ///     switch ((GamebaseNetworkType)observerData.code)
+        ///     {
+        ///         case GamebaseNetworkType.TYPE_NOT:
+        ///             {
+        ///                 // Network disconnected.
+        ///                 break;
+        ///             }
+        ///         case GamebaseNetworkType.TYPE_MOBILE:
+        ///         case GamebaseNetworkType.TYPE_WIFI:
+        ///         case GamebaseNetworkType.TYPE_ANY:
+        ///             {
+        ///                 // Network connected.
+        ///                 break;
+        ///             }
+        ///     }
+        /// }
+        /// 
+        /// private void CheckHeartbeat(GamebaseResponse.Event.GamebaseEventObserverData observerData)
+        /// {
+        ///     switch (observerData.code)
+        ///     {
+        ///         case GamebaseErrorCode.INVALID_MEMBER:
+        ///             {
+        ///                 // You can check the invalid user session in here.
+        ///                 // ex) After transferred account to another device.
+        ///                 break;
+        ///             }
+        ///         case GamebaseErrorCode.BANNED_MEMBER:
+        ///             {
+        ///                 // You can check the banned user session in here.
+        ///                 break;
+        ///             }
+        ///     }
+        /// }
+        /// 
+        /// private void CheckWebView(GamebaseResponse.Event.GamebaseEventObserverData observerData)
+        /// {
+        ///     switch (observerData.code)
+        ///     {
+        ///         case GamebaseWebViewEventType.OPENED:
+        ///             {
+        ///                 // WebView opened.
+        ///                 break;
+        ///             }
+        ///         case GamebaseWebViewEventType.CLOSED:
+        ///             {
+        ///                 // WebView closed.
+        ///                 break;
+        ///             }
         ///     }
         /// }
         /// </code>
         /// </example>
-        public static void AddServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
+        public static void AddEventHandler(GamebaseCallback.DataDelegate<GamebaseResponse.Event.GamebaseEventMessage> eventHandler)
         {
-            GamebaseImplementation.Instance.AddServerPushEvent(serverPushEvent);
+            GamebaseImplementation.Instance.AddEventHandler(eventHandler);
         }
 
         /// <summary>
-        /// Remove a server push event listener.
-        /// @since Added 1.8.0
+        /// Remove a event handler.
+        /// @since Added 2.10.0
         /// </summary>
-        /// <param name="serverPushEvent">The callback that will run.</param>
+        /// <param name="eventHandler">The callback that will run.</param>
         /// <example> 
         /// Example Usage : 
         /// <code>
-        /// public void RemoveServerPushEventSample(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
+        /// public void RemoveEventHandlerSample(GamebaseCallback.DataDelegate<GamebaseResponse.Event.GamebaseEventMessage> eventHandler)
         /// {
-        ///     Gamebase.RemoveServerPushEvent(serverPushEvent);
+        ///     Gamebase.RemoveEventHandler(eventHandler);
         /// }        
         /// </code>
         /// </example>
-        public static void RemoveServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
+        public static void RemoveEventHandler(GamebaseCallback.DataDelegate<GamebaseResponse.Event.GamebaseEventMessage> eventHandler)
         {
-            GamebaseImplementation.Instance.RemoveServerPushEvent(serverPushEvent);
+            GamebaseImplementation.Instance.RemoveEventHandler(eventHandler);
         }
 
         /// <summary>
-        /// Remove all server push event listeners.
-        /// @since Added 1.8.0
+        /// Remove all event handler.
+        /// @since Added 2.10.0
         /// </summary>
         /// <example> 
         /// Example Usage : 
         /// <code>
-        /// public void RemoveAllServerPushEventSample()
+        /// public void RemoveAllEventHandlerSample()
         /// {
-        ///     Gamebase.RemoveAllServerPushEvent();
+        ///     Gamebase.RemoveAllEventHandler();
         /// }  
         /// </code>
         /// </example>
-        public static void RemoveAllServerPushEvent()
+        public static void RemoveAllEventHandler()
         {
-            GamebaseImplementation.Instance.RemoveAllServerPushEvent();
+            GamebaseImplementation.Instance.RemoveAllEventHandler();
         }
 
         /// <summary>
@@ -445,13 +519,28 @@ namespace Toast.Gamebase
         ///     {
         ///         if (Gamebase.IsSuccess(error) == true)
         ///         {
-        ///             string userId = authToken.member.userId;
-        ///             Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
+        ///             if(authToken.member.temporaryWithdrawal != null)
+        ///             {
+        ///                 long gracePeriodDate = authToken.member.temporaryWithdrawal.gracePeriodDate;
+        ///                 Debug.Log(string.Format("User is under temporary withdrawa. GracePeriodDate : {0}", error));
+        ///             }            
+        ///             else
+        ///             {
+        ///                 string userId = authToken.member.userId;
+        ///                 Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
+        ///             }
         ///         }
         ///         else
         ///         {
         ///             // Check the error code and handle the error appropriately.
         ///             Debug.Log(string.Format("Login failed. error is {0}", error));
+        ///             if (error.code == GamebaseErrorCode.BANNED_MEMBER)
+        ///             {
+        ///                 GamebaseResponse.Auth.BanInfo banInfo = GamebaseResponse.Auth.BanInfo.From(error);
+        ///                 if (banInfo != null)
+        ///                 {
+        ///                 }
+        ///             }
         ///         }
         ///     });
         /// }
@@ -489,13 +578,28 @@ namespace Toast.Gamebase
         ///     {
         ///         if (Gamebase.IsSuccess(error) == true)
         ///         {
-        ///             string userId = authToken.member.userId;
-        ///             Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
+        ///             if(authToken.member.temporaryWithdrawal != null)
+        ///             {
+        ///                 long gracePeriodDate = authToken.member.temporaryWithdrawal.gracePeriodDate;
+        ///                 Debug.Log(string.Format("User is under temporary withdrawa. GracePeriodDate : {0}", error));
+        ///             }            
+        ///             else
+        ///             {
+        ///                 string userId = authToken.member.userId;
+        ///                 Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
+        ///             }
         ///         }
         ///         else
         ///         {
         ///             // Check the error code and handle the error appropriately.
         ///             Debug.Log(string.Format("Login failed. error is {0}", error));
+        ///             if (error.code == GamebaseErrorCode.BANNED_MEMBER)
+        ///             {
+        ///                 GamebaseResponse.Auth.BanInfo banInfo = GamebaseResponse.Auth.BanInfo.From(error);
+        ///                 if (banInfo != null)
+        ///                 {
+        ///                 }
+        ///             }
         ///         }
         ///     });
         /// }
@@ -531,13 +635,28 @@ namespace Toast.Gamebase
         ///     {
         ///         if (Gamebase.IsSuccess(error) == true)
         ///         {
-        ///             string userId = authToken.member.userId;
-        ///             Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
+        ///             if(authToken.member.temporaryWithdrawal != null)
+        ///             {
+        ///                 long gracePeriodDate = authToken.member.temporaryWithdrawal.gracePeriodDate;
+        ///                 Debug.Log(string.Format("User is under temporary withdrawa. GracePeriodDate : {0}", error));
+        ///             }            
+        ///             else
+        ///             {
+        ///                 string userId = authToken.member.userId;
+        ///                 Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
+        ///             }
         ///         }
         ///         else
         ///         {
         ///             // Check the error code and handle the error appropriately.
         ///             Debug.Log(string.Format("Login failed. error is {0}", error));
+        ///             if (error.code == GamebaseErrorCode.BANNED_MEMBER)
+        ///             {
+        ///                 GamebaseResponse.Auth.BanInfo banInfo = GamebaseResponse.Auth.BanInfo.From(error);
+        ///                 if (banInfo != null)
+        ///                 {
+        ///                 }
+        ///             }
         ///         }
         ///     });
         /// }
@@ -564,7 +683,16 @@ namespace Toast.Gamebase
         ///     {
         ///         if (Gamebase.IsSuccess(error) == true)
         ///         {
-        ///             Debug.Log("LoginForLastLoggedInProvider succeeded.");
+        ///             if(authToken.member.temporaryWithdrawal != null)
+        ///             {
+        ///                 long gracePeriodDate = authToken.member.temporaryWithdrawal.gracePeriodDate;
+        ///                 Debug.Log(string.Format("User is under temporary withdrawa. GracePeriodDate : {0}", error));
+        ///             }            
+        ///             else
+        ///             {
+        ///                 string userId = authToken.member.userId;
+        ///                 Debug.Log(string.Format("LoginForLastLoggedInProvider succeeded. Gamebase userId is {0}", userId));
+        ///             }
         ///         }
         ///         else
         ///         {
@@ -605,6 +733,70 @@ namespace Toast.Gamebase
             GamebaseAuthImplementation.Instance.LoginForLastLoggedInProvider(callback);
         }
 
+        /// <summary>
+        /// Change logged in account with ForcingMappingTicket.
+        /// @since Added 2.30.0.
+        /// </summary>
+        /// <param name="forcingMappingTicket">The mapping information which is necessary to log in another account.</param>
+        /// <param name="callback">Resume mapping result callback, returns the authentication token as a result of mapping.</param>
+        /// <example> 
+        /// Example Usage : 
+        /// <code>
+        /// public void ChangeLoginSample()
+        /// {
+        ///     Gamebase.AddMapping(GamebaseAuthProvider.XXX, (authToken, error) =>
+        ///     {
+        ///         if (Gamebase.IsSuccess(error) == true)
+        ///         {
+        ///             // AddMapping succeeded.
+        ///         }
+        ///         else
+        ///         {
+        ///             // If you got this error code(AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) that means this user already has another account of the AuthProvider.XXX),
+        ///             // You can call this method, Gamebase.addMappingForcibly() which can try to map forcibly with the AuthProvider.XXX.
+        ///             if (error.code.Equals(GamebaseErrorCode.AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) == true)
+        ///             {
+        ///                 // Before calling the mapping forcibly api, You should get this ForcingMappingTicket for this method parameter.
+        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
+        /// 
+        ///                 if (forcingMappingTicket == null)
+        ///                 {
+        ///                     // Unexpected error occurred. Contact Administrator.
+        ///                 }
+        /// 
+        ///                 // Try to change log in account with the ForcingMappingTicket.
+        ///                 Gamebase.ChangeLogin(forcingMappingTicket, (innerAuthToken, innerError) =>
+        ///                 {
+        ///                     if (Gamebase.IsSuccess(innerError) == true)
+        ///                     {
+        ///                         // Log in account changed successfully.
+        ///                         string userId = innerAuthToken.member.userId;
+        ///                         Debug.Log(string.Format("ChangeLogin succeeded. Gamebase userId is {0}", userId));
+        ///                     }
+        ///                     else
+        ///                     {
+        ///                         // Change login failed.
+        ///                         // The UserID will not changed.
+        ///                         Debug.Log(string.Format("ChangeLogin failed. error is {0}", innerError));
+        ///                     }
+        ///                 });
+        ///             }
+        ///             else
+        ///             {
+        ///                 // Add Mapping Forcibly Failed.
+        ///                 // Check the error code and handle the error appropriately.
+        ///                 Debug.Log(string.Format("AddMapping failed. error is {0}", error));
+        ///             }
+        ///         }
+        ///     });
+        /// }
+        /// </code>
+        /// </example>
+        public static void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
+            GamebaseAuthImplementation.Instance.ChangeLogin(forcingMappingTicket, callback);
+        }
+        
         /// <summary>
         /// Try to log out from logged-in IdP. In many cases, the logout button is located on the game configuration screen. 
         /// Even if a logout is successful, a game user's data remain. 
@@ -653,7 +845,7 @@ namespace Toast.Gamebase
         /// {
         ///     Gamebase.Withdraw((error) =>
         ///     {
-        ///         if (Gamebase.IsSuccess(error))
+        ///         if (Gamebase.IsSuccess(error) == true)
         ///         {
         ///             Debug.Log("Withdraw succeeded.");
         ///         }
@@ -670,7 +862,7 @@ namespace Toast.Gamebase
         {
             GamebaseAuthImplementation.Instance.Withdraw(callback);
         }
-
+        
         /// <summary>
         /// Try mapping to another IdP while logged-in to a specific IdP. 
         /// If an IdP account to map has already been integrated to another account, return the AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER (3302) error.
@@ -842,7 +1034,7 @@ namespace Toast.Gamebase
         ///             if (error.code.Equals(GamebaseErrorCode.AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) == true)
         ///             {
         ///                 // Before calling the mapping forcibly api, You should get this ForcingMappingTicket and ForcingMappingKey string for this method parameter.
-        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.MakeForcingMappingTicket(error);
+        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
         /// 
         ///                 if (forcingMappingTicket == null)
         ///                 {
@@ -905,7 +1097,7 @@ namespace Toast.Gamebase
         ///             if (error.code.Equals(GamebaseErrorCode.AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) == true)
         ///             {
         ///                 // Before calling the mapping forcibly api, You should get this ForcingMappingTicket and ForcingMappingKey string for this method parameter.
-        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.MakeForcingMappingTicket(error);
+        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
         /// 
         ///                 if (forcingMappingTicket == null)
         ///                 {
@@ -967,7 +1159,7 @@ namespace Toast.Gamebase
         ///             if (error.code.Equals(GamebaseErrorCode.AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) == true)
         ///             {
         ///                 // Before calling the mapping forcibly api, You should get this ForcingMappingTicket and ForcingMappingKey string for this method parameter.
-        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.MakeForcingMappingTicket(error);
+        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
         /// 
         ///                 if (forcingMappingTicket == null)
         ///                 {
@@ -1004,6 +1196,68 @@ namespace Toast.Gamebase
             GamebaseAuthImplementation.Instance.AddMappingForcibly(credentialInfo, forcingMappingKey, callback);
         }
 
+        /// <summary>
+        /// Forcibly trying to map the currently authenticated user identifier of Gamebase with the credential of external authentication provider.
+        /// @since Added 2.30.0.
+        /// </summary>
+        /// <param name="forcingMappingTicket">The mapping information which is necessary to map forcibly with the provider that is already mappped with another account.</param>
+        /// <param name="callback">Mapping result callback, returns the authentication token as a result of mapping.</param>
+        /// <example> 
+        /// Example Usage : 
+        /// <code>
+        /// public void AddMappingForciblySample()
+        /// {
+        ///     Gamebase.AddMapping(GamebaseAuthProvider.XXX, (authToken, error) =>
+        ///     {
+        ///         if (Gamebase.IsSuccess(error) == true)
+        ///         {
+        ///             // AddMapping succeeded.
+        ///         }
+        ///         else
+        ///         {
+        ///             // If you got this error code(AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) that means this user already has another account of the AuthProvider.XXX),
+        ///             // You can call this method, Gamebase.addMappingForcibly() which can try to map forcibly with the AuthProvider.XXX.
+        ///             if (error.code.Equals(GamebaseErrorCode.AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) == true)
+        ///             {
+        ///                 // Before calling the mapping forcibly api, You should get this ForcingMappingTicket and ForcingMappingKey string for this method parameter.
+        ///                 GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
+        /// 
+        ///                 if (forcingMappingTicket == null)
+        ///                 {
+        ///                     // Unexpected error occurred. Contact Administrator.
+        ///                 }
+        /// 
+        ///                 // Try to add mapping forcibly with the ForcingMappingTicket.
+        ///                 Gamebase.AddMappingForcibly(forcingMappingTicket, (innerAuthToken, innerError) =>
+        ///                 {
+        ///                     if (Gamebase.IsSuccess(innerError) == true)
+        ///                     {
+        ///                         string userId = innerAuthToken.member.userId;
+        ///                         Debug.Log(string.Format("AddMappingForcibly succeeded. Gamebase userId is {0}", userId));
+        ///                     }
+        ///                     else
+        ///                     {
+        ///                         // Check the error code and handle the error appropriately.
+        ///                         Debug.Log(string.Format("AddMappingForcibly failed. error is {0}", innerError));
+        ///                     }
+        ///                 });
+        ///             }
+        ///             else
+        ///             {
+        ///                 // Add Mapping Forcibly Failed.
+        ///                 // Check the error code and handle the error appropriately.
+        ///                 Debug.Log(string.Format("AddMapping failed. error is {0}", error));
+        ///             }
+        ///         }
+        ///     });
+        /// }
+        /// </code>
+        /// </example>
+        public static void AddMappingForcibly(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
+            GamebaseAuthImplementation.Instance.AddMappingForcibly(forcingMappingTicket, callback);
+        }
+        
         /// <summary>
         /// Forcibly trying to map the currently authenticated user identifier of Gamebase with the credential of external authentication provider.
         /// Remove mapping with a specific IdP. 
@@ -1198,7 +1452,20 @@ namespace Toast.Gamebase
         ///         else
         ///         {
         ///             // Check the error code and handle the error appropriately.
-        ///             Debug.Log(string.Format("TransferAccountWithIdPLogin failed. error is {0}", error));
+        ///             var log = new StringBuilder();
+        ///             log.AppendLine(string.Format("TransferAccountWithIdPLogin failed. error is {0}", error));
+        ///             
+        ///             if (error.code == GamebaseErrorCode.AUTH_TRANSFERACCOUNT_BLOCK)
+        ///             {
+        ///                 GamebaseResponse.Auth.TransferAccountFailInfo transferAccountFailInfo = GamebaseResponse.Auth.TransferAccountFailInfo.From(error);
+        ///                 if (transferAccountFailInfo != null)
+        ///                 {
+        ///                     log.AppendLine("---TransferAccountFailInfo---");
+        ///                     log.AppendLine(GamebaseJsonUtil.ToPrettyJsonString(transferAccountFailInfo));
+        ///                 }
+        ///             }
+        ///             
+        ///             Debug.Log(log);
         ///         }
         ///     });
         /// }
@@ -1240,6 +1507,7 @@ namespace Toast.Gamebase
         /// public void GetAuthProviderUserIDSample(string providerName)
         /// {
         ///     string authProviderUserID = Gamebase.GetAuthProviderUserID(providerName);
+        ///     Debug.Log(string.Format("authProviderUserID:{0}", authProviderUserID));
         /// }
         /// </code>
         /// </example>
@@ -1260,6 +1528,7 @@ namespace Toast.Gamebase
         /// public void GetAuthProviderAccessTokenSample(string providerName)
         /// {
         ///     string authProviderAccessToken = Gamebase.GetAuthProviderAccessToken(providerName);
+        ///     Debug.Log(string.Format("authProviderAccessToken:{0}", authProviderAccessToken));
         /// }
         /// </code>
         /// </example>
@@ -1279,79 +1548,13 @@ namespace Toast.Gamebase
         /// <code>
         /// public void GetAuthProviderProfileSample(string providerName)
         /// {
-        ///     GamebaseRequest.AuthProviderProfile profile = Gamebase.GetAuthProviderProfile(providerName);
+        ///     GamebaseResponse.Auth.AuthProviderProfile profile = Gamebase.GetAuthProviderProfile(providerName);
         /// }
         /// </code>
         /// </example>
         public static GamebaseResponse.Auth.AuthProviderProfile GetAuthProviderProfile(string providerName)
         {
             return GamebaseAuthImplementation.Instance.GetAuthProviderProfile(providerName);
-        }
-
-        /// <summary>
-        /// For a banned user registered at Gamebase Console, restricted use of information code (AUTH_BANNED_MEMBER(3005)) can be displayed as below, when trying login. The ban information can be found by using the API as below.
-        /// @since Added 1.4.0.
-        /// </summary>
-        /// <returns>The ban information of the suspended user.</returns>
-        /// <example> 
-        /// Example Usage : 
-        /// <code>
-        /// public void GetBanInfoSample()
-        /// {
-        ///     Gamebase.Login(GamebaseAuthProvider.XXX, (authToken, error) =>
-        ///     {
-        ///         if (Gamebase.IsSuccess(error) == true)
-        ///         {
-        ///             string userId = authToken.member.userId;
-        ///             Debug.Log(string.Format("Login succeeded. Gamebase userId is {0}", userId));
-        ///         }
-        ///         else
-        ///         {
-        ///             if (error.code == GamebaseErrorCode.BANNED_MEMBER)
-        ///             {
-        ///                 GamebaseResponse.Auth.BanInfo banInfo = Gamebase.GetBanInfo();
-        /// 
-        ///                 string userId = banInfo.userId;
-        ///                 // PERMANENT or TEMPORARY
-        ///                 string banType = banInfo.banType;
-        ///                 long beginDate = banInfo.beginDate;
-        ///                 long endDate = banInfo.endDate;
-        ///                 string message = banInfo.message;
-        ///                 // Customer center email or contact
-        ///                 string csInfo = banInfo.csInfo;
-        ///                 // Customer center Url
-        ///                 string csUrl = banInfo.csUrl;
-        /// 
-        ///                 var msg = new StringBuilder();
-        ///                 msg.AppendLine(string.Format("User ID:{0}", userId));
-        ///                 if (banType.Equals("PERMANENT") == true)
-        ///                 {
-        ///                     msg.AppendLine("Permanently banned.");
-        ///                 }
-        ///                 else
-        ///                 {
-        ///                     msg.AppendLine(string.Format(
-        ///                         "Temporary banned:{0} ~ {1}",
-        ///                         new DateTime(1970, 1, 1).AddHours(9).AddMilliseconds(beginDate).ToString(),
-        ///                         new DateTime(1970, 1, 1).AddHours(9).AddMilliseconds(endDate).ToString()));
-        ///                 }
-        ///                 msg.AppendLine(string.Format("Reason:{0}", message));
-        ///                 msg.AppendLine(string.Format("Customer center email or contact:{0}", csInfo));
-        ///                 msg.AppendLine(string.Format("Customer center:{0}", csUrl));
-        ///                 Debug.Log(msg);
-        /// 
-        ///                 return;
-        ///             }
-        /// 
-        ///             // Check the error code and handle the error appropriately.
-        ///             Debug.Log(string.Format("Login failed. error is {0}", error));
-        ///         }
-        ///     });
-        /// }
-        /// </code>
-        public static GamebaseResponse.Auth.BanInfo GetBanInfo()
-        {
-            return GamebaseAuthImplementation.Instance.GetBanInfo();
         }
 
         /// <summary>
@@ -1365,6 +1568,7 @@ namespace Toast.Gamebase
         /// public void GetSDKVersionSample()
         /// {
         ///     string sdkVersion = Gamebase.GetSDKVersion();
+        ///     Debug.Log(string.Format("sdkVersion:{0}", sdkVersion));
         /// }
         /// </code>
         /// </example>
@@ -1384,6 +1588,7 @@ namespace Toast.Gamebase
         /// public void GetUserIDSample()
         /// {
         ///     string userID = Gamebase.GetUserID();
+        ///     Debug.Log(string.Format("userID:{0}", userID));
         /// }
         /// </code>
         /// </example>
@@ -1403,6 +1608,7 @@ namespace Toast.Gamebase
         /// public void GetAccessTokenSample()
         /// {
         ///     string accessToken = Gamebase.GetAccessToken();
+        ///     Debug.Log(string.Format("accessToken:{0}", accessToken));
         /// }
         /// </code>
         /// </example>
@@ -1422,6 +1628,7 @@ namespace Toast.Gamebase
         /// public void GetLastLoggedInProviderSample()
         /// {
         ///     string lastLoggedInProvider = Gamebase.GetLastLoggedInProvider();
+        ///     Debug.Log(string.Format("lastLoggedInProvider:{0}", lastLoggedInProvider));
         /// } 
         /// </code>
         /// </example>
@@ -1441,7 +1648,8 @@ namespace Toast.Gamebase
         /// public void GetDeviceLanguageCodeSample()
         /// {
         ///     string languageCode = Gamebase.GetDeviceLanguageCode();
-        /// } 
+        ///     Debug.Log(string.Format("languageCode:{0}", languageCode));
+        /// }
         /// </code>
         /// </example>                 
         public static string GetDeviceLanguageCode()
@@ -1460,7 +1668,8 @@ namespace Toast.Gamebase
         /// public void GetCarrierCodeSample()
         /// {
         ///     string carrierCode = Gamebase.GetCarrierCode();
-        /// } 
+        ///     Debug.Log(string.Format("carrierCode:{0}", carrierCode));
+        /// }
         /// </code>
         /// </example>
         public static string GetCarrierCode()
@@ -1479,6 +1688,7 @@ namespace Toast.Gamebase
         /// public void GetCarrierNameSample()
         /// {
         ///     string carrierName = Gamebase.GetCarrierName();
+        ///     Debug.Log(string.Format("carrierName:{0}", carrierName));
         /// }  
         /// </code>
         /// </example>
@@ -1500,6 +1710,7 @@ namespace Toast.Gamebase
         /// public void GetCountryCodeSample()
         /// {
         ///     string countryCode = Gamebase.GetCountryCode();
+        ///     Debug.Log(string.Format("countryCode:{0}", countryCode));
         /// }
         /// </code>
         /// </example>
@@ -1519,6 +1730,7 @@ namespace Toast.Gamebase
         /// public void GetCountryCodeOfUSIMSample()
         /// {
         ///     string countryCodeOfUSIM = Gamebase.GetCountryCodeOfUSIM();
+        ///     Debug.Log(string.Format("countryCodeOfUSIM:{0}", countryCodeOfUSIM));
         /// }
         /// </code>
         /// </example>
@@ -1538,6 +1750,7 @@ namespace Toast.Gamebase
         /// public void GetCountryCodeOfDeviceSample()
         /// {
         ///     string countryCodeOfDevice = Gamebase.GetCountryCodeOfDevice();
+        ///     Debug.Log(string.Format("countryCodeOfDevice:{0}", countryCodeOfDevice));
         /// }
         /// </code>
         /// </example>
@@ -1557,6 +1770,7 @@ namespace Toast.Gamebase
         /// public void IsSandboxSample()
         /// {
         ///     bool isSandbox = Gamebase.IsSandbox();
+        ///     Debug.Log(string.Format("isSandbox:{0}", isSandbox));
         /// }
         /// </code>
         /// </example>
@@ -1595,6 +1809,7 @@ namespace Toast.Gamebase
         /// public void GetDisplayLanguageCodeSample()
         /// {
         ///     string displayLanguage = Gamebase.GetDisplayLanguageCode();
+        ///     Debug.Log(string.Format("displayLanguage:{0}", displayLanguage));
         /// }
         /// </code>
         /// </example>
@@ -1639,6 +1854,7 @@ namespace Toast.Gamebase
             /// public void GetLaunchingStatusSample()
             /// {
             ///     int launchingStatus = Gamebase.Launching.GetLaunchingStatus();
+            ///     Debug.Log(string.Format("launchingStatus:{0}", launchingStatus));
             /// }
             /// </code>
             /// </example>
@@ -1709,6 +1925,111 @@ namespace Toast.Gamebase
             }
 
             /// <summary>
+            /// Call following API of an item to purchase by using gamebaseProductId to send a purchase request. 
+            /// When a game user cancels purchasing, the PURCHASE_USER_CANCELED error will be returned.
+            /// @since Added 2.11.0.
+            /// </summary>
+            /// <param name="gamebaseProductId">Represent to gamebase product ID.</param>
+            /// <param name="callback">Callback pass to API result.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void RequestPurchaseSample(string gamebaseProductId)
+            /// {
+            ///     Gamebase.Purchase.RequestPurchase(gamebaseProductId, (purchasableReceipt, error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             var message = new StringBuilder();
+            ///             message.AppendLine("RequestPurchase succeeded.");
+            ///             message.AppendLine(string.Format("itemSeq:{0}", purchasableReceipt.itemSeq));
+            ///             message.AppendLine(string.Format("price:{0}", purchasableReceipt.price));
+            ///             message.AppendLine(string.Format("currency:{0}", purchasableReceipt.currency));
+            /// 
+            ///             // You will need paymentSeq and purchaseToken when calling the Consume API.
+            ///             // Refer to the following document for the Consume API.
+            ///             // http://docs.toast.com/en/Game/Gamebase/en/api-guide/#purchaseiap
+            ///             message.AppendLine(string.Format("paymentSeq:{0}", purchasableReceipt.paymentSeq));
+            ///             message.AppendLine(string.Format("purchaseToken:{0}", purchasableReceipt.purchaseToken));
+            ///             Debug.Log(message);
+            ///         }
+            ///         else
+            ///         {
+            ///             if (error.code == GamebaseErrorCode.PURCHASE_USER_CANCELED)
+            ///             {
+            ///                 Debug.Log("User canceled purchase.");
+            ///             }
+            ///             else
+            ///             {
+            ///                 // Check the error code and handle the error appropriately.
+            ///                 Debug.Log(string.Format("RequestPurchase failed. error is {0}", error));
+            ///             }
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestPurchase(string gamebaseProductId, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
+            {
+                GamebasePurchaseImplementation.Instance.RequestPurchase(gamebaseProductId, callback);
+            }
+
+            /// <summary>
+            /// Call following API of an item to purchase by using gamebaseProductId to send a purchase request. 
+            /// When a game user cancels purchasing, the PURCHASE_USER_CANCELED error will be returned.
+            /// @since Added 2.11.0.
+            /// </summary>
+            /// <param name="gamebaseProductId">Represent to gamebase product ID.</param>
+            /// <param name="payload">The input payload is delivered when the purchase is completed.</param>
+            /// <param name="callback">Callback pass to API result.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void RequestPurchaseSample(string gamebaseProductId)
+            /// {
+            ///     string userPayload = "{\"description\":\"This is example\",\"channelId\":\"delta\",\"characterId\":\"abc\"}";
+            ///     Gamebase.Purchase.RequestPurchase(gamebaseProductId, userPayload, (purchasableReceipt, error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             var message = new StringBuilder();
+            ///             message.AppendLine("RequestPurchase succeeded.");
+            ///             message.AppendLine(string.Format("itemSeq:{0}", purchasableReceipt.itemSeq));
+            ///             message.AppendLine(string.Format("price:{0}", purchasableReceipt.price));
+            ///             message.AppendLine(string.Format("currency:{0}", purchasableReceipt.currency));
+            /// 
+            ///             // You will need paymentSeq and purchaseToken when calling the Consume API.
+            ///             // Refer to the following document for the Consume API.
+            ///             // http://docs.toast.com/en/Game/Gamebase/en/api-guide/#purchaseiap
+            ///             message.AppendLine(string.Format("paymentSeq:{0}", purchasableReceipt.paymentSeq));
+            ///             message.AppendLine(string.Format("purchaseToken:{0}", purchasableReceipt.purchaseToken));
+            ///             
+            ///             // userPayload value entered when calling API
+            ///             message.AppendLine(string.Format("userPayload:{0}", purchasableReceipt.payload));
+            ///             Debug.Log(message);
+            ///         }
+            ///         else
+            ///         {
+            ///             if (error.code == GamebaseErrorCode.PURCHASE_USER_CANCELED)
+            ///             {
+            ///                 Debug.Log("User canceled purchase.");
+            ///             }
+            ///             else
+            ///             {
+            ///                 // Check the error code and handle the error appropriately.
+            ///                 Debug.Log(string.Format("RequestPurchase failed. error is {0}", error));
+            ///             }
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestPurchase(string gamebaseProductId, string payload, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
+            {
+                GamebasePurchaseImplementation.Instance.RequestPurchase(gamebaseProductId, payload, callback);
+            }
+
+            /// <summary>
             /// Request for a list of non-consumed items, which have not been normally consumed (delivered, or provided) after purchase.
             /// In case of non-purchased items, ask the game server (item server) to proceed with item delivery (supply).
             /// @since Added 1.4.0.
@@ -1755,64 +2076,6 @@ namespace Toast.Gamebase
             public static void RequestItemListOfNotConsumed(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
             {
                 GamebasePurchaseImplementation.Instance.RequestItemListOfNotConsumed(callback);
-            }
-
-            /// <summary>
-            /// In case a purchase is not normally completed after a successful purchase at a store due to failure of authentication of TOAST IAP server, try to reprocess by using API.
-            /// Based on the latest success of purchase, reprocessing is required by calling an API for item delivery(supply).
-            /// @since Added 1.4.0.
-            /// @deprecated As of release 2.6.0.
-            /// </summary>
-            /// <param name="callback">Callback pass to API result.</param>
-            /// <example> 
-            /// Example Usage : 
-            /// <code>
-            /// public void RequestRetryTransactionSample()
-            /// {
-            ///     Gamebase.Login(GamebaseAuthProvider.XXX, (authToken, error) =>
-            ///     {
-            ///         if (Gamebase.IsSuccess(error) == true)
-            ///         {
-            ///             Gamebase.Purchase.RequestRetryTransaction((purchasableRetryTransactionResult, innerError) =>
-            ///             {
-            ///                 if (Gamebase.IsSuccess(innerError) == true)
-            ///                 {
-            ///                     Debug.Log("RequestRetryTransaction succeeded");
-            /// 
-            ///                     // When a login is successful, call RequestRetryTransaction to try to automatically reprocess the unprocessed.
-            ///                     var successList = purchasableRetryTransactionResult.successList;
-            ///                     var failList = purchasableRetryTransactionResult.failList;
-            /// 
-            ///                     if (successList.Count > 0)
-            ///                     {
-            ///                         // If there is a value on the returned successList, the game client sends a request to the game server to consume, so that items can be provided.
-            ///                     }
-            /// 
-            ///                     if (failList.Count > 0)
-            ///                     {
-            ///                         // If there is a value on the returned failList, send the value to the game server or Log &amp; Crash to collect logs. Also send inquiry to Customer Center for the cause of reprocessing failure.
-            ///                     }
-            ///                 }
-            ///                 else
-            ///                 {
-            ///                     // Check the error code and handle the error appropriately.
-            ///                     Debug.Log(string.Format("RequestRetryTransaction failed. innerError is {0}", innerError));
-            ///                 }
-            ///             });
-            ///         }
-            ///         else
-            ///         {
-            ///             // Check the error code and handle the error appropriately.
-            ///             Debug.Log(string.Format("Login failed. error is {0}", error));
-            ///         }
-            ///     });
-            /// }
-            /// </code>
-            /// </example>
-            [Obsolete]
-            public static void RequestRetryTransaction(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableRetryTransactionResult> callback)
-            {
-                GamebasePurchaseImplementation.Instance.RequestRetryTransaction(callback);
             }
 
             /// <summary>
@@ -1964,57 +2227,6 @@ namespace Toast.Gamebase
             }
 
             /// <summary>
-            /// Set the store code of the current app. 
-            /// @since Added 1.4.0.
-            /// @deprecated As of release 2.6.0.
-            /// </summary>
-            /// <param name="storeCode">Input store code.</param>
-            /// <example> 
-            /// Example Usage : 
-            /// <code>
-            /// public void SetStoreCodeSample(string storeCode)
-            /// {
-            ///     Gamebase.Purchase.SetStoreCode(storeCode);
-            /// }
-            /// </code>
-            /// </example>
-            [Obsolete]
-            public static void SetStoreCode(string storeCode)
-            {
-                GamebasePurchaseImplementation.Instance.SetStoreCode(storeCode);
-            }
-
-            /// <summary>
-            /// Gets the store code of the current app. 
-            /// This should only be called after the SDK has been initialized by calling Gamebase.initialize().
-            /// @since Added 1.4.0.
-            /// @deprecated As of release 2.6.0.
-            /// </summary> 
-            /// <returns>The store code.</returns>
-            /// <example> 
-            /// Example Usage : 
-            /// <code>
-            /// public void GetStoreCodeSample()
-            /// {
-            ///     string storeCode = Gamebase.Purchase.GetStoreCode();
-            ///     if (string.IsNullOrEmpty(storeCode) == true)
-            ///     {
-            ///         Debug.Log("GetStoreCode failed.");
-            ///     }
-            ///     else
-            ///     {
-            ///         Debug.Log(string.Format("GetStoreCode succeeded. storeCode:{0}", storeCode));
-            ///     }
-            /// }
-            /// </code>
-            /// </example>
-            [Obsolete]
-            public static string GetStoreCode()
-            {
-                return GamebasePurchaseImplementation.Instance.GetStoreCode();
-            }
-
-            /// <summary>
             /// Request a list of payment products that are currently subscribed.
             /// If there is a subscription purchased from another platform (such as iOS)
             /// @since Added 2.6.0.            
@@ -2059,6 +2271,41 @@ namespace Toast.Gamebase
             public static void RequestActivatedPurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
             {
                 GamebasePurchaseImplementation.Instance.RequestActivatedPurchases(callback);
+            }
+
+            /// <summary>
+            /// In case a purchase is not normally completed after a successful purchase at a store due to failure of authentication of TOAST IAP server, try to reprocess by using API.
+            /// Based on the latest success of purchase, reprocessing is required by calling an API for item delivery(supply).
+            /// @since Added 1.4.0.
+            /// @deprecated As of release 2.6.0.
+            /// </summary>
+            [Obsolete("Do not use this API.")]
+            public static void RequestRetryTransaction(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableRetryTransactionResult> callback)
+            {
+                GamebasePurchaseImplementation.Instance.RequestRetryTransaction(callback);
+            }
+
+            /// <summary>
+            /// Set the store code of the current app. 
+            /// @since Added 1.4.0.
+            /// @deprecated As of release 2.6.0.
+            /// </summary>
+            [Obsolete("Do not use this API.")]
+            public static void SetStoreCode(string storeCode)
+            {
+                GamebasePurchaseImplementation.Instance.SetStoreCode(storeCode);
+            }
+
+            /// <summary>
+            /// Gets the store code of the current app. 
+            /// This should only be called after the SDK has been initialized by calling Gamebase.initialize().
+            /// @since Added 1.4.0.
+            /// @deprecated As of release 2.6.0.
+            /// </summary> 
+            [Obsolete("Do not use this API.")]
+            public static string GetStoreCode()
+            {
+                return GamebasePurchaseImplementation.Instance.GetStoreCode();
             }
         }
 
@@ -2161,6 +2408,110 @@ namespace Toast.Gamebase
             public static void SetSandboxMode(bool isSandbox)
             {
                 GamebasePushImplementation.Instance.SetSandboxMode(isSandbox);
+            }
+
+            /// <summary>
+            /// Register push information to the push server.
+            /// @since Added 2.15.0.
+            /// </summary>
+            /// <param name="pushConfiguration">Settings of the push from server.</param>
+            /// <param name="options">Settings of the local notification.</param>
+            /// <param name="callback">Callback pass to API result.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void RegisterPushSample(bool pushEnabled, bool adAgreement, bool adAgreementNight)
+            /// {
+            ///     var configuration = new GamebaseRequest.Push.PushConfiguration
+            ///     {
+            ///         pushEnabled = pushEnabled,
+            ///         adAgreement = adAgreement,
+            ///         adAgreementNight = adAgreementNight,
+            ///         displayLanguageCode = GamebaseDisplayLanguageCode.Korean
+            ///     };
+            /// 
+            ///     var notificationOptions = new GamebaseRequest.Push.NotificationOptions
+            ///     {
+            ///         foregroundEnabled = true,
+            ///         priority = GamebaseNotificationPriority.HIGH
+            ///     };
+            /// 
+            ///     Gamebase.Push.RegisterPush(configuration, notificationOptions, (error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("RegisterPush succeeded.");
+            ///         }
+            ///         else
+            ///         {
+            ///             // Check the error code and handle the error appropriately.
+            ///             Debug.Log(string.Format("RegisterPush failed. error is {0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, GamebaseRequest.Push.NotificationOptions options, GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebasePushImplementation.Instance.RegisterPush(pushConfiguration, options, callback);
+            }
+
+            /// <summary>
+            /// Get push settings from the the push server.
+            /// @since Added 2.15.0.
+            /// </summary>
+            /// <param name="callback">Callback pass to API result.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void QueryTokenInfoSample(bool isSandbox)
+            /// {
+            ///     Gamebase.Push.QueryTokenInfo((data, error)=> 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true) 
+            ///         {
+            ///             // Succeeded.
+            ///             bool enablePush = data.agreement.pushEnabled;
+            ///             bool enableAdPush = data.agreement.adAgreement;
+            ///             bool enableAdNightPush = data.agreement.adAgreementNight;
+            ///             string token = data.token;
+            ///         }
+            ///         else 
+            ///         {
+            ///             // Failed.
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void QueryTokenInfo(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Push.TokenInfo> callback)
+            {
+                GamebasePushImplementation.Instance.QueryTokenInfo(callback);
+            }
+
+            /// <summary>
+            /// Get notification options in device.
+            /// @since Added 2.15.0.
+            /// </summary>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void GetNotificationOptionsSample()
+            /// {
+            ///     GamebaseResponse.Push.NotificationOptions notificationOptions = Gamebase.Push.GetNotificationOptions();
+            /// 
+            ///     GamebaseRequest.Push.NotificationOptions options = new GamebaseRequest.Push.NotificationOptions(notificationOptions);
+            ///     options.foregroundEnabled = true;
+            ///     options.smallIconName = "notification_icon_name";
+            /// 
+            ///     GamebaseRequest.Push.PushConfiguration configuration = new GamebaseRequest.Push.PushConfiguration();
+            ///     Gamebase.Push.RegisterPush(configuration, options, (error)=> { });
+            /// }
+            /// </code>
+            /// </example>
+            public static GamebaseResponse.Push.NotificationOptions GetNotificationOptions()
+            {
+                return GamebasePushImplementation.Instance.GetNotificationOptions();
             }
         }
 
@@ -2341,7 +2692,8 @@ namespace Toast.Gamebase
             ///     // GamebaseNetworkType.TYPE_WIFI : A WIFI data connection.
             ///     // GamebaseNetworkType.TYPE_ANY : All the rest values.
             /// 
-            ///     GamebaseNetworkType type = Gamebase.Network.GetNetworkType();
+            ///     GamebaseNetworkType networkType = Gamebase.Network.GetNetworkType();
+            ///     Debug.Log(string.Format("networkType:{0}", networkType));
             /// }
             /// </code>
             /// </example>
@@ -2361,6 +2713,7 @@ namespace Toast.Gamebase
             /// public void GetNetworkTypeNameSample()
             /// {
             ///     string networkName = Gamebase.Network.GetNetworkTypeName();
+            ///     Debug.Log(string.Format("networkName:{0}", networkName));
             /// }
             /// </code>
             /// </example>
@@ -2380,6 +2733,7 @@ namespace Toast.Gamebase
             /// public void IsConnectedSample()
             /// {
             ///     bool isConnected = Gamebase.Network.IsConnected();
+            ///     Debug.Log(string.Format("isConnected:{0}", isConnected));
             /// }
             /// </code>
             /// </example>
@@ -2512,9 +2866,7 @@ namespace Toast.Gamebase
             ///         { "KEY_2", "VALUE_2" },
             ///     };
             ///         
-            ///     Gamebase.Logger.Debug(
-            ///         "MESSAGE", 
-            ///         userFields);
+            ///     Gamebase.Logger.Debug("MESSAGE", userFields);
             /// }
             /// </code>
             /// </example>
@@ -2540,9 +2892,7 @@ namespace Toast.Gamebase
             ///         { "KEY_2", "VALUE_2" },
             ///     };
             ///         
-            ///     Gamebase.Logger.Info(
-            ///         "MESSAGE", 
-            ///         userFields);
+            ///     Gamebase.Logger.Info("MESSAGE", userFields);
             /// }
             /// </code>
             /// </example>
@@ -2568,9 +2918,7 @@ namespace Toast.Gamebase
             ///         { "KEY_2", "VALUE_2" },
             ///     };
             ///         
-            ///     Gamebase.Logger.Warn(
-            ///         "MESSAGE", 
-            ///         userFields);
+            ///     Gamebase.Logger.Warn("MESSAGE", userFields);
             /// }
             /// </code>
             /// </example>
@@ -2578,7 +2926,6 @@ namespace Toast.Gamebase
             {
                 GamebaseLoggerImplementation.Instance.Warn(message, userFields);
             }
-
 
             /// <summary>
             /// Send a log to Log &amp; Crash Server for analyzing the string message with error level.
@@ -2597,9 +2944,7 @@ namespace Toast.Gamebase
             ///         { "KEY_2", "VALUE_2" },
             ///     };
             ///         
-            ///     Gamebase.Logger.Error(
-            ///         "MESSAGE", 
-            ///         userFields);
+            ///     Gamebase.Logger.Error("MESSAGE", userFields);
             /// }
             /// </code>
             /// </example>
@@ -2607,7 +2952,6 @@ namespace Toast.Gamebase
             {
                 GamebaseLoggerImplementation.Instance.Error(message, userFields);
             }
-
 
             /// <summary>
             /// Send a log to Log &amp; Crash Server for analyzing the string message with fatal level.
@@ -2626,9 +2970,7 @@ namespace Toast.Gamebase
             ///         { "KEY_2", "VALUE_2" },
             ///     };
             ///         
-            ///     Gamebase.Logger.Fatal(
-            ///         "MESSAGE", 
-            ///         userFields);
+            ///     Gamebase.Logger.Fatal("MESSAGE", userFields);
             /// }
             /// </code>
             /// </example>
@@ -2700,7 +3042,7 @@ namespace Toast.Gamebase
             {
                 GamebaseLoggerImplementation.Instance.SetLoggerListener(listener);
             }
-            
+
             /// <summary>
             /// This function adds a CrashFilter.
             /// When a crash occurs, the filter lets you decide whether to send logs to the Log &amp; Crash server.
@@ -2716,7 +3058,7 @@ namespace Toast.Gamebase
             ///     // If the return value is true, no log is sent.
             ///     // The properties of CrashLogData are the same as the parameters of Application.LogCallback on Unity.
             ///     // https://docs.unity3d.com/ScriptReference/Application.LogCallback.html
-            ///     return crashLogData.Condition.Contains("UnityEngine.Debug.Log");
+            ///     return crashLogData.condition.Contains("UnityEngine.Debug.Log");
             /// };
             /// 
             /// public void AddCrashFilterSample()
@@ -2745,7 +3087,7 @@ namespace Toast.Gamebase
             ///     // If the return value is true, no log is sent.
             ///     // The properties of CrashLogData are the same as the parameters of Application.LogCallback on Unity.
             ///     // https://docs.unity3d.com/ScriptReference/Application.LogCallback.html
-            ///     return crashLogData.Condition.Contains("UnityEngine.Debug.Log");
+            ///     return crashLogData.condition.Contains("UnityEngine.Debug.Log");
             /// };
             /// 
             /// public void RemoveCrashFilterSample()
@@ -2781,19 +3123,20 @@ namespace Toast.Gamebase
             ///     {
             ///         if (Gamebase.IsSuccess(error) == true)
             ///         {
-            ///             Debug.Log("OpenContact succeeded.");
+            ///             // A user close the contact web view.
             ///         }
-            ///         else
+            ///         else if (error.code == GamebaseErrorCode.UI_CONTACT_FAIL_INVALID_URL)
             ///         {
-            ///             Debug.Log(string.Format("OpenContact failed. error:{0}", error));
-            ///         
-            ///             if (error.code == GamebaseErrorCode.WEBVIEW_INVALID_URL)
-            ///             {
-            ///                 // Gamebase Console Service Center URL is invalid.
-            ///                 // Please check the url field in the TOAST Gamebase Console.
-            ///                 var launchingInfo = Gamebase.Launching.GetLaunchingInformations();
-            ///                 Debug.Log(string.Format("csUrl:{0}", launchingInfo.launching.app.relatedUrls.csUrl));
-            ///             }
+            ///             // Gamebase Console Service Center URL is invalid.
+            ///             // Please check the url field in the TOAST Gamebase Console.
+            ///         } 
+            ///         else if (error.code == GamebaseErrorCode.UI_CONTACT_FAIL_ANDROID_DUPLICATED_VIEW)
+            ///         { 
+            ///             // The customer center web view is already opened.
+            ///         } 
+            ///         else 
+            ///         {
+            ///             // An error occur when opening the contact web view.
             ///         }
             ///     });
             /// }
@@ -2803,6 +3146,457 @@ namespace Toast.Gamebase
             {
                 GamebaseContactImplementation.Instance.OpenContact(callback);
             }
+
+            /// <summary>
+            /// Open TOAST Contact WebView with CS URL which is wrote in TOAST Gamebase App Console.
+            /// If the CS URL is empty or invalid, you will receive a GamebaseError.
+            /// @since Added 2.16.0.
+            /// </summary>
+            /// <param name="configuration">The init settings of contact URL.</param>
+            /// <param name="callback">Callbacks the result of OpenContact.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleOpenContact()
+            /// {
+            ///     var configuration = new GamebaseRequest.Contact.Configuration()
+            ///     {
+            ///         userName = "User Name"
+            ///     };
+            /// 
+            ///     Gamebase.Contact.OpenContact(configuration, (error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             // A user close the contact web view.
+            ///         }
+            ///         else if (error.code == GamebaseErrorCode.UI_CONTACT_FAIL_INVALID_URL)
+            ///         {
+            ///             // Gamebase Console Service Center URL is invalid.
+            ///             // Please check the url field in the TOAST Gamebase Console.
+            ///         } 
+            ///         else if (error.code == GamebaseErrorCode.UI_CONTACT_FAIL_ANDROID_DUPLICATED_VIEW)
+            ///         { 
+            ///             // The customer center web view is already opened.
+            ///         } 
+            ///         else 
+            ///         {
+            ///             // An error occur when opening the contact web view.
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void OpenContact(GamebaseRequest.Contact.Configuration configuration, GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseContactImplementation.Instance.OpenContact(configuration, callback);
+            }
+
+            /// <summary>
+            /// URL is passed through callback.
+            /// You can open webview with this URL.
+            /// @since Added 2.16.0.
+            /// </summary>
+            /// <param name="callback">Returns the customer service URL.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleRequestContactURL()
+            /// {
+            ///     Gamebase.Contact.RequestContactURL((url, error) => 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true) 
+            ///         {
+            ///             // Open webview with 'contactUrl'
+            ///         } 
+            ///         else if (error.code == GamebaseErrorCode.UI_CONTACT_FAIL_INVALID_URL) // 6911
+            ///         { 
+            ///             // Gamebase Console Service Center URL is invalid.
+            ///             // Please check the url field in the TOAST Gamebase Console.
+            ///         } 
+            ///         else 
+            ///         {
+            ///             // An error occur when requesting the contact web view url.
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestContactURL(GamebaseCallback.GamebaseDelegate<string> callback)
+            {
+                GamebaseContactImplementation.Instance.RequestContactURL(callback);
+            }
+
+            /// <summary>
+            /// URL is passed through callback.
+            /// You can open webview with this URL.
+            /// @since Added 2.16.0.
+            /// </summary>
+            /// <param name="configuration">The init settings of contact URL.</param>
+            /// <param name="callback">Returns the customer service URL.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleRequestContactURL()
+            /// {
+            ///     var configuration = new GamebaseRequest.Contact.Configuration()
+            ///     {
+            ///         userName = "User Name"
+            ///     };
+            /// 
+            ///     Gamebase.Contact.RequestContactURL(configuration, (url, error) => 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true) 
+            ///         {
+            ///             // Open webview with 'contactUrl'
+            ///         } 
+            ///         else if (error.code == GamebaseErrorCode.UI_CONTACT_FAIL_INVALID_URL) // 6911
+            ///         { 
+            ///             // Gamebase Console Service Center URL is invalid.
+            ///             // Please check the url field in the TOAST Gamebase Console.
+            ///         } 
+            ///         else 
+            ///         {
+            ///             // An error occur when requesting the contact web view url.
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestContactURL(GamebaseRequest.Contact.Configuration configuration, GamebaseCallback.GamebaseDelegate<string> callback)
+            {
+                GamebaseContactImplementation.Instance.RequestContactURL(configuration, callback);
+            }
+        }
+
+        /// <summary>
+        /// This class provides wrapping of function execution related to temporary withdrawal.
+        /// @since Added 2.9.0.
+        /// </summary>
+        public static class TemporaryWithdrawal
+        {
+            /// <summary>
+            /// This function ignores the withdrawal grace period and proceeds withdrawal immediately.
+            /// @since Added 2.9.0.
+            /// </summary>
+            /// <param name="callback">Callbacks the result of WithdrawImmediately.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleWithdrawImmediately()
+            /// {
+            ///     Gamebase.TemporaryWithdrawal.WithdrawImmediately((error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("WithdrawImmediately succeeded.");
+            ///         }
+            ///         else
+            ///         {
+            ///             Debug.Log(string.Format("SampleWithdrawImmediately failed. error:{0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void WithdrawImmediately(GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseAuthImplementation.Instance.WithdrawImmediately(callback);
+            }
+
+            /// <summary>
+            /// Request to Temporary Withdrawal.
+            /// If the user who requested the temporary withdrawal logs in,
+            /// you can check the grace expiration time through the AuthToken.member.temporaryWithdrawalInfo.gracePeriodDate.            
+            /// @since Added 2.9.0.
+            /// </summary>
+            /// <param name="callback">Callbacks the result of OpenContact.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleRequestWithdrawal()
+            /// {
+            ///     Gamebase.TemporaryWithdrawal.RequestWithdrawal((data, error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             long gracePeriodDate = data.gracePeriodDate;
+            ///             Debug.Log(string.Format("RequestWithdrawal succeeded. The date when you can withdraw your withdrawal is {0}", gracePeriodDate));
+            ///         }
+            ///         else
+            ///         {
+            ///             Debug.Log(string.Format("RequestWithdrawal failed. error:{0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestWithdrawal(GamebaseCallback.GamebaseDelegate<GamebaseResponse.TemporaryWithdrawalInfo> callback)
+            {
+                GamebaseAuthImplementation.Instance.RequestTemporaryWithdrawal(callback);
+            }
+
+            /// <summary>
+            /// If the user has requested to withdraw, cancel it.
+            /// If the user has never requested to leave, the function call will fail.            
+            /// @since Added 2.9.0.
+            /// </summary>
+            /// <param name="callback">Callbacks the result of CancelWithdrawal.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleCancelWithdrawal()
+            /// {
+            ///     Gamebase.TemporaryWithdrawal.CancelWithdrawal((error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("CancelWithdrawal succeeded.");
+            ///         }
+            ///         else
+            ///         {
+            ///             Debug.Log(string.Format("CancelWithdrawal failed. error:{0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void CancelWithdrawal(GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseAuthImplementation.Instance.CancelTemporaryWithdrawal(callback);
+            }
+        }
+
+        /// <summary>
+        /// This class provides functionality related to image notices.
+        /// @since Added 2.12.0.
+        /// </summary>
+        public static class ImageNotice
+        {
+            /// <summary>
+            /// Show image notice web pages.            
+            /// @since Added 2.12.0.
+            /// </summary>
+            /// <param name="configuration">The initial settings of image notices.</param>
+            /// <param name="closeCallback">Called when the browser closed.</param>
+            /// <param name="eventCallback">Click event with notice type 'Custom'.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleShowImageNotices()
+            /// {
+            ///     GamebaseRequest.ImageNotice.Configuration configuration = new GamebaseRequest.ImageNotice.Configuration();
+            ///     configuration.colorR = 255;
+            ///     configuration.colorG = 255;
+            ///     configuration.colorB = 255;
+            ///     configuration.colorA = 255;
+            ///     configuration.timeout = 5000;
+            ///     
+            ///     Gamebase.ImageNotice.ShowImageNotices(
+            ///         configuration,
+            ///         (error) =>
+            ///         {
+            ///             // Called when the entire imageNotice is closed.
+            ///         },
+            ///         (scheme, error) =>
+            ///         {
+            ///             // Called when custom event occurred.
+            ///         });
+            /// }
+            /// </code>
+            /// </example>
+            public static void ShowImageNotices(GamebaseRequest.ImageNotice.Configuration configuration, GamebaseCallback.ErrorDelegate closeCallback, GamebaseCallback.GamebaseDelegate<string> eventCallback = null)
+            {
+                GamebaseImageNoticeImplementation.Instance.ShowImageNotices(configuration, closeCallback, eventCallback);
+            }
+
+            /// <summary>
+            /// This method to close the image notice in display on a screen.          
+            /// @since Added 2.12.0.
+            /// </summary>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleCloseImageNotices()
+            /// {
+            ///     Gamebase.ImageNotice.CloseImageNotices();
+            /// }
+            /// </code>
+            /// </example>
+            public static void CloseImageNotices()
+            {
+                GamebaseImageNoticeImplementation.Instance.CloseImageNotices();
+            }
+        }
+
+        /// <summary>
+        /// Displays the terms and conditions set in the Gamebase console.
+        /// @since Added 2.20.0.
+        /// </summary>
+        public static class Terms
+        {
+            /// <summary>
+            /// Displays the terms and conditions window on the screen.
+            /// If the user agrees to the terms and conditions, it registers the consent or not on the server.
+            /// If you agree to the terms and conditions calling showTermsView again does not display the terms and conditions and immediately returns a success callback.
+            /// @since Added 2.20.0.
+            /// </summary>
+            /// <param name="callback">After agreeing to the terms and conditions, when the terms and conditions window is closed, the user is notified by a callback. The GamebaseDataContainer object that comes as a callback can be converted to PushConfiguration and used in Gamebase.Push.registerPush API after logging in.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleShowTermsView()
+            /// {
+            ///     Gamebase.Terms.ShowTermsView((data, error) => 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("ShowTermsView succeeded.");
+            ///             GamebaseResponse.Push.PushConfiguration pushConfiguration = GamebaseResponse.Push.PushConfiguration.From(data);
+            ///         }
+            ///         else
+            ///         {
+            ///             Debug.Log(string.Format("ShowTermsView failed. error:{0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void ShowTermsView(GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer> callback)
+            {
+                GamebaseTermsImplementation.Instance.ShowTermsView(callback);
+            }
+
+            /// <summary>
+            /// If you have created your own UI with the terms and conditions information downloaded through the queryTerms API,
+            /// Please send the game user's agreement to the terms and conditions to the Gamebase server through the updateTerms API.
+            /// You can also use it for the purpose of changing the details of your agreement to the terms, such as canceling the agreement to the optional terms and conditions.
+            /// @since Added 2.20.0.
+            /// </summary>            
+            /// <param name="configuration">This is the information on the user's option to register on the server.</param>
+            /// <param name="callback">The optional terms and conditions are registered on the server and notified to the user via a callback.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleUpdateTerms()
+            /// {            
+            ///     List<GamebaseRequest.Terms.Content> list = new List<GamebaseRequest.Terms.Content>();
+            ///     list.Add(new GamebaseRequest.Terms.Content()
+            ///     {
+            ///         termsContentSeq = 0,
+            ///         agreed = true
+            ///     });
+            ///     
+            ///     Gamebase.Terms.UpdateTerms(
+            ///         new GamebaseRequest.Terms.UpdateTermsConfiguration()
+            ///         {
+            ///             termsSeq = 0,
+            ///             termsVersion = "1.0.0",
+            ///             contents = list
+            ///         },
+            ///         (error) =>
+            ///         {
+            ///             if (Gamebase.IsSuccess(error) == true)
+            ///             {
+            ///                 Debug.Log("UpdateTerms succeeded.");
+            ///             }
+            ///             else
+            ///             {
+            ///                 Debug.Log(string.Format("UpdateTerms failed. error:{0}", error));
+            ///             }
+            ///         });
+            /// }
+            /// </code>
+            /// </example>
+            public static void UpdateTerms(GamebaseRequest.Terms.UpdateTermsConfiguration configuration, GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseTermsImplementation.Instance.UpdateTerms(configuration, callback);
+            }
+
+            /// <summary>            
+            /// If you develop the terms and conditions for the game UI yourself, you can call queryTerms API to receive and use the terms and conditions set in the Gamebase console.
+            /// If you call the API after logging in, you can also check whether the game user has agreed to the terms and conditions.
+            /// @since Added 2.20.0.
+            /// </summary>
+            /// <param name="callback">The result of the API call is notified to the user as a callback. You can get the terms and conditions set in the console with GamebaseQueryTermsResult that comes as a callback.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleQueryTerms()
+            /// {
+            ///     Gamebase.Terms.QueryTerms((data, error) => 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("QueryTerms succeeded.");
+            ///         }
+            ///         else
+            ///         {
+            ///             Debug.Log(string.Format("QueryTerms failed. error:{0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void QueryTerms(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Terms.QueryTermsResult> callback)
+            {
+                GamebaseTermsImplementation.Instance.QueryTerms(callback);
+            }
+        }
+
+        ////////////////////////////////////////////////////////////
+        //
+        //  Lagacy API (As of version 2.22.0)
+        //
+        ////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Integrated with AddEventHandler. Use AddEventHandler instead of AddObserver.
+        /// <see cref="AddEventHandler"/>
+        /// @since Added 1.8.0.
+        /// </summary>
+        public static void AddObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
+        {
+            GamebaseImplementation.Instance.AddObserver(observer);
+        }
+
+        public static void RemoveObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
+        {
+            GamebaseImplementation.Instance.RemoveObserver(observer);
+        }
+
+        public static void RemoveAllObserver()
+        {
+            GamebaseImplementation.Instance.RemoveAllObserver();
+        }
+
+        /// <summary>
+        /// Integrated with AddEventHandler. Use AddEventHandler instead of AddServerPushEvent.
+        /// <see cref="AddEventHandler"/>
+        /// @since Added 1.8.0.
+        /// </summary>
+        public static void AddServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
+        {
+            GamebaseImplementation.Instance.AddServerPushEvent(serverPushEvent);
+        }
+
+        public static void RemoveServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
+        {
+            GamebaseImplementation.Instance.RemoveServerPushEvent(serverPushEvent);
+        }
+
+        public static void RemoveAllServerPushEvent()
+        {
+            GamebaseImplementation.Instance.RemoveAllServerPushEvent();
+        }
+
+        /// <summary>
+        /// Use GamebaseResponse.Auth.BanInfo.From(GamebaseError error) instead of GetBanInfo.
+        /// @since Added 1.4.0.
+        /// </summary>
+        public static GamebaseResponse.Auth.BanInfo GetBanInfo()
+        {
+            return GamebaseAuthImplementation.Instance.GetBanInfo();
         }
     }
 }

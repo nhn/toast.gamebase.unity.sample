@@ -1,6 +1,4 @@
-﻿using Toast.Internal;
-
-namespace Toast.Internal
+﻿namespace Toast.Internal
 {
     public static class JsonUtils
     {
@@ -86,7 +84,7 @@ namespace Toast.Internal
 
                 outArray = node.AsArray;
             }
-            
+
             return outArray != null;
         }
     }

@@ -60,6 +60,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             if (serverPush.stopHeartbeat == true)
             {
                 Heartbeat.Instance.StopHeartbeat();
+                Introspect.Instance.StopIntrospect();
             }            
 
             if (serverPush.logout == true)
@@ -84,11 +85,21 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             serverPushMessage.type = type;
             serverPushMessage.data = data;
 
-            var pushCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage>>(GamebaseServerPushEventManager.Instance.Handle);
-            if (null != pushCallback)
-            {
-                pushCallback(serverPushMessage);
-            }
+            GamebaseServerPushEventManager.Instance.OnServerPushEvent(serverPushMessage);
+
+            SendEventMessage(serverPushMessage);
+        }
+
+        private void SendEventMessage(GamebaseResponse.SDK.ServerPushMessage message)
+        {
+            GamebaseResponse.Event.GamebaseEventServerPushData serverPushData = new GamebaseResponse.Event.GamebaseEventServerPushData();
+            serverPushData.extras = message.data;
+
+            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
+            eventMessage.category = string.Format("serverPush{0}", GamebaseStringUtil.Capitalize(message.type));
+            eventMessage.data = JsonMapper.ToJson(serverPushData);
+
+            GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
         }
     }   
 }

@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS
 using System;
+using Toast.Gamebase.Internal.Single.Communicator;
 using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal.Mobile
@@ -25,7 +26,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.Initialize(CLASS_NAME);
         }
 
-        virtual public GamebaseResponse.Launching.LaunchingInfo GetLaunchingInformations()
+        virtual public LaunchingResponse.LaunchingInfo GetLaunchingInformations()
         {
             string jsonData     = JsonMapper.ToJson(new UnityMessage(GamebaseLaunching.LAUNCHING_API_GET_LAUNCHING_INFORMATIONS));
             string jsonString   = messageSender.GetSync(jsonData);
@@ -35,7 +36,7 @@ namespace Toast.Gamebase.Internal.Mobile
                 return null;
             }
 
-            return JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(jsonString);
+            return JsonMapper.ToObject<LaunchingResponse.LaunchingInfo>(jsonString);
         }
 
         virtual public int GetLaunchingStatus()

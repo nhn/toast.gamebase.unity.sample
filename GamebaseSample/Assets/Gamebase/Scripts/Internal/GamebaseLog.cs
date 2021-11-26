@@ -61,18 +61,14 @@ namespace Toast.Gamebase.Internal
         /// </summary>
         public static void Debug(object message, object classObj, [System.Runtime.CompilerServices.CallerMemberName] string methodName = "")
         {
+            if (isDebugLog == false)
+            {
+                return;
+            }
+            
             string log = MakeLog(message, classObj, methodName);
 
-            if (isDebugLog == true)
-            {
-                UnityEngine.Debug.Log(log);
-            }
-
-            GamebaseLogReport.Instance.SendDebugLog(
-                new System.Collections.Generic.Dictionary<string, string>
-                {
-                        {GAMEBASE_LOG, log},
-                });
+            UnityEngine.Debug.Log(log);
         }
 
         /// <summary>
@@ -84,11 +80,11 @@ namespace Toast.Gamebase.Internal
 
             UnityEngine.Debug.LogWarning(log);
 
-            GamebaseLogReport.Instance.SendWarnLog(
-                    new System.Collections.Generic.Dictionary<string, string>
-                    {
-                            {GAMEBASE_LOG, log},
-                    });
+            GamebaseInternalReport.Instance.SendWarnLog(
+                new System.Collections.Generic.Dictionary<string, string>
+                {
+                    {GAMEBASE_LOG, log},
+                });
         }
 
         /// <summary>
@@ -100,10 +96,10 @@ namespace Toast.Gamebase.Internal
 
             UnityEngine.Debug.LogError(MakeLog(message, classObj, methodName));
 
-            GamebaseLogReport.Instance.SendErrorLog(
+            GamebaseInternalReport.Instance.SendErrorLog(
                 new System.Collections.Generic.Dictionary<string, string>
                 {
-                        {GAMEBASE_LOG, log},
+                    {GAMEBASE_LOG, log},
                 });
         }
     }

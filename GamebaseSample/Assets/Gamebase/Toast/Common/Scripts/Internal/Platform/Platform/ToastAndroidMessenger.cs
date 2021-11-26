@@ -1,7 +1,7 @@
 ﻿#if UNITY_EDITOR || UNITY_ANDROID
 
-using UnityEngine;
 using System;
+using UnityEngine;
 
 namespace Toast.Internal
 {

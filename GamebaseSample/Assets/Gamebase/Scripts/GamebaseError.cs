@@ -12,7 +12,7 @@ namespace Toast.Gamebase
         public int code;
         public string message = string.Empty;
         public string transactionId = string.Empty;
-        public Dictionary<string, string> extras;
+        public Dictionary<string, string> extras = new Dictionary<string, string>();
         public GamebaseError error;
 
         public GamebaseError()

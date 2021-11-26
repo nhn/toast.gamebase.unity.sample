@@ -6,12 +6,24 @@ namespace Toast.Gamebase.Internal.Mobile
 {
     public class NativeGamebaseWebview : IGamebaseWebview
     {
-        protected class GamebaseWebview
+        protected static class GamebaseWebview
         {
             public const string WEBVIEW_API_OPEN_WEBBROWSER              = "gamebase://openWebBrowser";
             public const string WEBVIEW_API_SHOW_WEBVIEW                 = "gamebase://showWebView";            
             public const string WEBVIEW_API_CLOSE_WEBVIEW                = "gamebase://closeWebView";
             public const string WEBVIEW_API_SCHEME_EVENT                 = "gamebase://schemeEvent";
+        }
+
+        public class ExtraData
+        {
+            public List<string> schemeList;
+            public int schemeEvent;
+
+            public ExtraData(List<string> schemeList, int schemeEvent)
+            {
+                this.schemeList = schemeList;
+                this.schemeEvent = schemeEvent;
+            }
         }
 
         protected INativeMessageSender  messageSender   = null;
@@ -22,7 +34,7 @@ namespace Toast.Gamebase.Internal.Mobile
             Init();
         }
 
-        virtual protected void Init()
+        protected virtual void Init()
         {
             messageSender.Initialize(CLASS_NAME);
 
@@ -30,7 +42,7 @@ namespace Toast.Gamebase.Internal.Mobile
             DelegateManager.AddDelegate(GamebaseWebview.WEBVIEW_API_SCHEME_EVENT, DelegateManager.SendGamebaseDelegate<string>);
         }
 
-        virtual public void OpenWebBrowser(string url)
+        public virtual void OpenWebBrowser(string url)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
@@ -40,13 +52,13 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, int closeCallback = -1, List<string> schemeList = null, int schemeEvent = -1)
+        public virtual void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, int closeCallback = -1, List<string> schemeList = null, int schemeEvent = -1)
         {
             NativeRequest.Webview.WebviewConfiguration webviewConfiguration = new NativeRequest.Webview.WebviewConfiguration();
             webviewConfiguration.url                                        = url;
             webviewConfiguration.configuration                              = configuration;
 
-            string extraData    = JsonMapper.ToJson(new GamebaseRequest.Webview.SchemeConfiguration(schemeList, schemeEvent));
+            string extraData    = JsonMapper.ToJson(new ExtraData(schemeList, schemeEvent));
             string jsonData     = JsonMapper.ToJson(
                 new UnityMessage(
                     GamebaseWebview.WEBVIEW_API_SHOW_WEBVIEW, 
@@ -57,15 +69,15 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void CloseWebView()
+        public virtual void CloseWebView()
         {
             string jsonData = JsonMapper.ToJson(new UnityMessage(GamebaseWebview.WEBVIEW_API_CLOSE_WEBVIEW));
             messageSender.GetAsync(jsonData);
         }
 
-        virtual protected void OnCloseCallback(NativeMessage message)
+        protected virtual void OnCloseCallback(NativeMessage message)
         {
-            if (false == string.IsNullOrEmpty(message.extraData))
+            if (string.IsNullOrEmpty(message.extraData) == false)
             {
                 int schemeEventHandle = int.Parse(message.extraData);
                 GamebaseCallbackHandler.UnregisterCallback(schemeEventHandle);

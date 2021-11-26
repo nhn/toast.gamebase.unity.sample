@@ -12,19 +12,24 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 public string sourceIdPCode;
             }
 
-            public class Ban : BaseVO
+            public class ErrorExtras
             {
-                public string userId;
-                public string banType;
-                public long beginDate;
-                public long endDate;
-                public string message;
+                public class Ban : BaseVO
+                {
+                    public string userId;
+                    public string banType;
+                    public long beginDate;
+                    public long endDate;
+                    public string message;
+                }
+
+                public Ban ban;
             }
 
             public Token token;
             public CommonResponse.Header header;
             public CommonResponse.Member member;
-            public Ban ban;
+            public ErrorExtras errorExtras;
         }
 
         public class LogoutInfo : BaseVO
@@ -33,6 +38,17 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         }
 
         public class WithdrawInfo : BaseVO
+        {
+            public CommonResponse.Header header;
+        }
+
+        public class TemporaryWithdrawalInfo : BaseVO
+        {
+            public CommonResponse.Header header;
+            public CommonResponse.Member member;
+        }
+
+        public class CancelTemporaryWithdrawalInfo : BaseVO
         {
             public CommonResponse.Header header;
         }

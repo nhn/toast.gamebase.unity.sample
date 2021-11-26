@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
 using Toast.Internal;
+using UnityEngine;
 
 namespace Toast.Logger
 {
@@ -53,22 +51,38 @@ namespace Toast.Logger
         public bool EnqueueInFile()
         {
 #if UNITY_STANDALONE || UNITY_EDITOR 
-            string firstFile = ToastFileManager.GetFirstFile(ToastLoggerCommonLogic.AppKey);
+            string firstFile = BackupLogManager.GetFirstFile(ToastLoggerCommonLogic.AppKey);
 
             if (!string.IsNullOrEmpty(firstFile))
             {
                 ToastLoggerBulkLog bulkLog = new ToastLoggerBulkLog();
 
-                string fileName = firstFile.Substring(firstFile.LastIndexOf("\\") + 1);
+                string fileName = firstFile.Substring(firstFile.LastIndexOf("\\", StringComparison.OrdinalIgnoreCase) + 1);
+                
+                if (firstFile.LastIndexOf("\\", StringComparison.OrdinalIgnoreCase) == -1)
+                {
+                    fileName = firstFile.Substring(firstFile.LastIndexOf("/", StringComparison.OrdinalIgnoreCase) + 1);
+                }
+
                 string[] subString = fileName.Split('_');
-                bulkLog.CreateTime = long.Parse(subString[0]);
-                bulkLog.TransactionId = subString[1];
+                long createTime;
+                if (long.TryParse(subString[0], out createTime))
+                {
+                    bulkLog.CreateTime = createTime;
+                    bulkLog.TransactionId = subString[1];
 
-                string strLogContents = ToastFileManager.FileLoad(ToastLoggerCommonLogic.AppKey, bulkLog.CreateTime, bulkLog.TransactionId);
-                bulkLog.LogContents = strLogContents; 
-                _queueBulkLog.Enqueue(bulkLog);
+                    string strLogContents = BackupLogManager.FileLoad(ToastLoggerCommonLogic.AppKey, bulkLog.CreateTime, bulkLog.TransactionId);
+                    BackupLogManager.FileDelete(ToastLoggerCommonLogic.AppKey, bulkLog.CreateTime, bulkLog.TransactionId);
+                    if (!string.IsNullOrEmpty(strLogContents))
+                    {
+                        bulkLog.LogContents = strLogContents;
+                        _queueBulkLog.Enqueue(bulkLog);
+                        return true;
+                    }
+                    return false;
+                }
 
-                return true;
+                return false;
             }
 #endif
 
@@ -81,7 +95,7 @@ namespace Toast.Logger
             {
                 return false;
             }
-            
+
             ToastLoggerBulkLog bulkLog = new ToastLoggerBulkLog(_bulkLog);
             _bulkLog.RemoveAll();
 
@@ -100,7 +114,7 @@ namespace Toast.Logger
             {
                 bulkLog.LogContents = bulkLog.GetString();
             }
-            
+
             return bulkLog;
         }
     }

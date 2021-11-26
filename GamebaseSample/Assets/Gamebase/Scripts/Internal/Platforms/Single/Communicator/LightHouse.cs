@@ -11,7 +11,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             ALPHA,
             [EnumMember(Value = "wss://beta-gamebase-lh.cloud.toast.com:11443/lh")]
             BETA,
-            [EnumMember(Value = "wss://gamebase-lh.cloud.toast.com:11443/lh")]
+            [EnumMember(Value = "wss://gslb-gamebase-lh.cloud.toast.com:11443/lh")]
             REAL
         }
         
@@ -44,7 +44,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public class API
         {
-            public const string VERSION = "v1.2";
+            public const string VERSION = "v1.3.2";
 
             public class Launching
             {
@@ -54,6 +54,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 {
                     public const string GET_LAUNCHING = "getLaunching";
                     public const string GET_LAUNCHING_STATUS = "getLaunchingStatus";
+                    public const string GET_IMAGE_NOTICES = "getImageNotices";
                 }
             }
 
@@ -66,10 +67,13 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public const string IDP_LOGIN = "idPLogin";
                     public const string TOKEN_LOGIN = "tokenLogin";
                     public const string WITHDRAW = "withdraw";
+                    public const string TEMPORARY_WITHDRAWAL = "temporaryWithdrawal";
+                    public const string CANCEL_TEMPORARY_WITHDRAWAL = "cancelTemporaryWithdrawal";
                     public const string LOGOUT = "logout";
                     public const string REMOVE_MAPPING = "removeMapping";
                     public const string ADD_MAPPING = "addMapping";
                     public const string ISSUE_SHORT_TERM_TICKET = "issueShortTermTicket";
+                    public const string INTROSPECT_ACCESS_TOKEN = "introspectAccessToken";
 
                     /// <summary>
                     /// HEALTH_CHECK is used only to check the Internet connection status on the WebGL platform.

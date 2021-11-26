@@ -198,6 +198,19 @@ namespace Toast.Gamebase.Internal.Single
         /// gb-id 쪽은 throwPointErrorCode 도 살펴 봐야 함
         /// </summary>
         public const int GATEWAY_GB_ID_SYSTEM_ERROR                     = -5110201;
+
+        /// <summary>
+        /// 이미 탈퇴 요청중입니다.
+        /// </summary>
+        public const int MEMBER_CANNOT_TEMPORARY_WITHDRAW               = -4130404;
+
+        /// <summary>
+        /// 탈퇴 요청을 한 적이 없습니다.
+        /// </summary>
+        public const int MEMBER_NOT_TEMPORARY_WITHDRAW                  = -4130402;
+
+
+
         #endregion
 
         #region Launching
@@ -370,6 +383,18 @@ namespace Toast.Gamebase.Internal.Single
         /// transfer 요청한 유저에게 발급 transferKey 가 없을 경우.
         /// </summary>
         public const int MEMBER_TRANSFERACCOUNT_NOT_EXIST               = -4040403;
+        #endregion
+
+        #region Purchase
+        /// <summary>
+        /// GamebaseProductID is not activated.
+        /// </summary>
+        public const int PURCHASE_NOT_USED_PRODUCT                      = -4001001;
+
+        /// <summary>
+        /// GamebaseProductID is not exist.
+        /// </summary>
+        public const int PURCHASE_NOT_FOUND_PRODUCT_ID                  = -4041001;
         #endregion
     }
 }

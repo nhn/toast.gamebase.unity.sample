@@ -16,6 +16,25 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             get { return instance; }
         }
 
+        private string domain;
+
+        public string Domain
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(domain) == true)
+                {
+                    return typeof(WebSocket).Name;
+                }
+
+                return domain;
+            }
+            set
+            {
+                domain = value;
+            }
+        }
+
         public enum PollingIntervalType
         {
             SHORT_INTERVAL,
@@ -23,8 +42,9 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         }
 
         public const float LONG_INTERVAL            = 1f;
-        public const float RETRY_CONNECT_DELAY      = 0.5f;        
-        
+        public const float RETRY_CONNECT_DELAY      = 0.5f;
+        public const float RESPONSE_DELAY           = 0.1f;
+
         private IWebSocket socket;
         
         private Queue<RequestQueueItem> requestQueue;
@@ -66,7 +86,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         
         public void Initialize()
         {
-            if (true == string.IsNullOrEmpty(Lighthouse.URI))
+            if (string.IsNullOrEmpty(Lighthouse.URI) == true)
             {
                 Lighthouse.URI = Lighthouse.ZoneType.REAL.GetEnumMemberValue();
             }
@@ -87,7 +107,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         {
             requestQueue.Enqueue(item);
 
-            if (false == isRequestQueueCheck)
+            if (isRequestQueueCheck == false)
             {
                 isRequestQueueCheck = true;
                 GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, UpdateQueue());
@@ -104,41 +124,50 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         {
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, InternetReachability((reachable) =>
             {
-                if (true == reachable)
+                if (reachable == true)
                 {
                     RequestEnqueue(new RequestQueueItem(itemLength++, vo, callback));
                 }
                 else
                 {
-                    if (null == callback)
+                    if (callback == null)
                     {
                         return;
                     }
 
-                    callback(string.Empty, new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, transactionId: vo.transactionId));
+                    callback(string.Empty, new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, domain: Domain, transactionId: vo.transactionId, message: GamebaseStrings.SOCKET_NO_INTERNET_CONNECTION));
                 }
             }));
         }
 
         private IEnumerator Send()
         {
-            if (false == socket.IsConnected())
+            if (requestQueueItem.retryCount >= requestQueueItem.retryLimits)            
             {
-                yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, RetryConnect());
+                // requestQueueItem.retryLimits 만큼 재전송 실패
+                var error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR)
+                {
+                    domain = Domain,
+                    message = GamebaseStrings.SOCKET_SEND_FAIL,
+                    transactionId = requestQueueItem.requestVO.transactionId
+                };
+
+                requestQueueItem.callback(string.Empty, error);
+                requestQueueItem = null;
                 yield break;
             }
-            else
+         
+            if (socket.IsConnected() == false)
             {
-                if (0 < requestQueueItem.retryCount)
-                {
-                    GamebaseLog.Debug(string.Format("Reconnect succeeded. Index of queue item:{0}", requestQueueItem.index), this);
-                }
+                GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, RetryConnect());
+                yield break;
             }
-            
+            GamebaseLog.Debug(string.Format("Send Count:{0}", requestQueueItem.retryCount), this);
             GamebaseLog.Debug(string.Format("request:{0}", GamebaseJsonUtil.ToPrettyJsonString(requestQueueItem.requestVO)), this);
+         
             yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Send(JsonMapper.ToJson(requestQueueItem.requestVO), (error) =>
             {
-                if (null == error)
+                if (error == null)
                 {
                     return;
                 }                    
@@ -146,6 +175,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 error.transactionId = requestQueueItem.requestVO.transactionId;
                 requestQueueItem.callback(string.Empty, error);                
             }));
+
             socket.SetPollingInterval(PollingIntervalType.SHORT_INTERVAL);
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, CheckTimeout());
         }
@@ -153,13 +183,22 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         private IEnumerator CheckTimeout()
         {            
             float waitTime = 0;
-            while (true == isTimeOutCheck)
+            isTimeOutCheck = true;
+            while (isTimeOutCheck == true)
             {
                 if (waitTime >= CommunicatorConfiguration.timeout)
                 {
-                    GamebaseLog.Debug(string.Format("Time Out TransactionId : {0}", requestQueueItem.requestVO.transactionId.ToString()), this);
                     isTimeOutCheck = false;
-                    RetryItem();
+                    if (requestQueueItem == null)
+                    {
+                        GamebaseLog.Warn("requestQueueItem is null", this);
+                    }
+                    else
+                    {
+                        GamebaseLog.Debug(string.Format("Time Out TransactionId : {0}", requestQueueItem.requestVO.transactionId.ToString()), this);
+                        RetryItem();
+                    }                 
+
                     yield break;
                 }
                 waitTime += Time.unscaledDeltaTime;
@@ -169,61 +208,69 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         }
 
         private IEnumerator RetryConnect()
-        {
-            if (requestQueueItem.retryCount < requestQueueItem.retryLimits)
+        {            
+            yield return new WaitForSecondsRealtime(RETRY_CONNECT_DELAY);
+            yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, InternetReachability((reachable) =>
             {
-                yield return new WaitForSecondsRealtime(RETRY_CONNECT_DELAY);
-                yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, InternetReachability((reachable) => 
+                if (reachable == true)
                 {
-                    if (true == reachable)
+                    GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Reconnect((error) =>
                     {
-                        GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Reconnect((error) =>
+                        if (requestQueueItem != null)
                         {
-                            if (true == Gamebase.IsSuccess(error))
-                            {
-                                RequestEnqueue(requestQueueItem);
-                                requestQueueItem = null;
-                                return;
-                            }
-
                             RetryItem();
-                        }));
-                    }
-                    else
+                        }
+
+                        if (Gamebase.IsSuccess(error) == false)
+                        {
+                            GamebaseLog.Debug("Reconnect failed.", this);
+                        }
+                    }));
+                }
+                else
+                {
+                    if (requestQueueItem != null)
                     {
-                        RetryItem();
+                        // 인터넷에 열결되지 않음
+                        var error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR)
+                        {
+                            domain = Domain,
+                            message = GamebaseStrings.SOCKET_NO_INTERNET_CONNECTION,
+                            transactionId = requestQueueItem.requestVO.transactionId
+                        };
+
+                        requestQueueItem.callback(string.Empty, error);
+                        requestQueueItem = null;
                     }
-
-                    GamebaseLog.Debug(string.Format("index:{0}, apiId:{1}, retryCount:{2}, internetReachability:{3}", requestQueueItem.index, requestQueueItem.requestVO.apiId, requestQueueItem.retryCount, reachable), this);
-                }));
-            }
-            else
-            {
-                GamebaseLog.Debug(string.Format("Reconnect failed. Index of queue item:{0}", requestQueueItem.index), this);
-                requestQueueItem.callback(string.Empty, new GamebaseError(GamebaseErrorCode.SOCKET_ERROR));
-                requestQueueItem = null;
-            }
+                }                    
+            }));         
         }
-
+                
         private void RetryItem()
         {
+            requestQueueItem.retryCount += 1;
+            // 순차 보장을 위한 처리
+            // Queue 백업
             RequestQueueItem[] itemList = null;
             if(0 < requestQueue.Count)
             {
                 itemList = requestQueue.ToArray();
             }
 
-            requestQueueItem.retryCount += 1;
-            RequestEnqueue(requestQueueItem);
-            requestQueueItem = null;
+            // Queue Clear
+            requestQueue.Clear();
 
-            if(null != itemList)
+            // Queue에 순서에 맞게 추가
+            RequestEnqueue(requestQueueItem);
+            if(itemList != null)
             {
                 foreach(var item in itemList)
                 {
                     requestQueue.Enqueue(item);
                 }
             }
+
+            requestQueueItem = null;
         }
 
         private void RecvEvent(string response)
@@ -239,8 +286,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             }
             
             if(protocol.header.transactionId == requestQueueItem.requestVO.transactionId)
-            {
-                requestQueueItem.callback(response, null);
+            {                
+                if (requestQueueItem.callback != null)
+                {
+                    requestQueueItem.callback(response, null);
+                }
                 isTimeOutCheck = false;                
                 requestQueueItem = null;
                 socket.SetPollingInterval(PollingIntervalType.LONG_INTERVAL);
@@ -253,7 +303,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         private IEnumerator UpdateQueue()
         {
-            while (true == isRequestQueueCheck)
+            while (isRequestQueueCheck == true)
             {
                 if (0 == requestQueue.Count)
                 {
@@ -262,7 +312,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 }
                 else
                 {
-                    if (null == requestQueueItem)
+                    if (requestQueueItem == null)
                     {
                         requestQueueItem = RequestDequeue();
                         yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, Send());
@@ -285,14 +335,18 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 receivedCallback = true;
             });
                 
-            while(false == receivedCallback)
+            while(receivedCallback == false)
             {
                 yield return null;
             }
 #else
             internetReachability = Gamebase.Network.IsConnected();
 #endif
-            callback(internetReachability);
+            
+            if (callback != null)
+            {
+                callback(internetReachability);
+            }
             yield return null;
         }
 

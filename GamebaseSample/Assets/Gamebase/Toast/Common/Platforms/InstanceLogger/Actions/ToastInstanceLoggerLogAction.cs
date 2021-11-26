@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Toast.Internal
 {
     //InitializeAction
     public class ToastInstanceLoggerLogAction : ToastUnityAction
     {
+        // Unity Standalone의 ACTION_URI은 프로토콜을 따르지 않는다.
+        // 사유는 아래 두레이를 참고한다.
+        // https://nhnent.dooray.com/project/posts/2924651715329648388
         public static string ACTION_URI = "toast://instancelogger/log";
 
         protected override string GetUri()
@@ -24,9 +26,14 @@ namespace Toast.Internal
                                                              this.GetUri() + " action not found").ToJsonString();
             }
 
-            string type = payload["logType"].Value;
+            string type = payload["type"].Value;
             string level = payload["level"].Value;
             string message = payload["message"].Value;
+
+            if (string.IsNullOrEmpty(type))
+            {
+                type = "NORMAL";
+            }
 
             if (string.IsNullOrEmpty(level) || (message == null))
             {

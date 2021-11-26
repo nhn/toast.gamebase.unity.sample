@@ -11,5 +11,8 @@
         public const string TWITTER         = "twitter";
         public const string LINE            = "line";
         public const string APPLEID         = "appleid";
+        public const string HANGAME         = "hangame";
+        public const string WEIBO           = "weibo";
+        public const string KAKAOGAME       = "kakaogame";
     }
 }

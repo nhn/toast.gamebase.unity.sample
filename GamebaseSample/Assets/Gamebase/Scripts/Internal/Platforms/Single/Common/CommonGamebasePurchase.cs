@@ -36,15 +36,23 @@ namespace Toast.Gamebase.Internal.Single
                 GamebaseResponse.Launching.LaunchingInfo launchingInfo = GamebaseLaunchingImplementation.Instance.GetLaunchingInformations();
                 if (Gamebase.IsSuccess(error) == true)
                 {
+                    Dictionary<string, string> custom = new Dictionary<string, string>()
+                    {
+                        { GamebaseIndicatorReportType.AdditionalKey.GB_TCIAP_APP_KEY, launchingInfo.tcProduct.iap.appKey},
+                        { GamebaseIndicatorReportType.AdditionalKey.GB_ITEM_SEQ, itemSeq.ToString() }
+                    };
+
+                    if (GamebaseIndicatorReport.GetLogLevel() <= GamebaseIndicatorReport.LogLevel.DEBUG)
+                    {
+                        custom.Add(GamebaseIndicatorReportType.AdditionalKey.GB_TAA_USER_LEVEL, GamebaseAnalytics.Instance.UserLevel.ToString());
+                        custom.Add(GamebaseIndicatorReportType.AdditionalKey.GB_PAYMENT_SEQ, purchasableReceipt.paymentSeq);
+                    }
+
                     GamebaseIndicatorReport.SendIndicatorData(
                             GamebaseIndicatorReportType.LogType.PURCHASE,
                             GamebaseIndicatorReportType.StabilityCode.GB_IAP_PURCHASE_SUCCESS,
                             GamebaseIndicatorReportType.LogLevel.INFO,
-                            new Dictionary<string, string>()
-                            {
-                                { GamebaseIndicatorReportType.AdditionalKey.GB_TCIAP_APP_KEY, launchingInfo.tcProduct.iap.appKey},
-                                { GamebaseIndicatorReportType.AdditionalKey.GB_ITEM_SEQ, itemSeq.ToString() }
-                            });
+                            custom);
                 }
                 else
                 {
@@ -53,7 +61,7 @@ namespace Toast.Gamebase.Internal.Single
                         GamebaseIndicatorReport.SendIndicatorData(
                             GamebaseIndicatorReportType.LogType.PURCHASE,
                                 GamebaseIndicatorReportType.StabilityCode.GB_IAP_PURCHASE_CANCELED,
-                                GamebaseIndicatorReportType.LogLevel.DEBUG,
+                                GamebaseIndicatorReportType.LogLevel.INFO,
                                 new Dictionary<string, string>()
                                 {
                                     { GamebaseIndicatorReportType.AdditionalKey.GB_TCIAP_APP_KEY, launchingInfo.tcProduct.iap.appKey},
@@ -96,20 +104,25 @@ namespace Toast.Gamebase.Internal.Single
 
             PurchaseAdapterManager.Instance.RequestPurchase(
                 itemSeq,
-                (receipt, error) =>
+                (purchasableReceipt, error) =>
                 {
                     if (Gamebase.IsSuccess(error) == true)
                     {
-                        GamebaseAnalytics.Instance.CompletePurchase(receipt);
+                        CompletePurchase(purchasableReceipt);
                     }
                     else
                     {
                     }
-                    puechaseCallback(receipt, error);
+                    puechaseCallback(purchasableReceipt, error);
                 });
         }
 
-        public void RequestPurchase(string marketItemId, int handle)
+        public void RequestPurchase(string gamebaseProductId, int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt>>(handle));
+        }
+
+        public void RequestPurchase(string gamebaseProductId, string payload, int handle)
         {
             GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt>>(handle));
         }
@@ -150,7 +163,20 @@ namespace Toast.Gamebase.Internal.Single
                 return;
             }
 
-            PurchaseAdapterManager.Instance.RequestItemListOfNotConsumed(callback);
+           GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> responseCallback = (ItemList, error) =>
+            {
+                callback(ItemList, error);
+
+                if (Gamebase.IsSuccess(error) == true && ItemList != null)
+                {
+                    foreach(GamebaseResponse.Purchase.PurchasableReceipt purchasableReceipt in ItemList)
+                    {
+                        CompletePurchase(purchasableReceipt);
+                    }
+                }
+            };
+
+            PurchaseAdapterManager.Instance.RequestItemListOfNotConsumed(responseCallback);
         }
 
         public void RequestRetryTransaction(int handle)
@@ -183,7 +209,7 @@ namespace Toast.Gamebase.Internal.Single
 
         public void RequestActivatedPurchases(int handle)
         {
-            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.IapPurchase>>>(handle));
+            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>>>(handle));
         }
 
         private bool IsLoggedIn()
@@ -194,7 +220,32 @@ namespace Toast.Gamebase.Internal.Single
             }
 
             return true;
-        }       
+        }
+
+        private void CompletePurchase(GamebaseResponse.Purchase.PurchasableReceipt purchasableReceipt)
+        {
+            GamebaseAnalytics.Instance.CompletePurchase(purchasableReceipt,
+                (analyticsError) =>
+                {
+                    string stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_TAA_PURCHASE_COMPLETE_SUCCESS;
+                    if (Gamebase.IsSuccess(analyticsError) == false)
+                    {
+                        stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_TAA_PURCHASE_COMPLETE_FAILED;
+                    }
+
+                    GamebaseIndicatorReport.SendIndicatorData(
+                        GamebaseIndicatorReportType.LogType.PURCHASE,
+                        stabilityCode,
+                        GamebaseIndicatorReportType.LogLevel.DEBUG,
+                        new Dictionary<string, string>()
+                        {
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_TAA_USER_LEVEL, GamebaseAnalytics.Instance.UserLevel.ToString()},
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_STORE_CODE, GamebaseUnitySDK.StoreCode},
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_PAYMENT_SEQ, purchasableReceipt.paymentSeq }
+                        },
+                        analyticsError);
+                });
+        }
     }
 }
 #endif

@@ -30,7 +30,7 @@
                                                              ToastNativeCommonErrorCode.InvalidParameter.Code,
                                                              "userId is empty").ToJsonString();
             }
-                        
+
             ToastCoreSdk.Instance.NativeCore.SetUserId(userId);
 
             return ToastNativeMessage.CreateSuccessMessage(this.GetUri(),

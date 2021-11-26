@@ -9,13 +9,10 @@
         public static readonly string SdkPluginObjectName = "UnityToastSDKPlugin";
         public static readonly string SdkPluginReceiveMethodName = "ReceiveFromNative";
 
-
-
         public static readonly string ToastLoggerSettingObjectName = "ToastLoggerSettings";
         public static readonly string ToastLoggerFilterObjectName = "ToastLoggerFilter";
         public static readonly string ToastLoggerSenderObjectName = "ToastLoggerSender";
         public static readonly string ToastLoggerSendQueueObjectName = "ToastLoggerSendQueue";
-
 
         public static readonly string LogTransferObjectName = "LogTrasnfer";
         public static readonly string LogSendQueueObjectName = "LogSendQueue";

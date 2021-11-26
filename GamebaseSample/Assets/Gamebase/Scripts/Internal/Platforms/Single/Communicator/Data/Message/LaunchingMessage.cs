@@ -2,18 +2,21 @@
 
 namespace Toast.Gamebase.Internal.Single.Communicator
 {
-    public class LaunchingMessage
+    public static class LaunchingMessage
     {
         public static WebSocketRequest.RequestVO GetLaunchingInfoMessage()
         {
             var vo = new LaunchingRequest.ReqLaunchingInfoVO();
             vo.parameter.appId = GamebaseUnitySDK.AppID;
 
-            if (string.IsNullOrEmpty(Gamebase.GetUserID()))
+            if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
+            {
                 vo.parameter.userId = "0";
+            }   
             else
+            {
                 vo.parameter.userId = Gamebase.GetUserID();
-
+            }
 
             vo.parameter.clientVersion = GamebaseUnitySDK.AppVersion;
             vo.parameter.sdkVersion = GamebaseUnitySDK.SDKVersion;
@@ -31,6 +34,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Launching.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID);
             requestVO.parameters = vo.parameter;
+
             return requestVO;
         }
     }

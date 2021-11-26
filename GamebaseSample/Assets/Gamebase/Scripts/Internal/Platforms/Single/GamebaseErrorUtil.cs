@@ -196,6 +196,16 @@ namespace Toast.Gamebase.Internal.Single
                         }
                         break;
                     }
+                case GamebaseServerErrorCode.MEMBER_CANNOT_TEMPORARY_WITHDRAW:
+                    {
+                        errorCode = GamebaseErrorCode.AUTH_WITHDRAW_ALREADY_TEMPORARY_WITHDRAW;
+                        break;
+                    }
+                case GamebaseServerErrorCode.MEMBER_NOT_TEMPORARY_WITHDRAW:
+                    {
+                        errorCode = GamebaseErrorCode.AUTH_WITHDRAW_NOT_TEMPORARY_WITHDRAW;
+                        break;
+                    }
                 case GamebaseServerErrorCode.BANNED_MEMBER_LOGIN:
                 case GamebaseServerErrorCode.AUTHKEY_BELONG_TO_BANNED_MEMBER:
                     {
@@ -351,6 +361,11 @@ namespace Toast.Gamebase.Internal.Single
 
         private static bool IsRecursive(CommonResponse.Header.TraceError traceError)
         {
+            if(traceError == null)
+            {
+                return false;
+            }
+
             return traceError.traceError != null;
         }
 

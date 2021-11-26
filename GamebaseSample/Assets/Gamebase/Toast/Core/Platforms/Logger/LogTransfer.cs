@@ -12,10 +12,10 @@ namespace Toast.Core
 
     public class LogTransfer : MonoBehaviour
     {
-        private const int MAX_SEND_SIZE = 2097152;
         private const int MAX_COROUTINE_SIZE = 2048;
+#if UNITY_STANDALONE || UNITY_EDITOR
         private const int MAX_FILE_SIZE = 2048;
-
+#endif
         private bool _isStartSender = false;
         private int _couroutineCount = 0;
 
@@ -52,6 +52,7 @@ namespace Toast.Core
         }
 
         // Update is called once per frame
+        [System.Obsolete]
         void FixedUpdate()
         {
             if (!_isStartSender)
@@ -67,6 +68,7 @@ namespace Toast.Core
             }
         }
 
+        [System.Obsolete]
         IEnumerator SendReport(string logContents, long createTime, string transactionId)
         {
             _couroutineCount++;
@@ -77,8 +79,9 @@ namespace Toast.Core
             string jsonString = "";
 
             float timeout = 5.0f;
+            #pragma warning disable 0219
             bool isTimeout = false;
-
+            #pragma warning restore 0219
 #if UNITY_2017_2_OR_NEWER
             var downloadHandler = new DownloadHandlerBuffer();
             var uploadHandler = new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(logContents));
@@ -93,10 +96,18 @@ namespace Toast.Core
                 yield return request.SendWebRequest();
 
                 errorString = request.error;
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                    request.result == UnityWebRequest.Result.ProtocolError)
+                    {
+                        isTimeout = true;
+                    }
+#else
                 if (request.isNetworkError || request.isHttpError)
                 {
                     isTimeout = true;
                 }
+#endif
                 else
                 {
                     jsonString = request.downloadHandler.text;
@@ -137,17 +148,18 @@ namespace Toast.Core
 #if UNITY_STANDALONE || UNITY_EDITOR
             if (isTimeout == false && string.IsNullOrEmpty(errorString)) // success
             {
-                if (ToastFileManager.FileCheck(ToastInstanceLoggerCommonLogic.AppKey, createTime, transactionId))
+                if (BackupLogManager.FileCheck(ToastInstanceLoggerCommonLogic.AppKey, createTime, transactionId))
                 {
-                    ToastFileManager.FileDelete(ToastInstanceLoggerCommonLogic.AppKey, createTime, transactionId);
+                    BackupLogManager.FileDelete(ToastInstanceLoggerCommonLogic.AppKey, createTime, transactionId);
                 }
+
                 LogSendQueue.Instance.EnqueueInFile();
             }
             else
             {
-                if (ToastFileManager.GetProjectFileCount(ToastInstanceLoggerCommonLogic.AppKey) < MAX_FILE_SIZE)
+                if (BackupLogManager.GetProjectFileCount(ToastInstanceLoggerCommonLogic.AppKey) < MAX_FILE_SIZE)
                 {
-                    ToastFileManager.FileSave(ToastInstanceLoggerCommonLogic.AppKey, createTime, transactionId, logContents);
+                    BackupLogManager.FileSave(ToastInstanceLoggerCommonLogic.AppKey, createTime, transactionId, logContents);
                 }
             }
 #endif

@@ -1,7 +1,7 @@
 ﻿
 public class ToastNativeError
 {
-    public int Code { get; private set;}
+    public int Code { get; private set; }
 
     public ToastNativeError(int code)
     {
@@ -40,7 +40,7 @@ public class ToastNativeError
     }
 }
 
-public static class ToastNativeCommonErrorCode 
+public static class ToastNativeCommonErrorCode
 {
     public static readonly ToastNativeError InvalidParameter = new ToastNativeError(10000);
 

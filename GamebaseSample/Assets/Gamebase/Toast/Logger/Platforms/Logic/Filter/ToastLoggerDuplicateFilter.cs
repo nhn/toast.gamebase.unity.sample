@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using Toast.Internal;
 
 namespace Toast.Logger
@@ -12,7 +9,7 @@ namespace Toast.Logger
         private const long DEFAULT_DUPLICATE_FILTER_EXPIRE_TIME_MILLIS = 2000L;
         private List<ToastLoggerDuplicateInfo> _compareDuplicateInfos = new List<ToastLoggerDuplicateInfo>();
 
-        private int _capacity = DEFAULT_DUPLICATE_FILTER_CAPACITY;        
+        private int _capacity = DEFAULT_DUPLICATE_FILTER_CAPACITY;
 
         public void SetCapacity(int capacity)
         {
@@ -28,7 +25,7 @@ namespace Toast.Logger
 
             long currentTime = ToastUtil.GetEpochMilliSeconds();
 
-            _compareDuplicateInfos.RemoveAll(info => info.CreateTime < (currentTime - ToastLoggerSettings.Instance.filterDuplicateLogExpiredTimeSeconds*1000));
+            _compareDuplicateInfos.RemoveAll(info => info.CreateTime < (currentTime - ToastLoggerSettings.Instance.filterDuplicateLogExpiredTimeSeconds * 1000));
 
             ToastLoggerDuplicateInfo duplicateInfo = new ToastLoggerDuplicateInfo();
             duplicateInfo.SetLogData(logData);

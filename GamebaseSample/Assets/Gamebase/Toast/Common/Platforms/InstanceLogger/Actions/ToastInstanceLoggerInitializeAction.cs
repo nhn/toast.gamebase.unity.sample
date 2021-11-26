@@ -1,10 +1,11 @@
-﻿using System;
-
-namespace Toast.Internal
+﻿namespace Toast.Internal
 {
     //InitializeAction
     public class ToastInstanceLoggerInitializeAction : ToastUnityAction
     {
+        // Unity Standalone의 ACTION_URI은 프로토콜을 따르지 않는다.
+        // 사유는 아래 두레이를 참고한다.
+        // https://nhnent.dooray.com/project/posts/2924651715329648388
         public static string ACTION_URI = "toast://instancelogger/initalize";
 
         protected override string GetUri()

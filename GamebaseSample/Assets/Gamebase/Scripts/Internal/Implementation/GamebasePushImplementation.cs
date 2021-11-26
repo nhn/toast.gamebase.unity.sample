@@ -36,19 +36,42 @@ namespace Toast.Gamebase.Internal
 
         public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, GamebaseCallback.ErrorDelegate callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             push.RegisterPush(pushConfiguration, handle);
         }
         
         public void QueryPush(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Push.PushConfiguration> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             push.QueryPush(handle);
         }
 
         public void SetSandboxMode(bool isSandbox)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             push.SetSandboxMode(isSandbox);
+        }
+
+        public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, GamebaseRequest.Push.NotificationOptions options, GamebaseCallback.ErrorDelegate callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("RegisterPushWithNotificationOptions");
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            push.RegisterPush(pushConfiguration, options, handle);
+        }
+
+        public void QueryTokenInfo(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Push.TokenInfo> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            push.QueryTokenInfo(handle);
+        }
+
+        public GamebaseResponse.Push.NotificationOptions GetNotificationOptions()
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            return push.GetNotificationOptions();
         }
     }
 }

@@ -32,6 +32,17 @@ namespace Toast.Gamebase.Internal.Mobile
                 }
             }
         }
+
+        public void OnLogReport(string message)
+        {
+            GamebaseLog.Debug(string.Format("message : {0}", message), this);
+            
+            GamebaseInternalReport.Instance.SendPluginLog(
+                new System.Collections.Generic.Dictionary<string, string>
+                {
+                    {"GAMEBASE_LOG", message},
+                });
+        }
     }
 }
 #endif

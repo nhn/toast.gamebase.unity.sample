@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 
 namespace Toast.Logger
 {
@@ -31,18 +29,18 @@ namespace Toast.Logger
         public bool CheckFilters(ToastLoggerLogObject logObject)
         {
             string filterName = "";
-            foreach(var pair in _filters)
+            foreach (var pair in _filters)
             {
                 if (!pair.Value.Filter(logObject))
                 {
                     filterName = pair.Key;
                     if (ToastLoggerCommonLogic.IsLoggerListener)
                     {
-                        CrashLoggerListenerReceiver.Instance.OnLogFilter(filterName, logObject);
+                        CrashLoggerListenerReceiver.Instance.OnLogFilterWithToastLoggerObject(filterName, logObject);
                     }
                     return false;
-                }                
-            }           
+                }
+            }
 
             return true;
         }

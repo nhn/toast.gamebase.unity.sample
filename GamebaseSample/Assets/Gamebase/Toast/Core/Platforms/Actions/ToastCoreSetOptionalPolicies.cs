@@ -4,7 +4,7 @@ namespace Toast.Internal
 {
     public class ToastCoreSetOptionalPolicies : ToastUnityAction
     {
-        public static string ACTION_URI = "toast://iapmix/setoptionalpolicies";
+        public static string ACTION_URI = "toast://core/setoptionalpolicies";
 
         protected override string GetUri()
         {

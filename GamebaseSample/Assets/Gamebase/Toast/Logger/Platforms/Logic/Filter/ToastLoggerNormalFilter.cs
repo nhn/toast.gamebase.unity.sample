@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace Toast.Logger
+﻿namespace Toast.Logger
 {
     public class ToastLoggerNormalFilter : IToastLoggerFilter
     {
@@ -22,7 +18,7 @@ namespace Toast.Logger
                 {
                     return true;
                 }
-            }            
+            }
         }
     }
 }

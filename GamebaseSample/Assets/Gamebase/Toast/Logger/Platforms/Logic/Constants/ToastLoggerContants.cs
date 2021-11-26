@@ -2,6 +2,6 @@
 {
     public static class ToastLoggerContants
     {
-        public const string DEFAULT_LOG_SOURCE = "toast-logger";
+        public const string DEFAULT_LOG_SOURCE = "toast-sdk";
     }
 }

@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Text;
+using Toast.Gamebase.WebSocketSharp;
 using UnityEngine;
-using WebSocketSharp;
 
 namespace Toast.Gamebase.Internal.Single.Communicator
 {

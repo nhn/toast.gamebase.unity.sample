@@ -1,0 +1,26 @@
+<dependencies>
+  <packages>
+    <package>com.toast.android.gamebase:gamebase-adapter-auth-facebook:2.30.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-auth-google:2.30.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-auth-payco:2.30.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-purchase-google:2.30.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-push-fcm:2.30.0</package>
+    <package>com.toast.android.gamebase:gamebase-sdk:2.30.0</package>
+  </packages>
+  <files />
+  <settings>
+    <setting name="androidAbis" value="armeabi-v7a" />
+    <setting name="bundleId" value="com.toast.gamebasesample" />
+    <setting name="explodeAars" value="False" />
+    <setting name="gradleBuildEnabled" value="True" />
+    <setting name="gradlePropertiesTemplateEnabled" value="True" />
+    <setting name="gradleTemplateEnabled" value="True" />
+    <setting name="installAndroidPackages" value="True" />
+    <setting name="localMavenRepoDir" value="Assets/GeneratedLocalRepo" />
+    <setting name="packageDir" value="Assets/Plugins/Android" />
+    <setting name="patchAndroidManifest" value="True" />
+    <setting name="patchMainTemplateGradle" value="True" />
+    <setting name="projectExportEnabled" value="False" />
+    <setting name="useJetifier" value="True" />
+  </settings>
+</dependencies>

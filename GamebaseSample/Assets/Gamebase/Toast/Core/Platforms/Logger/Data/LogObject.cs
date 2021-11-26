@@ -16,6 +16,11 @@ namespace Toast.Core
 
         public void SetUserId(string userId)
         {
+            if (ContainsFiled(LogFields.USER_ID))
+            {
+                Remove(LogFields.USER_ID);
+            }
+
             Put(LogFields.USER_ID, userId);
         }
 
@@ -74,6 +79,11 @@ namespace Toast.Core
             _data.Add(field, value);
         }
 
+        private void Remove(string field)
+        {
+            _data.Remove(field);
+        }
+
         public void PutAll(Dictionary<string, string> data)
         {
             var enumerator = data.GetEnumerator();
@@ -86,6 +96,12 @@ namespace Toast.Core
         public void SetUserField(string field, string value)
         {
             string convertedField = LogFields.ConvertField(field);
+
+            if (ContainsFiled(convertedField))
+            {
+                Remove(convertedField);
+            }
+
             Put(convertedField, value);
         }
 

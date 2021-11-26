@@ -108,10 +108,12 @@ namespace Toast.Gamebase.Internal
                 (logData) =>
                 {
                     GamebaseLog.Debug("OnCrashFilter", this);
-                    GamebaseResponse.Logger.CrashLogData crashLogData = new GamebaseResponse.Logger.CrashLogData();
-                    crashLogData.logType = (GamebaseLoggerConst.LogType)logData.LogType;
-                    crashLogData.condition = logData.Condition;
-                    crashLogData.stackTrace = logData.StackTrace;
+                    GamebaseResponse.Logger.CrashLogData crashLogData = new GamebaseResponse.Logger.CrashLogData
+                    {
+                        logType = logData.LogType,
+                        condition = logData.Condition,
+                        stackTrace = logData.StackTrace
+                    };
 
                     return filter(crashLogData);
                 };

@@ -35,6 +35,22 @@ namespace Toast.Gamebase.Internal.Single
         {
             GamebaseErrorNotifier.FireNotSupportedAPI(this);
         }
+
+        public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, GamebaseRequest.Push.NotificationOptions options, int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(handle));
+        }
+
+        public void QueryTokenInfo(int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Push.TokenInfo>>(handle));
+        }
+
+        public GamebaseResponse.Push.NotificationOptions GetNotificationOptions()
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+            return null;
+        }
     }
 }
 #endif

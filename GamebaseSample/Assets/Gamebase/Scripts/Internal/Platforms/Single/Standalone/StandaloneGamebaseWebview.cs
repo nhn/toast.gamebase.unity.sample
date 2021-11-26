@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE
 
 using System.Collections.Generic;
+using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal.Single.Standalone
 {
@@ -19,6 +20,39 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             {
                 closeCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(closeCallbackHandle);
                 GamebaseCallbackHandler.UnregisterCallback(closeCallbackHandle);
+            }
+
+            if(string.IsNullOrEmpty(url) == true)
+            {
+                GamebaseError error = new GamebaseError(
+                        GamebaseErrorCode.WEBVIEW_INVALID_URL,
+                        Domain,
+                        GamebaseStrings.WEBVIEW_INVALID_URL);
+
+                if (closeCallback != null)
+                {
+                    closeCallback(error);
+                }
+
+                Dictionary<string, string> data = new Dictionary<string, string>()
+                        {
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_URL, url },
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_EXCEPTION, JsonMapper.ToJson(error) }
+                        };
+
+                if(configuration != null)
+                {
+                    data.Add(GamebaseIndicatorReportType.AdditionalKey.GB_WEBVIEW_CONFIGURATION, JsonMapper.ToJson(configuration));
+                }
+
+                GamebaseIndicatorReport.SendIndicatorData(
+                        GamebaseIndicatorReportType.LogType.WEBVIEW,
+                        GamebaseIndicatorReportType.StabilityCode.GB_WEBVIEW_OPEN_FAILED,
+                        GamebaseIndicatorReportType.LogLevel.ERROR,
+                        data
+                        );
+
+                return;
             }
 
             GamebaseCallback.GamebaseDelegate<string> schemeEvent = null;

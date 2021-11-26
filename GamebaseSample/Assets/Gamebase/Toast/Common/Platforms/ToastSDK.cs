@@ -47,15 +47,11 @@ namespace Toast.Internal
                                                SDK_INITIALIZE,
                                                BindingFlags.NonPublic | BindingFlags.Static);
 
-            ToastReflectionHelper.invokeStatic("Toast.Internal.ToastLoggerSdk", 
-                                               SDK_INITIALIZE, 
+            ToastReflectionHelper.invokeStatic("Toast.Internal.ToastLoggerSdk",
+                                               SDK_INITIALIZE,
                                                BindingFlags.NonPublic | BindingFlags.Static);
 
             ToastReflectionHelper.invokeStatic("Toast.Internal.ToastIapSdk",
-                                               SDK_INITIALIZE,
-                                               BindingFlags.NonPublic | BindingFlags.Static);            
-
-            ToastReflectionHelper.invokeStatic("Toast.Internal.ToastIapMixSdk",
                                                SDK_INITIALIZE,
                                                BindingFlags.NonPublic | BindingFlags.Static);
 

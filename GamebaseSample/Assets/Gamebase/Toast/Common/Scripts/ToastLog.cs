@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Toast
 {
@@ -25,7 +24,7 @@ namespace Toast
 
         private static void Log(LogLevel level, string message)
         {
-            if ((int)Level <= (int) level)
+            if ((int)Level <= (int)level)
             {
                 switch (level)
                 {
