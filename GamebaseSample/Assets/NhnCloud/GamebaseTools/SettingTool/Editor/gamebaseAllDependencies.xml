@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<dependencies>
+  <androidPackages>
+    <androidPackage spec="com.toast.android.gamebase:gamebase-sdk:2.31.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-facebook:2.31.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-google:2.31.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-payco:2.31.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-purchase-google:2.31.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-push-fcm:2.31.0" />
+  </androidPackages>
+  <iosPods>
+  </iosPods>
+</dependencies>

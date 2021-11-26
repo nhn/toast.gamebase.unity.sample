@@ -1,0 +1,20 @@
+{
+    "cdn": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/cdn.json"
+    },
+    "localizedString": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/localizedstring.json"
+    },
+    "adapterSettings": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/adapterSettings.json"
+    },
+    "gamebaseAllDependencies": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/gamebaseAllDependencies.xml"
+    },
+    "gamebaseSdk": {
+        "path": "GamebaseSDK"
+    },
+    "ad": {
+        "downloadPath": "NHNCloud/GamebaseTools/SettingTool/Ad/"
+    }
+}
