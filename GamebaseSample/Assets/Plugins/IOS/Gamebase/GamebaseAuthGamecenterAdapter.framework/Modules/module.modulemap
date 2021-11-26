@@ -1,6 +1,0 @@
-framework module GamebaseAuthGamecenterAdapter {
-  umbrella header "GamebaseAuthGamecenterAdapter.h"
-
-  export *
-  module * { export * }
-}
