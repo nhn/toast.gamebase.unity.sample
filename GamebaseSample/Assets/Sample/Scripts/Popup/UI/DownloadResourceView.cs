@@ -6,9 +6,9 @@ namespace GamebaseSample
     public class DownloadResourceView : MonoBehaviour
     {
         [SerializeField]
-        private RectTransform ItemPrefab;
+        private RectTransform ItemPrefab = null;
         [SerializeField]
-        private Transform ContentRoot;
+        private Transform ContentRoot = null;
 
         private Dictionary<int, DownloadResourceViewItem> progressBars = new Dictionary<int, DownloadResourceViewItem>();
 

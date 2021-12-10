@@ -7,13 +7,13 @@ namespace GamebaseSample
     public class Push : MonoBehaviour
     {
         [SerializeField]
-        private GameObject pushEnabled;
+        private GameObject pushEnabled = null;
         [SerializeField]
-        private GameObject adAgreement;
+        private GameObject adAgreement = null;
         [SerializeField]
-        private GameObject adAgreementNight;
+        private GameObject adAgreementNight = null;
         [SerializeField]
-        private GameObject cancelButton;
+        private GameObject cancelButton = null;
 
         public const string KEY_PUSH_SETTING = "KEY_PUSH_SETTING";
 

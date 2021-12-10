@@ -10,35 +10,24 @@ namespace GamebaseSample
     public class Login : MonoBehaviour
     {
         [SerializeField]
-        private GameObject loginButtonContainer;
+        private GameObject loginButtonContainer = null;
         [SerializeField]
-        private GameObject googleButton;
+        private GameObject googleButton = null;
         [SerializeField]
-        private GameObject gamecenterButton;
+        private GameObject gamecenterButton = null;
         [SerializeField]
-        private GameObject otherButtonContainer;
+        private GameObject otherButtonContainer = null;
 
         [SerializeField]
-        private GameObject cacheDeleteButton;
+        private GameObject cacheDeleteButton = null;
 
         [SerializeField]
-        private Text facebookButtonText;
-        [SerializeField]
-        private Text googleButtonText;
-        [SerializeField]
-        private Text gamecenterButtonText;
-        [SerializeField]
-        private Text paycoButtonText;
-        [SerializeField]
-        private Text guestButtonText;
+        private GameObject popupRoot = null;
 
         [SerializeField]
-        private GameObject popupRoot;
-
+        private Transform touchEffectPosition = null;
         [SerializeField]
-        private Transform touchEffectPosition;
-        [SerializeField]
-        private GameObject touchEffect;
+        private GameObject touchEffect = null;
 
         private void Start()
         {

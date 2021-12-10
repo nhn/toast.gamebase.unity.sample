@@ -9,14 +9,12 @@ namespace GamebaseSample
     public class Main : MonoBehaviour
     {
         [SerializeField]
-        private GameObject mainUI;
-        [SerializeField]
-        private GameObject popupRoot;
+        private GameObject popupRoot = null;
 
         [SerializeField]
-        private Transform touchEffectPosition;
+        private Transform touchEffectPosition = null;
         [SerializeField]
-        private GameObject touchEffect;
+        private GameObject touchEffect = null;
 
         private const string KEY_CODE = "code";
         private const string KEY_MESSAGE = "message";

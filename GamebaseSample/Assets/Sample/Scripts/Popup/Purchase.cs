@@ -7,11 +7,11 @@ namespace GamebaseSample
     public class Purchase : MonoBehaviour
     {
         [SerializeField]
-        private Text nameText;
+        private Text nameText = null;
         [SerializeField]
-        private Text descText;
+        private Text descText = null;
         [SerializeField]
-        private Text priceText;
+        private Text priceText = null;
 
         private GamebaseResponse.Purchase.PurchasableItem purchasableItem;
 
