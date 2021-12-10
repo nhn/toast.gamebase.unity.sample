@@ -36,17 +36,17 @@ namespace GamebaseSample
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.PURCHASE_TITLE),
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.PURCHASE_BUY_CONTEXT),
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.PURCHASE_TITLE),
-                () => { RequestPurchase(purchasableItem.itemSeq); },
+                () => { RequestPurchase(purchasableItem.gamebaseProductId); },
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.COMMON_CANCEL_BUTTON),
                 null);
         }
         #endregion
 
-        private void RequestPurchase(long itemSeq)
+        private void RequestPurchase(string gamebaseProductId)
         {
             Loading.GetInstance().ShowLoading(gameObject);
 
-            Gamebase.Purchase.RequestPurchase(itemSeq, (purchasableReceipt, error) =>
+            Gamebase.Purchase.RequestPurchase(gamebaseProductId, (purchasableReceipt, error) =>
             {
                 Loading.GetInstance().HideLoading();
 

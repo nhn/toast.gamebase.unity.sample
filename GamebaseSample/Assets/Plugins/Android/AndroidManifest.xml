@@ -12,7 +12,6 @@
     <activity android:name="com.toast.android.gamebase.activity.GamebaseMainActivity"
               android:launchMode="singleTask" 
               android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-              android:screenOrientation="landscape"
               android:label="@string/app_name"
               android:exported="true">
       <intent-filter>

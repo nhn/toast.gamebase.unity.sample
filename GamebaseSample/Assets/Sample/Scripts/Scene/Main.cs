@@ -25,14 +25,12 @@ namespace GamebaseSample
 
         private void Start()
         {
-            Gamebase.AddObserver(GamebaseObserverHandler);
-            Gamebase.AddServerPushEvent(GamebaseServerPushHandler);
+            Gamebase.AddEventHandler(GamebaseEventHandeler);
         }
 
         private void OnDestroy()
         {
-            Gamebase.RemoveObserver(GamebaseObserverHandler);
-            Gamebase.RemoveServerPushEvent(GamebaseServerPushHandler);
+            Gamebase.RemoveEventHandler(GamebaseEventHandeler);
         }
 
         private void Update()
@@ -77,103 +75,184 @@ namespace GamebaseSample
             touch.transform.localPosition = localpoint;
         }
 
-        private void GamebaseObserverHandler(GamebaseResponse.SDK.ObserverMessage message)
+        private void GamebaseEventHandeler(GamebaseResponse.Event.GamebaseEventMessage message)
         {
-            switch (message.type)
+            switch (message.category)
             {
-                case GamebaseObserverType.LAUNCHING:
+                case GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT:
+                case GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT:
                     {
-                        CheckLaunchingStatus(message.data);
+                        GamebaseResponse.Event.GamebaseEventServerPushData serverPushData = GamebaseResponse.Event.GamebaseEventServerPushData.From(message.data);
+                        if (serverPushData != null)
+                        {
+                            CheckServerPush(message.category, serverPushData);
+                        }
                         break;
                     }
-                case GamebaseObserverType.HEARTBEAT:
+                case GamebaseEventCategory.OBSERVER_LAUNCHING:
                     {
-                        CheckHeartbeat(message.data);
+                        GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+                        if(observerData != null)
+                        {
+                            CheckLaunchingStatus(observerData);
+                        }
                         break;
                     }
-                case GamebaseObserverType.NETWORK:
+                case GamebaseEventCategory.OBSERVER_NETWORK:
                     {
-                        CheckNetworkStatus(message.data);
+                        GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+                        if (observerData != null)
+                        {
+                            CheckNetwork(observerData);
+                        }
+                        break;
+                    }
+                case GamebaseEventCategory.OBSERVER_HEARTBEAT:
+                    {
+                        GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+                        if (observerData != null)
+                        {
+                            CheckHeartbeat(observerData);
+                        }
+                        break;
+                    }
+                case GamebaseEventCategory.OBSERVER_WEBVIEW:
+                    {
+                        GamebaseResponse.Event.GamebaseEventObserverData observerData = GamebaseResponse.Event.GamebaseEventObserverData.From(message.data);
+                        if (observerData != null)
+                        {
+                            CheckWebView(observerData);
+                        }
+                        break;
+                    }
+                case GamebaseEventCategory.OBSERVER_INTROSPECT:
+                    {
+                        // Introspect error
+                        break;
+                    }
+                case GamebaseEventCategory.PURCHASE_UPDATED:
+                    {
+                        // If the user got item by 'Promotion Code',
+                        // this event will be occurred.
+                        break;
+                    }
+                case GamebaseEventCategory.PUSH_RECEIVED_MESSAGE:
+                    {
+                        GamebaseResponse.Event.PushMessage pushMessage = GamebaseResponse.Event.PushMessage.From(message.data);
+                        if (pushMessage != null)
+                        {
+                            Gamebase.Util.ShowToast(
+                                string.Format("Received push message.\ntitle:{0}\nmessage:{1}", pushMessage.title, pushMessage.body),
+                                GamebaseUIToastType.TOAST_LENGTH_LONG);
+                        }
+                        break;
+                    }
+                case GamebaseEventCategory.PUSH_CLICK_MESSAGE:
+                    {
+                        GamebaseResponse.Event.PushMessage pushMessage = GamebaseResponse.Event.PushMessage.From(message.data);
+                        if (pushMessage != null)
+                        {
+                            Gamebase.Util.ShowToast(
+                                string.Format("Clicked push message.\ntitle:{0}\nmessage:{1}", pushMessage.title, pushMessage.body),
+                                GamebaseUIToastType.TOAST_LENGTH_LONG);
+                        }
+                        break;
+                    }
+                case GamebaseEventCategory.PUSH_CLICK_ACTION:
+                    {
+                        GamebaseResponse.Event.PushAction pushAction = GamebaseResponse.Event.PushAction.From(message.data);
+                        if (pushAction != null)
+                        {
+                            // When you clicked action button by 'Rich Message'.
+                            Gamebase.Util.ShowToast(
+                                string.Format("Clicked action button by 'Rich Message'.\nactionType:{0}\nuserText:{1}\nmessage:{2}",
+                                    pushAction.actionType, pushAction.userText, pushAction.message),
+                                GamebaseUIToastType.TOAST_LENGTH_LONG);
+                        }
                         break;
                     }
             }
         }
 
-        private void CheckLaunchingStatus(Dictionary<string, object> data)
+        void CheckServerPush(string category, GamebaseResponse.Event.GamebaseEventServerPushData data)
         {
-            int launchingStatus = GetDictionaryValue<int>(data, KEY_CODE);
-            string launghingMessage = GetDictionaryValue<string>(data, KEY_MESSAGE);
+            if (category.Equals(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT) == true)
+            {
+                Gamebase.Util.ShowToast(
+                    string.Format(TEXT_ENTER_MESSAGE, "APP_KICKOUT"),
+                    GamebaseUIToastType.TOAST_LENGTH_LONG);
 
+                EndSession();
+            }
+            else if (category.Equals(GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT) == true)
+            {
+                Gamebase.Util.ShowToast(
+                    string.Format(TEXT_ENTER_MESSAGE, "TRANSFER_KICKOUT"),
+                    GamebaseUIToastType.TOAST_LENGTH_LONG);
+
+                EndSession();
+            }
+        }
+        
+        private void CheckLaunchingStatus(GamebaseResponse.Event.GamebaseEventObserverData observerData)
+        {
             Gamebase.Util.ShowToast(
-                string.Format("{0}, launching status:{1}", launghingMessage, launchingStatus),
+                string.Format("{0}, launching status:{1}", observerData.message, observerData.code),
                 GamebaseUIToastType.TOAST_LENGTH_LONG);
 
-            if (IsPlayable(launchingStatus) == false)
+            if (IsPlayable(observerData.code) == false)
             {
                 EndSession();
             }
         }
-
-        private void CheckHeartbeat(Dictionary<string, object> data)
+        
+        private void CheckNetwork(GamebaseResponse.Event.GamebaseEventObserverData observerData)
         {
-            int heartbeatCode = GetDictionaryValue<int>(data, KEY_CODE);
-
-            switch (heartbeatCode)
+            Gamebase.Util.ShowToast(
+                string.Format("The network type has been changed to {0}, network status is {1}", observerData.message, observerData.code),
+                GamebaseUIToastType.TOAST_LENGTH_LONG);
+        }
+        
+        private void CheckHeartbeat(GamebaseResponse.Event.GamebaseEventObserverData observerData)
+        {
+            switch (observerData.code)
             {
                 case GamebaseErrorCode.INVALID_MEMBER:
-                    {
-                        Gamebase.Util.ShowToast(
-                            string.Format(TEXT_ENTER_MESSAGE, "INVALID_MEMBER"),
-                            GamebaseUIToastType.TOAST_LENGTH_LONG);
-                        EndSession();
-                        break;
-                    }
+                {
+                    Gamebase.Util.ShowToast(
+                        string.Format(TEXT_ENTER_MESSAGE, "INVALID_MEMBER"),
+                        GamebaseUIToastType.TOAST_LENGTH_LONG);
+                    EndSession();
+                    break;
+                }
                 case GamebaseErrorCode.BANNED_MEMBER:
-                    {
-                        Gamebase.Util.ShowToast(
-                            string.Format(TEXT_ENTER_MESSAGE, "BANNED_MEMBER"),
-                            GamebaseUIToastType.TOAST_LENGTH_LONG);
-                        EndSession();
-                        break;
-                    }
+                {
+                    Gamebase.Util.ShowToast(
+                        string.Format(TEXT_ENTER_MESSAGE, "BANNED_MEMBER"),
+                        GamebaseUIToastType.TOAST_LENGTH_LONG);
+                    EndSession();
+                    break;
+                }
                 default:
-                    {
-                        Logger.Debug(string.Format("The heartbeat status has been changed to {0}", heartbeatCode), this);
-                        break;
-                    }
+                {
+                    Logger.Debug(string.Format("The heartbeat status has been changed to {0}", observerData.code), this);
+                    break;
+                }
             }
         }
 
-        private void CheckNetworkStatus(Dictionary<string, object> data)
+        private void CheckWebView(GamebaseResponse.Event.GamebaseEventObserverData observerData)
         {
-            int networkStatus = GetDictionaryValue<int>(data, KEY_CODE);
-            string networkType = GetDictionaryValue<string>(data, KEY_MESSAGE);
-
-            Gamebase.Util.ShowToast(
-                string.Format("The network type has been changed to {0}, network status is {1}", networkType, networkStatus),
-                GamebaseUIToastType.TOAST_LENGTH_LONG);
-        }
-
-        private void GamebaseServerPushHandler(GamebaseResponse.SDK.ServerPushMessage message)
-        {
-            switch (message.type)
+            switch (observerData.code)
             {
-                case GamebaseServerPushType.APP_KICKOUT:
+                case GamebaseWebViewEventType.OPENED:
                     {
-                        Gamebase.Util.ShowToast(
-                            string.Format(TEXT_ENTER_MESSAGE, "APP_KICKOUT"),
-                            GamebaseUIToastType.TOAST_LENGTH_LONG);
-
-                        EndSession();
+                        // WebView opened.
                         break;
                     }
-                case GamebaseServerPushType.TRANSFER_KICKOUT:
+                case GamebaseWebViewEventType.CLOSED:
                     {
-                        Gamebase.Util.ShowToast(
-                            string.Format(TEXT_ENTER_MESSAGE, "TRANSFER_KICKOUT"),
-                            GamebaseUIToastType.TOAST_LENGTH_LONG);
-
-                        EndSession();
+                        // WebView closed.
                         break;
                     }
             }

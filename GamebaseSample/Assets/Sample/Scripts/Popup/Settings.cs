@@ -658,8 +658,8 @@ namespace GamebaseSample
 
         private void ForcingMapping(string providerName, GamebaseError error)
         {
-            var forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.MakeForcingMappingTicket(error);
-
+            var forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
+            
             var message = new StringBuilder();
             message.AppendLine(LocalizationManager.Instance.GetLocalizedValue(GameStrings.SETTINGS_FORCING_MAPPING_ALREADY_LINKED));
             message.AppendLine(string.Format("User ID:{0}", forcingMappingTicket.mappedUserId));
@@ -673,9 +673,9 @@ namespace GamebaseSample
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.COMMON_OK_BUTTON),
                 () =>
                 {
-                    Gamebase.AddMappingForcibly(providerName, forcingMappingTicket.forcingMappingKey, (authToken, mappingError) =>
+                    Gamebase.AddMappingForcibly(forcingMappingTicket, (authTokenForcibly, errorForcibly) =>
                     {
-                        if (Gamebase.IsSuccess(mappingError) == true)
+                        if (Gamebase.IsSuccess(error) == true)
                         {
                             GetAuthMappingList();
                         }
