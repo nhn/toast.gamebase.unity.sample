@@ -46,16 +46,20 @@ Sample App을 에디터에서 실행할 때는 Intro 씬을 열어 플레이를 
 
 ### Build Settings
 
-#### Android Gradle Build
+Gamebase Setting Tool 2.0.0이 적용되었습니다.
 
-Unity Gradle Build를 사용할 때 참고할 수 있게 mainTemplate.gradle 파일을 샘플로 제공합니다.
+* [Gamebase Guide - Using the Setting Tool](https://docs.toast.com/ko/Game/Gamebase/ko/unity-started/#using-the-setting-tool)
 
-* [Unity Guide - Gradle for Android](https://docs.unity3d.com/Manual/android-gradle-overview.html)
+#### Android
 
-#### iOS PostProcessBuild
-
-Unity에서 iOS 빌드 시 Xcode 설정을 자동으로 할 수 있게 GamebasePostBuildProcess.cs 파일을 샘플로 제공합니다.
-
+1. Unity 버전 별로 gradle 설정이 달라지기 때문에 직접 생성해야 합니다.
+    * Unity 2019.3 미만
+        * Player Settings > Publishing Settings에서 Custom Gradle Template을 활성화하여 mainTemplate.gradle 파일을 생성
+    * Unity 2019.3 이상
+        * Player Settings > Publishing Settings에서 Custom Gradle Template을 활성화하여 mainTemplate.gradle 파일을 생성        
+        * Player Settings > Publishing Settings에서 Custom Gradle Properties Template을 활성화하여 gradleTemplate.properties 파일을 생성
+2. gradle이 생성되었다면 EDM4U의 Resolve를 진행합니다.
+    * 상단 메뉴 > Assets > External Dependency Manager > Android Resolver > Force Resolve를 선택
 
 ## TOAST Console Settings
 
