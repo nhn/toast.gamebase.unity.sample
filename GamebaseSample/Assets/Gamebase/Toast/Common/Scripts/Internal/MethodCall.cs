@@ -82,7 +82,18 @@ namespace Toast.Internal
             var param = new JSONObject();
             foreach (var kv in value)
             {
-                param.Add(kv.Key, kv.Value);
+                string strKey = kv.Key;
+                string strValue = kv.Value;
+                if (string.IsNullOrEmpty(strKey))
+                {
+                    continue;
+                }
+                if (string.IsNullOrEmpty(strValue))
+                {
+                    strValue = "";
+                }
+
+                param.Add(strKey, strValue);
             }
 
             _parameters.Add(key, param);
@@ -115,7 +126,7 @@ namespace Toast.Internal
 
                 root.Add(JsonKeys.Payload, payload);
             }
-            
+
             root.Add(JsonKeys.Uri, _url);
             root.Add(JsonKeys.Header, header);
             return root.ToString();

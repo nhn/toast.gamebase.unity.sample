@@ -97,7 +97,7 @@ SocketRecv: function (socketInstance)
 	if (socket.messages.length == 0)
 		return "";
 	
-	var message = unescape(socket.messages[0]);
+	var message = socket.messages[0];
 	var buffer = _malloc(lengthBytesUTF8(message) + 1);
 	stringToUTF8(message, buffer, lengthBytesUTF8(message) + 1);
 	

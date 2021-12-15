@@ -17,9 +17,9 @@ namespace Toast.Logger
             ToastLoggerCommonLogic.Log(logLevel, message, userFields);
         }
 
-        public void Report(string logLevel, string message, string dumpData, Dictionary<string, string> userFields = null)
+        public void Report(string logType, string logLevel, string message, string dumpData, Dictionary<string, string> userFields)
         {
-            ToastLoggerCommonLogic.Report(logLevel, message, dumpData, userFields);
+            ToastLoggerCommonLogic.Report(logType, logLevel, message, dumpData, userFields);
         }
 
         public void SetUserField(string key, string value)

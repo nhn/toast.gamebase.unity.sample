@@ -2,6 +2,6 @@
 {
     public static class LogConstants
     {
-        public const string DEFAULT_LOG_SOURCE = "toast-instance-logger";
+        public const string DEFAULT_LOG_SOURCE = "toast-sdk";
     }
 }

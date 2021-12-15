@@ -7,17 +7,17 @@ namespace GamebaseSample
     public class IdPasswordPopup : MonoBehaviour
     {
         [SerializeField]
-        private Text titleText;
+        private Text titleText = null;
         [SerializeField]
-        private Text messageText;
+        private Text messageText = null;
         [SerializeField]
-        private InputField idInput;
+        private InputField idInput = null;
         [SerializeField]
-        private InputField passwordInput;
+        private InputField passwordInput = null;
         [SerializeField]
-        private Text okButtonText;
+        private Text okButtonText = null;
         [SerializeField]
-        private Text cancelButtonText;
+        private Text cancelButtonText = null;
 
         private Action<string, string> okCallback;
         private Action cancelCallback;

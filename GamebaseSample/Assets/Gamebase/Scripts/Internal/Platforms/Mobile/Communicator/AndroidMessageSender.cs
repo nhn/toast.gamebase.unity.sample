@@ -6,7 +6,7 @@ namespace Toast.Gamebase.Internal.Mobile.Android
     public sealed class AndroidMessageSender : INativeMessageSender
     {
         private static readonly AndroidMessageSender instance = new AndroidMessageSender();
-        private const string GAMEBASE_ANDROID_PLUGIN_CLASS = "com.toast.android.gamebase.unityplugin.communicator.UnityMessageReceiver";
+        private const string GAMEBASE_ANDROID_PLUGIN_CLASS = "com.toast.android.gamebase.unity.communicator.UnityMessageReceiver";
         private AndroidJavaClass jc = null;
 
         public static AndroidMessageSender Instance
@@ -50,6 +50,10 @@ namespace Toast.Gamebase.Internal.Mobile.Android
             GamebaseLog.Debug(string.Format("className : {0}", className), this);
             jc.CallStatic("initialize", className);
         }
+
+		public void InitializeUnityInterface()
+		{
+		}
     }
 }
 #endif

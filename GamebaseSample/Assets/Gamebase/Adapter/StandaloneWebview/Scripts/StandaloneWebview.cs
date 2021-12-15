@@ -1,24 +1,30 @@
 ﻿#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-using UnityEngine;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using Toast.Cef.Webview;
+using Toast.Gamebase.Adapter.Ui;
 using Toast.Gamebase.Internal;
+using Toast.Gamebase.Internal.Single.Communicator;
+using Toast.Gamebase.LitJson;
+using UnityEngine;
 
-namespace Toast.Gamebase
+namespace Toast.Gamebase.Adapter
 {
     public class StandaloneWebview
     {
-        private const int NONE_HANDLE = -1;
+        private const string POPUP_BLOCK_MESSAGE = "New window is not supported!!";
+
+        /// <summary>
+        /// Save User setting before webview open.
+        /// </summary>
+        private IMECompositionMode imeCompositionModeBackup;
+
+        private StandaloneWebviewUI webviewUi;
+
         private GamebaseCallback.ErrorDelegate closeCallback;
         private GamebaseCallback.GamebaseDelegate<string> schemeEvent;
 
-        private static IMECompositionMode imeCompositionModeBackup;
-
-        private StandaloneWebviewUI webviewUI;
-        private List<string> schemeList;
-
-        private readonly string popupBlockMessage = "New window is not supported!!";
+        private int webviewIndex = -1;
 
         private static readonly StandaloneWebview instance = new StandaloneWebview();
 
@@ -27,167 +33,452 @@ namespace Toast.Gamebase
             get { return instance; }
         }
 
-        private StandaloneWebview()
+        public StandaloneWebview()
         {
-            if (webviewUI == null)
-            {
-                webviewUI = GamebaseComponentManager.AddComponent<StandaloneWebviewUI>(GamebaseGameObjectManager.GameObjectType.CORE_TYPE);                
-                webviewUI.SetCallback(OnBackButton, OnCloseButton);
-            }                
+            InitializeWebViewUI();
         }
 
-#region Button
-        private void OnBackButton()
+        public void ShowWebView(string webviewUrl,
+            GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration,
+            GamebaseCallback.ErrorDelegate closeCallback = null,
+            List<string> schemeList = null,
+            GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
         {
-            CefManager.GetInstance().GoBack();
-        }
+            SetWebViewUI(configuration);
 
-        private void OnCloseButton()
-        {
-            CloseWebView();
-        }
-#endregion
-
-        public void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration, GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null, GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
-        {
-            imeCompositionModeBackup = Input.imeCompositionMode;
-            Input.imeCompositionMode = IMECompositionMode.On;
-
-            if (null != closeCallback)
-            {
-                this.closeCallback = closeCallback;
-            }
-
-            if (null != schemeEvent)
-            {
-                this.schemeEvent = schemeEvent;                
-            }
-
-            this.schemeList = schemeList;
-            WebTitleDelegate webTitleDelegate = webviewUI.SetTitle;
-            if(null != configuration && string.IsNullOrEmpty(configuration.title) == false)
-            {
-                webTitleDelegate = null;
-                webviewUI.SetTitle(configuration.title);
-            }
+            this.closeCallback = closeCallback;
+            this.schemeEvent = schemeEvent;
             
-            SetConfiguration(configuration);
+            SendObserverMessage(GamebaseWebViewEventType.OPEN);
 
-            webviewUI.SetActiveWebview(true);
-
-            GamebaseLog.Debug(string.Format("url : {0}", url), this, "ShowWebView");
-
-            GamebaseObserverManager.Instance.OnObserverEvent(
-                new GamebaseResponse.SDK.ObserverMessage()
+            if (CefWebview.IsInitialized() == true)
+            {
+                CreateCefWebview((isSuccess) =>
                 {
-                    type = GamebaseObserverType.WEBVIEW,
-                    data = new Dictionary<string, object>()
+                    if (isSuccess == true)
                     {
-                        { "code", GamebaseWebViewEventType.OPEN }
+                        ShowWebview(webviewUrl, schemeList, HasTitle(configuration));
                     }
-                }
-                );
+                });
+            }
+            else
+            {
+                CefWebview.SetDebugEnable(GamebaseLog.isDebugLog);
 
-            CefManager.GetInstance().ShowWeb(
-                            new Rect(0, webviewUI.GetTitleBarHeight(), Screen.width, Screen.height - webviewUI.GetTitleBarHeight()),
-                            new StringBuilder(url),
-                            SchemeEvent,
-                            new StringBuilder(Gamebase.GetDeviceLanguageCode()),
-                            webTitleDelegate,
-                            WebInputElementFocus,
-                            popupBlockMessage
-                            );
-            
-            CefManager.GetInstance().SetInvalidRedirectUrlScheme(ConvertSchemeListToString(schemeList));            
+                InitializeCefWebview((isInitSuccess) =>
+                {
+                    if (isInitSuccess == true)
+                    {
+                        CreateCefWebview((isSuccess) =>
+                        {
+                            if (isSuccess == true)
+                            {
+                                ShowWebview(webviewUrl, schemeList, HasTitle(configuration));
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        public void ShowLoginWebView(
+            string webviewUrl,
+            WebViewRequest.TitleBarConfiguration configuration,
+            GamebaseCallback.ErrorDelegate closeCallback = null,
+            List<string> schemeList = null,
+            GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
+        {
+            webviewUi.Title = configuration.title;
+            webviewUi.IsActivated = true;
+            webviewUi.SetTitleVisible(true);
+            webviewUi.SetTitleText(configuration.title);            
+            webviewUi.SetTitleBarRect(new Rect(0, 0, Screen.width, configuration.barHeight));
+            webviewUi.SetTitleTextColor(configuration.titleColor);
+            webviewUi.SetTitleBarColor(configuration.bgColor);
+            webviewUi.SetBgColor(new Color());
+            webviewUi.SetTitleBarButton(true, string.Empty, string.Empty);            
+
+            this.closeCallback = closeCallback;
+            this.schemeEvent = schemeEvent;
+
+            SendObserverMessage(GamebaseWebViewEventType.OPEN);
+
+            if (CefWebview.IsInitialized() == true)
+            {
+                CreateCefWebview((isSuccess) =>
+                {
+                    if (isSuccess == true)
+                    {
+                        ShowWebview(webviewUrl, schemeList, true);
+                    }
+                });
+            }
+            else
+            {
+                CefWebview.SetDebugEnable(GamebaseLog.isDebugLog);
+
+                InitializeCefWebview((isInitSuccess) =>
+                {
+                    if (isInitSuccess == true)
+                    {
+                        CreateCefWebview((isSuccess) =>
+                        {
+                            if (isSuccess == true)
+                            {
+                                ShowWebview(webviewUrl, schemeList, true);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        public void SetTitleBarEnable(bool enable)
+        {
+            webviewUi.SetTitleBarEnable(enable);
+        }
+
+        public void SetTitleVisible(bool isTitleVisible)
+        {
+            webviewUi.SetTitleVisible(isTitleVisible);
+        }
+
+        public void SetTitleText(string title)
+        {
+            webviewUi.SetTitleText(title);
+        }
+
+        public void SetTitleBarColor(Color bgColor)
+        {
+            webviewUi.SetTitleBarColor(bgColor);
+        }
+
+        public void SetTitleBarButton(bool isBackButtonVisible, string backButtonName, string homeButtonName)
+        {
+            webviewUi.SetTitleBarButton(isBackButtonVisible, backButtonName, homeButtonName);
+        }
+
+        public void SetWebViewRect(int titleBarHeight, Rect rect)
+        {
+            webviewUi.SetTitleBarRect(new Rect(rect.x, rect.y, rect.width, titleBarHeight));
+            webviewUi.SetBGRect(rect);
+            CefWebview.ResizeWebview(
+                webviewIndex, 
+                new Rect(new Rect(rect.x, rect.y + titleBarHeight, rect.width, rect.height - titleBarHeight)), 
+                (error) => { });
+        }
+
+        public void SetBgColor(Color bgColor)
+        {
+            webviewUi.SetBgColor(bgColor);
         }
 
         public void CloseWebView()
         {
             Input.imeCompositionMode = imeCompositionModeBackup;
 
-            webviewUI.HideWebviewUI();
-
-            CefManager.GetInstance().HideWeb();
-
-            if (null != closeCallback)
+            CefWebview.HideWebview(webviewIndex, (error) => 
             {
-                closeCallback(null);                
-            }
-
-            if(null != schemeEvent)
-            {
-                schemeEvent = null;
-            }
-
-            GamebaseObserverManager.Instance.OnObserverEvent(
-                new GamebaseResponse.SDK.ObserverMessage()
+                if(CefWebview.IsSuccess(error) == true)
                 {
-                    type = GamebaseObserverType.WEBVIEW,
-                    data = new Dictionary<string, object>()
+                    if (schemeEvent != null)
                     {
-                        { "code", GamebaseWebViewEventType.CLOSE }
+                        schemeEvent = null;
                     }
+
+                    webviewUi.IsActivated = false;
+
+                    if (closeCallback != null)
+                    {
+                        closeCallback(null);
+                    }
+                    SendObserverMessage(GamebaseWebViewEventType.CLOSE);
                 }
-                );
+            });            
         }
 
-        private void WebInputElementFocus(int type)
+        private void InitializeWebViewUI()
         {
-            if (type == (int)INPUT_ELEMENT_TYPE.PASSWORD)
+            if (webviewUi == null)
             {
-                Input.imeCompositionMode = IMECompositionMode.Off;
+                webviewUi = GamebaseComponentManager.AddComponent<StandaloneWebviewUI>(GamebaseGameObjectManager.GameObjectType.CORE_TYPE);
+                webviewUi.Initialize();
+                webviewUi.OnBackButton = () =>
+                {
+                    CefWebview.GoBack(webviewIndex, (error) =>
+                    {
+                        if (CefWebview.IsSuccess(error) == true)
+                        {
+                            GamebaseLog.Debug("CefWebview::GoBack succeeded.", this);
+                        }
+                        else
+                        {
+                            GamebaseLog.Debug(string.Format("CefWebview::GoBack failed. \n", error), this);
+                        }
+                    });
+                };
+                webviewUi.OnCloaseButton = () =>
+                {
+                    CloseWebView();
+                };
+            }
+        }
+
+        private void InitializeCefWebview(Action<bool> callback)
+        {
+            if (CefWebview.IsInitialized() == true)
+            {
+                callback(true);
+                return;
+            }
+
+            imeCompositionModeBackup = Input.imeCompositionMode;
+            Input.imeCompositionMode = IMECompositionMode.On;
+
+            CefWebview.Initialize(Gamebase.GetDisplayLanguageCode(), (error) =>
+            {
+                if (CefWebview.IsSuccess(error) == true)
+                {
+                    GamebaseLog.Debug("CefWebview::Initialize succeeded.", this);
+                }
+                else
+                {
+                    GamebaseLog.Debug(string.Format("CefWebview::Initialize failed. \n", error), this);
+                }
+
+                callback(CefWebview.IsSuccess(error));
+            });
+        }
+
+        private void CreateCefWebview(Action<bool> callback)
+        {
+            if (webviewIndex != -1)
+            {
+                callback(true);
+                return;
+            }
+
+            var configuration = new RequestVo.WebviewConfiguration()
+            {
+                useTexture = false,
+                viewRect = new Rect(0, webviewUi.TitleBarHeight, Screen.width, Screen.height - webviewUi.TitleBarHeight),
+                bgType = BgType.OPAQUE,
+                popupOption = new RequestVo.WebviewConfiguration.PopupOption
+                {
+                    type = PopupType.BLOCK,
+                    blockMessage = POPUP_BLOCK_MESSAGE
+                }
+            };
+
+            CefWebview.CreateWebview(configuration, (webviewInfo, error) =>
+            {
+                if (CefWebview.IsSuccess(error) == true)
+                {
+                    GamebaseLog.Debug("CefWebview::CreateWebview succeeded.", this);
+                    webviewIndex = webviewInfo.index;
+                }
+                else
+                {
+                    GamebaseLog.Debug(string.Format("CefWebview::CreateWebview failed. \n", error), this);
+                }
+
+                callback(CefWebview.IsSuccess(error));
+            });
+        }
+
+        private void ShowWebview(string webviewUrl, List<string> schemeList, bool hasTitle = false)
+        {
+            CefWebview.ShowWebview(
+                webviewIndex,
+                webviewUrl,
+                true,
+                (error) =>
+                {
+                    if (CefWebview.IsSuccess(error) == true)
+                    {
+                        GamebaseLog.Debug("CefWebview::ShowWebview succeeded.", this);
+                    }
+                    else
+                    {
+                        GamebaseLog.Debug(string.Format("CefWebview::ShowWebview failed. \n{0}", error), this);
+                    }
+                },
+                (url) =>
+                {
+                    if (schemeEvent == null || schemeList == null)
+                    {
+                        return;
+                    }
+
+                    foreach (string scheme in schemeList)
+                    {
+                        if (scheme.Length <= url.Length)
+                        {
+                            if (url.Substring(0, scheme.Length).Equals(scheme) == true)
+                            {
+                                schemeEvent(url, null);
+                                break;
+                            }
+                        }
+                    }
+                },
+                (title) =>
+                {
+                    if (hasTitle == false)
+                    {
+                        webviewUi.Title = title;
+                    }
+                },
+                (type) =>
+                {
+                    if (type == InputElementType.PASSWORD)
+                    {
+                        Input.imeCompositionMode = IMECompositionMode.Off;
+                    }
+                    else
+                    {
+                        Input.imeCompositionMode = IMECompositionMode.On;
+                    }
+                },
+                (webviewStatus) =>
+                {
+                    GamebaseLog.Debug(string.Format("status:{0}", webviewStatus.status), this);
+                });
+
+            CefWebview.SetFocus(webviewIndex, true, (error) =>
+            {
+                if (CefWebview.IsSuccess(error) == true)
+                {
+                    GamebaseLog.Debug("CefWebview::SetFocus succeeded.", this);
+                }
+                else
+                {
+                    GamebaseLog.Debug(string.Format("CefWebview::SetFocus failed. \n", error), this);
+                }
+            });
+
+            if (schemeList != null)
+            {
+                CefWebview.SetInvalidRedirectUrlScheme(schemeList, (error) =>
+                {
+                    if (CefWebview.IsSuccess(error) == true)
+                    {
+                        GamebaseLog.Debug("CefWebview::SetInvalidRedirectUrlScheme succeeded.", this);
+                    }
+                    else
+                    {
+                        GamebaseLog.Debug(string.Format("CefWebview::SetInvalidRedirectUrlScheme failed. \n", error), this);
+                    }
+                });
+            }
+        }
+
+        private void SetWebViewUI(GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                configuration = new GamebaseRequest.Webview.GamebaseWebViewConfiguration
+                {
+                    orientation = -1,
+                    colorR = 75,
+                    colorG = 150,
+                    colorB = 230,
+                    colorA = 255,
+                    barHeight = 41,
+                    isBackButtonVisible = true
+                };
             }
             else
             {
-                Input.imeCompositionMode = IMECompositionMode.On;
+                if (string.IsNullOrEmpty(configuration.title) == false)
+                {
+                    webviewUi.Title = configuration.title;
+                }
             }
-        }
 
-        private void SetConfiguration(GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration)
-        {
-            if (null != configuration)
+            if (configuration.barHeight <= 0)
             {
-                webviewUI.SetTitleBar(configuration.barHeight, new Color(configuration.colorR / 255f, configuration.colorG / 255f, configuration.colorB / 255f, 1));
-                webviewUI.SetBackButtonVisible(configuration.isBackButtonVisible);
-                webviewUI.SetButtonTexture(configuration.closeButtonImageResource, configuration.backButtonImageResource);
-                webviewUI.SetTitle(configuration.title);
+                webviewUi.IsActivated = false;
             }
             else
             {
-                webviewUI.SetDefault();
+                webviewUi.IsActivated = true;
+            }
+
+            webviewUi.SetTitleVisible(true);
+            webviewUi.SetTitleText(configuration.title);
+            webviewUi.SetTitleTextColor(Color.white);
+            webviewUi.SetTitleBarRect(new Rect(0, 0, Screen.width, configuration.barHeight));
+            webviewUi.SetTitleBarColor(
+                new Color(
+                    configuration.colorR / 255f, 
+                    configuration.colorG / 255f, 
+                    configuration.colorB / 255f, 
+                    configuration.colorA / 255f));
+            webviewUi.SetBgColor(new Color());
+            if (configuration.isBackButtonVisible == true)
+            {
+                webviewUi.SetTitleBarButton(
+                    configuration.isBackButtonVisible,
+                    configuration.backButtonImageResource,
+                    configuration.closeButtonImageResource
+                    );
             }
         }
 
-        private void SchemeEvent(string url)
+        private void SendObserverMessage(string code)
         {
-            if (null != schemeEvent && null != schemeList)
+            GamebaseResponse.SDK.ObserverMessage observerMessage = new GamebaseResponse.SDK.ObserverMessage()
             {
-                foreach (string scheme in schemeList)
+                type = GamebaseObserverType.WEBVIEW,
+                data = new Dictionary<string, object>()
                 {
-                    if (url.Substring(0, scheme.Length).Equals(scheme) == true)
-                    {
-                        schemeEvent(url, null);
-                        break;
-                    }
+                    { "code", code }
                 }
-            }
+            };
 
-            GamebaseLog.Debug(string.Format("SchemeEvent url : {0}", url), this, "SchemeEvent");
+            GamebaseObserverManager.Instance.OnObserverEvent(observerMessage);
+            SendEventMessage(observerMessage);
         }
 
-        private StringBuilder ConvertSchemeListToString(List<string> schemeList)
+        private void SendEventMessage(GamebaseResponse.SDK.ObserverMessage message)
         {
-            StringBuilder schemes = new StringBuilder();
+            GamebaseResponse.Event.GamebaseEventObserverData observerData = new GamebaseResponse.Event.GamebaseEventObserverData();
 
-            if(null != schemeList)
+            object codeData = null;
+            if (message.data.TryGetValue("code", out codeData) == true)
             {
-                foreach (string scheme in schemeList)
+                string code = (string)codeData;
+                switch (code)
                 {
-                    schemes.Append(scheme).Append(";");
+                    case GamebaseWebViewEventType.OPEN:
+                        {
+                            observerData.code = GamebaseWebViewEventType.OPENED;
+                            break;
+                        }
+                    case GamebaseWebViewEventType.CLOSE:
+                        {
+                            observerData.code = GamebaseWebViewEventType.CLOSED;
+                            break;
+                        }
                 }
             }
 
-            return schemes;
+            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
+            eventMessage.category = string.Format("observer{0}", GamebaseStringUtil.Capitalize(message.type));
+            eventMessage.data = JsonMapper.ToJson(observerData);
+
+            GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
+        }
+
+        private bool HasTitle(GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration)
+        {
+            return (configuration != null && string.IsNullOrEmpty(configuration.title) == false);
+        }
+
+        private bool HasTitle(string title)
+        {
+            return (string.IsNullOrEmpty(title) == false);
         }
     }
 }

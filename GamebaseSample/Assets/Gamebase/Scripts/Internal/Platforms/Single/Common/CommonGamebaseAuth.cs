@@ -58,7 +58,7 @@ namespace Toast.Gamebase.Internal.Single
                         GamebaseIndicatorReport.SendIndicatorData(
                             GamebaseIndicatorReportType.LogType.AUTH,
                             GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGIN_CANCELED,
-                            GamebaseIndicatorReportType.LogLevel.DEBUG,
+                            GamebaseIndicatorReportType.LogLevel.INFO,
                             new Dictionary<string, string>()
                             {
                                 { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGIN },
@@ -107,7 +107,7 @@ namespace Toast.Gamebase.Internal.Single
                     GamebaseIndicatorReport.SendIndicatorData(
                         GamebaseIndicatorReportType.LogType.AUTH,
                         GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGIN_CANCELED,
-                        GamebaseIndicatorReportType.LogLevel.DEBUG,
+                        GamebaseIndicatorReportType.LogLevel.INFO,
                         new Dictionary<string, string>()
                         {
                             { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGIN },
@@ -209,7 +209,7 @@ namespace Toast.Gamebase.Internal.Single
                         GamebaseIndicatorReport.SendIndicatorData(
                             GamebaseIndicatorReportType.LogType.AUTH,
                             GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGIN_CANCELED,
-                            GamebaseIndicatorReportType.LogLevel.DEBUG,
+                            GamebaseIndicatorReportType.LogLevel.INFO,
                             new Dictionary<string, string>()
                             {
                                 { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGIN },
@@ -237,6 +237,13 @@ namespace Toast.Gamebase.Internal.Single
         }       
 
         public void LoginForLastLoggedInProvider(int handle)
+        {
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
+            GamebaseErrorNotifier.FireNotSupportedAPI(this, callback);
+            GamebaseCallbackHandler.UnregisterCallback(handle);
+        }
+
+        public void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, int handle)
         {
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
             GamebaseErrorNotifier.FireNotSupportedAPI(this, callback);
@@ -278,6 +285,13 @@ namespace Toast.Gamebase.Internal.Single
             GamebaseCallbackHandler.UnregisterCallback(handle);
         }
 
+        public void AddMappingForcibly(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, int handle)
+        {
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
+            GamebaseErrorNotifier.FireNotSupportedAPI(this, callback);
+            GamebaseCallbackHandler.UnregisterCallback(handle);
+        }
+
         public void AddMappingForcibly(string providerName, string forcingMappingKey, Dictionary<string, object> additionalInfo, int handle)
         {
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
@@ -296,38 +310,37 @@ namespace Toast.Gamebase.Internal.Single
         {
             GamebaseCallback.ErrorDelegate logoutCallback = (error) =>
             {
-                if (Gamebase.IsSuccess(error) == true)
-                {
-                    GamebaseIndicatorReport.SendIndicatorData(
-                        GamebaseIndicatorReportType.LogType.AUTH,
-                        GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGOUT_SUCCESS,
-                        GamebaseIndicatorReportType.LogLevel.INFO,
-                        new Dictionary<string, string>()
-                        {
-                            { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGOUT }
-                        });
-                }
-                else
-                {
-                    GamebaseIndicatorReport.SendIndicatorData(
-                        GamebaseIndicatorReportType.LogType.AUTH,
-                        GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGOUT_FAILED,
-                        GamebaseIndicatorReportType.LogLevel.ERROR,
-                        new Dictionary<string, string>()
-                        {
-                            { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGOUT }
-                        },
-                        error);
-                }
-
                 var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(handle);
 
                 if (callback != null)
                 {
-                    callback(null);
+                    callback(error);
+                    GamebaseCallbackHandler.UnregisterCallback(handle);
                 }
 
-                GamebaseCallbackHandler.UnregisterCallback(handle);
+                string stabilityCode = string.Empty;
+                string logLevel = string.Empty;
+
+                if (Gamebase.IsSuccess(error) == true)
+                {
+                    stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGOUT_SUCCESS;
+                    logLevel = GamebaseIndicatorReportType.LogLevel.INFO;
+                }
+                else
+                {
+                    stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGOUT_FAILED;
+                    logLevel = GamebaseIndicatorReportType.LogLevel.ERROR;
+                }
+
+                GamebaseIndicatorReport.SendIndicatorData(
+                    GamebaseIndicatorReportType.LogType.AUTH,
+                    stabilityCode,
+                    logLevel,
+                    new Dictionary<string, string>()
+                    {
+                        { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGOUT }
+                    },
+                    error);
             };
 
             int logoutHandle = GamebaseCallbackHandler.RegisterCallback(logoutCallback);
@@ -446,6 +459,167 @@ namespace Toast.Gamebase.Internal.Single
             });
         }
 
+        public void WithdrawImmediately(int handle)
+        {
+            Withdraw(handle);
+        }
+
+        public void RequestTemporaryWithdrawal(int handle)
+        {
+            GamebaseCallback.GamebaseDelegate<GamebaseResponse.TemporaryWithdrawalInfo> requestTemporaryWithdrawalCallback = (data, error) =>
+            {
+                if (Gamebase.IsSuccess(error) == true)
+                {
+                    GamebaseIndicatorReport.SendIndicatorData(
+                        GamebaseIndicatorReportType.LogType.AUTH,
+                        GamebaseIndicatorReportType.StabilityCode.GB_AUTH_REQUEST_TEMPORARY_WITHDRAWAL_SUCCESS,
+                        GamebaseIndicatorReportType.LogLevel.INFO,
+                        new Dictionary<string, string>()
+                        {
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.WITHDRAW }
+                        });
+                }
+                else
+                {
+                    GamebaseIndicatorReport.SendIndicatorData(
+                        GamebaseIndicatorReportType.LogType.AUTH,
+                        GamebaseIndicatorReportType.StabilityCode.GB_AUTH_REQUEST_TEMPORARY_WITHDRAWAL_FAILED,
+                        GamebaseIndicatorReportType.LogLevel.ERROR,
+                        new Dictionary<string, string>()
+                        {
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.WITHDRAW }
+                        },
+                        error);
+                }
+
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.TemporaryWithdrawalInfo>>(handle);
+
+                if (callback != null)
+                {
+                    callback(data, error);
+                }
+
+                GamebaseCallbackHandler.UnregisterCallback(handle);
+            };
+
+
+            int requestTemporaryWithdrawalHandle = GamebaseCallbackHandler.RegisterCallback(requestTemporaryWithdrawalCallback);
+
+            if (CanTemporaryWithdrawal(requestTemporaryWithdrawalHandle) == false)
+            {
+                return;
+            }
+
+            var requestVO = AuthMessage.GetTemporaryWithdrawalMessage();
+
+            WebSocket.Instance.Request(requestVO, (response, error) =>
+            {
+                GamebaseAnalytics.Instance.IdPCode = string.Empty;
+
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate < GamebaseResponse.TemporaryWithdrawalInfo >> (requestTemporaryWithdrawalHandle);
+                if (callback == null)
+                {
+                    return;
+                }
+                GamebaseCallbackHandler.UnregisterCallback(requestTemporaryWithdrawalHandle);
+
+                var vo = JsonMapper.ToObject<AuthResponse.TemporaryWithdrawalInfo>(response);
+                GamebaseResponse.TemporaryWithdrawalInfo temporaryWithdrawal = null;
+                
+                if (error == null)
+                {
+                    if (vo.header.isSuccessful == true)
+                    {
+                        temporaryWithdrawal = new GamebaseResponse.TemporaryWithdrawalInfo();
+                        temporaryWithdrawal.gracePeriodDate = vo.member.temporaryWithdrawal.gracePeriodDate;
+                    }
+                    else
+                    {
+                        error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVO.transactionId, requestVO.apiId, vo.header, Domain);
+                    }                        
+                }
+
+                callback(temporaryWithdrawal, error);
+            });
+        }
+
+        public void CancelTemporaryWithdrawal(int handle)
+        {
+            GamebaseCallback.ErrorDelegate cancelTemporaryWithdrawalCallback = (error) =>
+            {
+                if (Gamebase.IsSuccess(error) == true)
+                {
+                    GamebaseIndicatorReport.SendIndicatorData(
+                        GamebaseIndicatorReportType.LogType.AUTH,
+                        GamebaseIndicatorReportType.StabilityCode.GB_AUTH_CANCEL_TEMPORARY_WITHDRAWAL_SUCCESS,
+                        GamebaseIndicatorReportType.LogLevel.INFO,
+                        new Dictionary<string, string>()
+                        {
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.WITHDRAW }
+                        });
+                }
+                else
+                {
+                    GamebaseIndicatorReport.SendIndicatorData(
+                        GamebaseIndicatorReportType.LogType.AUTH,
+                        GamebaseIndicatorReportType.StabilityCode.GB_AUTH_CANCEL_TEMPORARY_WITHDRAWAL_FAILED,
+                        GamebaseIndicatorReportType.LogLevel.ERROR,
+                        new Dictionary<string, string>()
+                        {
+                            { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.WITHDRAW }
+                        },
+                        error);
+                }
+
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(handle);
+
+                if (callback != null)
+                {
+                    callback(error);
+                }
+
+                GamebaseCallbackHandler.UnregisterCallback(handle);
+            };
+
+
+            int cancelTemporaryWithdrawalHandle = GamebaseCallbackHandler.RegisterCallback(cancelTemporaryWithdrawalCallback);
+
+            if (CanLogout(cancelTemporaryWithdrawalHandle) == false)
+            {
+                return;
+            }
+
+            var requestVO = AuthMessage.GetCancelTemporaryWithdrawalMessage();
+
+            WebSocket.Instance.Request(requestVO, (response, error) =>
+            {
+                GamebaseAnalytics.Instance.IdPCode = string.Empty;
+
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(cancelTemporaryWithdrawalHandle);
+                if (callback == null)
+                {
+                    return;
+                }
+                GamebaseCallbackHandler.UnregisterCallback(cancelTemporaryWithdrawalHandle);
+
+                if (error == null)
+                {
+                    var vo = JsonMapper.ToObject<AuthResponse.CancelTemporaryWithdrawalInfo>(response);
+
+                    if (vo.header.isSuccessful == true)
+                    {
+                    }
+                    else
+                    {
+                        error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVO.transactionId, requestVO.apiId, vo.header, Domain);
+                    }
+                }
+
+                callback(error);
+            });
+        }
+
+
         public void IssueTransferAccount(int handle)
         {
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.TransferAccountInfo>>(handle);
@@ -519,7 +693,7 @@ namespace Toast.Gamebase.Internal.Single
 
         public GamebaseResponse.Auth.BanInfo GetBanInfo()
         {
-            var vo = DataContainer.GetData<AuthResponse.LoginInfo.Ban>(VOKey.Auth.BAN_INFO);
+            var vo = DataContainer.GetData<AuthResponse.LoginInfo.ErrorExtras.Ban>(VOKey.Auth.BAN_INFO);
             var launchingVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
             var banVO = new GamebaseResponse.Auth.BanInfo();
 
@@ -528,54 +702,29 @@ namespace Toast.Gamebase.Internal.Single
             banVO.beginDate = vo.beginDate;
             banVO.endDate = vo.endDate;
             banVO.message = vo.message;
-            banVO.csInfo = launchingVO.launching.app.accessInfo.csInfo;
-            banVO.csUrl = launchingVO.launching.app.relatedUrls.csUrl;
+            banVO.csInfo = launchingVO.launching.app.customerService.accessInfo;
+            banVO.csUrl = launchingVO.launching.app.customerService.url;
             return banVO;
         }
 
         public void IssueShortTermTicket(int handle)
         {
-            if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<string>>(handle);
+            if (callback == null)
             {
-                GamebaseLog.Warn("Not LoggedIn", this, "CompletePurchase");
                 return;
             }
 
-            GamebaseLog.Debug("Start", this, "IssueShortTermTicket");
+            GamebaseCallbackHandler.UnregisterCallback(handle);
 
             byte[] bytesForEncoding = Encoding.UTF8.GetBytes(ISSUE_SHORT_TERM_TICKET_PURPOSE);
             string encodedString = Convert.ToBase64String(bytesForEncoding);
 
-            var requestVO = AuthMessage.GetIssueShortTermTicketMessage(encodedString, ISSUE_SHORT_TERM_TICKET_EXPIRESIN);
-
-            WebSocket.Instance.Request(requestVO, (response, error) =>
-            {
-                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<string>>(handle);
-                if (callback == null)
-                {
-                    return;
-                }
-
-                GamebaseCallbackHandler.UnregisterCallback(handle);
-
-                if (error == null)
-                {
-                    var vo = JsonMapper.ToObject<AuthResponse.IssueShortTermTicketInfo>(response);
-                    if (vo.header.isSuccessful == true)
-                    {
-                    }
-                    else
-                    {
-                        error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVO.transactionId, requestVO.apiId, vo.header, Domain);
-                    }
-
-                    callback(vo.ticket, error);
-                }
-                else
-                {
-                    callback(null, error);
-                }
-            });
+            GamebaseUtil.IssueShortTermTicket(
+                encodedString,
+                ISSUE_SHORT_TERM_TICKET_EXPIRESIN,
+                Domain,
+                callback);
         }
 
         private void LoginWithProviderName(string providerName, int handle)
@@ -645,7 +794,7 @@ namespace Toast.Gamebase.Internal.Single
 
             if (null == credentialInfo ||
                 false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.PROVIDER_NAME) ||
-                false == (credentialInfo.ContainsKey(GamebaseAuthProviderCredential.ACCESS_TOKEN) && false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.AUTHORIZATION_CODE)))
+                (false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.ACCESS_TOKEN) && false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.AUTHORIZATION_CODE)))
             {
                 var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
                 callback(null, new GamebaseError(GamebaseErrorCode.AUTH_IDP_LOGIN_INVALID_IDP_INFO, Domain));
@@ -747,6 +896,23 @@ namespace Toast.Gamebase.Internal.Single
             return true;
         }
 
+        protected bool CanTemporaryWithdrawal(int handle)
+        {
+            if (true == string.IsNullOrEmpty(Gamebase.GetUserID()))
+            {
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.TemporaryWithdrawalInfo>>(handle);
+                if (null == callback)
+                {
+                    return false;
+                }
+                GamebaseCallbackHandler.UnregisterCallback(handle);
+                callback(null, new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
+                return false;
+            }
+
+            return true;
+        }
+
         protected void RequestGamebaseLogin(WebSocketRequest.RequestVO requestVO, int handle)
         {
             isAuthenticationAlreadyProgress = true;
@@ -771,14 +937,21 @@ namespace Toast.Gamebase.Internal.Single
                     {
                         DataContainer.SetData(VOKey.Auth.LOGIN_INFO, vo);
                         Heartbeat.Instance.StartHeartbeat();
+                        Introspect.Instance.StartIntrospect();
                     }
                     else
                     {
                         error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVO.transactionId, requestVO.apiId, vo.header, Domain);
-                        if (null != vo.ban)
+                        
+                        if (vo.errorExtras != null && vo.errorExtras.ban != null)
                         {
-                            DataContainer.SetData(VOKey.Auth.BAN_INFO, vo.ban);
+                            DataContainer.SetData(VOKey.Auth.BAN_INFO, vo.errorExtras.ban);
 
+                            GamebaseResponse.Auth.BanInfo banInfo = MakeBanInfo(vo.errorExtras.ban);
+                            if (banInfo != null)
+                            {
+                                error.extras.Add("ban", JsonMapper.ToJson(banInfo));
+                            }
                             GamebaseSystemPopup.Instance.ShowErrorPopup(error, vo);
                         }
                     }
@@ -809,12 +982,27 @@ namespace Toast.Gamebase.Internal.Single
                 }
             });
         }
-        
+
+        private GamebaseResponse.Auth.BanInfo MakeBanInfo(AuthResponse.LoginInfo.ErrorExtras.Ban vo)
+        {           
+            var launchingVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
+            var banVO = new GamebaseResponse.Auth.BanInfo();
+
+            banVO.userId = vo.userId;
+            banVO.banType = vo.banType;
+            banVO.beginDate = vo.beginDate;
+            banVO.endDate = vo.endDate;
+            banVO.message = vo.message;
+            banVO.csInfo = launchingVO.launching.app.customerService.accessInfo;
+            banVO.csUrl = launchingVO.launching.app.customerService.url;
+            return banVO;
+        }
+
         protected void CheckLaunchingStatusExpire(Action callback)
         {
             if (CanLaunchingStatusUpdate() == true)
             {
-                GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> launchingInfoCallback = (launchingInfo, error) =>
+                GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo> launchingInfoCallback = (launchingInfo, error) =>
                 {
                     callback();
                 };
@@ -845,11 +1033,19 @@ namespace Toast.Gamebase.Internal.Single
 
         private void RemoveLoginData()
         {
-            DataContainer.RemoveData(VOKey.Auth.LOGIN_INFO);
-            GamebaseAnalytics.Instance.ResetUserMeta();
+            DataContainer.RemoveData(VOKey.Auth.LOGIN_INFO);            
             Heartbeat.Instance.StopHeartbeat();
+            Introspect.Instance.StopIntrospect();
             AuthAdapterManager.Instance.IDPLogoutAll();
             PurchaseAdapterManager.Instance.Destroy();
+            GamebaseAnalytics.Instance.ResetUserMeta(() =>
+            {
+                GamebaseIndicatorReport.SendIndicatorData(
+                    GamebaseIndicatorReportType.LogType.TAA,
+                    GamebaseIndicatorReportType.StabilityCode.GB_TAA_RESET_USER_LEVEL,
+                    GamebaseIndicatorReportType.LogLevel.DEBUG,
+                    new Dictionary<string, string>());
+            });
         }
 
         public bool CanLaunchingStatusUpdate()

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Collections.Generic;
 
 namespace Toast.Core
 {
@@ -64,20 +63,47 @@ namespace Toast.Core
         public const string LOCATION = "Location";
         public const string ISSUE_ID = "lncIssueID";
 
+        private static readonly HashSet<string> ReservedFields = new HashSet<string>
+        {
+            PROJECT_KEY.ToLower(),
+            PROJECT_VERSION.ToLower(),
+            LOG_VERSION.ToLower(),
+            LOG_TYPE.ToLower(),
+            LOG_SOURCE.ToLower(),
+            LOG_LEVEL.ToLower(),
+            LOG_MESSAGE.ToLower(),
+            LOG_SEND_TIME.ToLower(),
+            LOG_CREATE_TIME.ToLower(),
+            LOG_BULK_INDEX.ToLower(),
+            LOG_TRANSACTION_ID.ToLower(),
+            DEVICE_MODEL.ToLower(),
+            CARRIER_NAME.ToLower(),
+            COUNTRY_CODE.ToLower(),
+            PLATFORM_NAME.ToLower(),
+            NETWORK_TYPE.ToLower(),
+            DEVICE_ID.ToLower(),
+            SESSION_ID.ToLower(),
+            LAUNCHED_ID.ToLower(),
+            USER_ID.ToLower(),
+            SDK_VERSION.ToLower(),
+            CRASH_STYLE.ToLower(),
+            CRASH_SYMBOL.ToLower(),
+            CRASH_DUMP_DATA.ToLower(),
+            FREE_MEMORY.ToLower(),
+            FREE_DISKSPACE.ToLower(),
+            SINK_VERSION.ToLower(),
+            ERROR_CODE.ToLower(),
+            CARSH_META.ToLower(),
+            SYMBOLICATION_RESULT.ToLower(),
+            EXCEPTION_TYPE.ToLower(),
+            LOCATION.ToLower(),
+            ISSUE_ID.ToLower()
+        };
+
         // bool isReservedField(string name)
         private static bool IsReservedField(string name)
         {
-            FieldInfo[] fieldInfo = typeof(LogFields).GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-            for (int i = 0; i < fieldInfo.Length; i++)
-            {
-                if (fieldInfo[i].Name.ToLower().Equals(name.ToLower()))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return ReservedFields.Contains(name.ToLower());
         }
 
         public static string ConvertField(string field)

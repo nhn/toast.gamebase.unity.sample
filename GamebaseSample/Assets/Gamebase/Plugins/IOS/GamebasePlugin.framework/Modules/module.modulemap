@@ -1,0 +1,6 @@
+framework module GamebasePlugin {
+  umbrella header "GamebasePlugin.h"
+
+  export *
+  module * { export * }
+}

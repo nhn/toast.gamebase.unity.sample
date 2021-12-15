@@ -30,6 +30,8 @@ namespace Toast.Logger
 
         private List<ToastLogger.CrashFilter> _crashFilters = new List<ToastLogger.CrashFilter>();
 
+        private ICrashDataAdapter _crashDataAdapter;
+
         private ToastCrashManager()
         {
         }
@@ -63,6 +65,11 @@ namespace Toast.Logger
         public void EnableLogCallback(bool isEnabled)
         {
             _enableCrash = isEnabled;
+        }
+
+        public void SetCrashDataAdapter(ICrashDataAdapter crashDataAdapter)
+        {
+            _crashDataAdapter = crashDataAdapter;
         }
 
         internal void AddCrashFilter(ToastLogger.CrashFilter filter)
@@ -122,6 +129,22 @@ namespace Toast.Logger
 
         private static void Exception(ToastLogLevel logLevel, string message, string logString, string stackTrace)
         {
+            var userFields = new Dictionary<string, string>();
+            userFields.Add("Unity", Application.unityVersion);
+
+            if (Instance._crashDataAdapter != null)
+            {
+                var crashDataAdapterUserFields = Instance._crashDataAdapter.GetUserFields();
+
+                if (crashDataAdapterUserFields != null)
+                {
+                    foreach (string key in crashDataAdapterUserFields.Keys)
+                    {
+                        userFields.Add(key, crashDataAdapterUserFields[key]);
+                    }
+                }
+            }
+
             var dmpData = EncodeDmpData(logString, stackTrace);
 
             var methodName = MethodBase.GetCurrentMethod().Name;
@@ -132,10 +155,7 @@ namespace Toast.Logger
                 .AddParameter("message",
                     string.IsNullOrEmpty(message) ? "Raises a exception, but message is empty" : message)
                 .AddParameter("dmpData", dmpData)
-                .AddParameter("userFields", new Dictionary<string, string>
-                {
-                    {"Unity", Application.unityVersion}
-                });
+                .AddParameter("userFields", userFields);
 
             Dispatcher.Instance.Post(() => ToastNativeSender.SyncSendMessage(methodCall));
         }

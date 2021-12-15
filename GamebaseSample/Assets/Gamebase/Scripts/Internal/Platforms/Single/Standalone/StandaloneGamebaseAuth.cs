@@ -4,15 +4,22 @@ using System.Collections.Generic;
 using System.Text;
 using Toast.Gamebase.Internal.Single.Communicator;
 using Toast.Gamebase.LitJson;
+using UnityEngine;
 
 namespace Toast.Gamebase.Internal.Single.Standalone
 {
     public class StandaloneGamebaseAuth : CommonGamebaseAuth
     {
         private const string SCHEME_AUTH_LOGIN = "gamebase://toast.gamebase/auth";
+        private const string SCHEME_WEBVIEW_CLOSE = "gamebase://dismiss";
         private const string ACCESS_TOKEN_KEY = "token";
+        private const string SESSION_KEY = "session";
         private const string FACEBOOK_PREMISSION = "facebook_permission";
         private const string SERVICE_CODE = "service_code";
+        // 회원 웹로그인에서 AppleId로 로그인하기 위해 필요한 SubCode 값
+        private const string SIGN_IN_WITH_APPLE_JS = "sign_in_with_apple_js";
+
+
 
         public StandaloneGamebaseAuth()
         {
@@ -43,7 +50,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                         GamebaseIndicatorReport.SendIndicatorData(
                             GamebaseIndicatorReportType.LogType.AUTH,
                             GamebaseIndicatorReportType.StabilityCode.GB_AUTH_LOGIN_CANCELED,
-                            GamebaseIndicatorReportType.LogLevel.DEBUG,
+                            GamebaseIndicatorReportType.LogLevel.INFO,
                             new Dictionary<string, string>()
                             {
                                 { GamebaseIndicatorReportType.AdditionalKey.GB_SUB_CATEGORY1, GamebaseIndicatorReportType.SubCategory.LOGIN },
@@ -120,8 +127,8 @@ namespace Toast.Gamebase.Internal.Single.Standalone
         private void GetAccessToken(string providerName, System.Action<WebSocketRequest.RequestVO> callback)
         {
             WebSocketRequest.RequestVO requestVO = null;
-
-            GamebaseResponse.Launching.LaunchingInfo launchingInfo = Gamebase.Launching.GetLaunchingInformations();
+                        
+            var launchingInfo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
 
             if (launchingInfo.launching.app.loginUrls == null||
                 string.IsNullOrEmpty(launchingInfo.launching.app.loginUrls.gamebaseUrl) == true)
@@ -142,7 +149,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                 return;
             }
 
-            GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.APP.LaunchingIDPInfo launchingIDPInfo = launchingInfo.launching.app.idP["gbid"];
+            var launchingIDPInfo = launchingInfo.launching.app.idP["gbid"];
 
             if (launchingIDPInfo == null)
             {
@@ -152,69 +159,74 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             }
 
             string clientID = launchingIDPInfo.clientId;
-
             StringBuilder url = new StringBuilder(launchingInfo.launching.app.loginUrls.gamebaseUrl);
-            url.AppendFormat("?clientId={0}", clientID);
-            url.AppendFormat("&snsCd={0}", providerName);
+            url.AppendFormat("?socialNetworkingServiceCode={0}", providerName);
+            url.AppendFormat("&clientId={0}", clientID);
             url.AppendFormat("&svcUrl={0}", Uri.EscapeDataString(SCHEME_AUTH_LOGIN));
-            url.AppendFormat("&tokenKind={0}", "SNS");
             url.Append("&isMobile=true");
-            url.Append(MakeProviderAdditionalInfo(providerName));
+            if(providerName.Equals(GamebaseAuthProvider.APPLEID) ==true)
+            {
+                url.AppendFormat("&socialNetworkingServiceSubCode={0}", SIGN_IN_WITH_APPLE_JS);
+            }
 
-            GamebaseObserverManager.Instance.OnObserverEvent(
-                    new GamebaseResponse.SDK.ObserverMessage()
-                    {
-                        type = GamebaseObserverType.WEBVIEW,
-                        data = new Dictionary<string, object>()
-                        {
-                            { "code ", GamebaseWebViewEventType.OPEN }
-                        }
-                    });
+            GamebaseLog.Debug("url : " + url, this);
+            
+            string title = string.Empty;
+            Color titleColor = new Color();            
+            Color bgColor = new Color();
 
-            WebviewAdapterManager.Instance.ShowWebView(
+            var idp = launchingInfo.launching.app.idP[providerName];
+
+            if (idp.loginWebView != null)
+            {
+                title = idp.loginWebView.title;
+                ColorUtility.TryParseHtmlString(idp.loginWebView.titleTextColor, out titleColor);
+                ColorUtility.TryParseHtmlString(idp.loginWebView.titleBgColor, out bgColor);                
+            }
+
+            WebviewAdapterManager.Instance.ShowLoginWebView(
                 url.ToString(),
-                null,
+                new WebViewRequest.TitleBarConfiguration()
+                {
+                    title = title,
+                    bgColor = bgColor,
+                    titleColor = titleColor,
+                    barHeight = WebViewConst.TITLEBAR_DEFAULT_HIGHT
+                },
                 (error) =>
                 {
                     callback(requestVO);
-
-                    GamebaseObserverManager.Instance.OnObserverEvent(
-                    new GamebaseResponse.SDK.ObserverMessage()
-                    {
-                        type = GamebaseObserverType.WEBVIEW,
-                        data = new Dictionary<string, object>()
-                        {
-                            { "code ", GamebaseWebViewEventType.CLOSE }
-                        }
-                    });
                 },
-                new List<string>() { SCHEME_AUTH_LOGIN },
+                new List<string>()
+                {
+                    SCHEME_AUTH_LOGIN,
+                    SCHEME_WEBVIEW_CLOSE
+                },
                 (scheme, error) =>
                 {
                     WebviewAdapterManager.SchemeInfo schemeInfo = WebviewAdapterManager.Instance.ConvertURLToSchemeInfo(scheme);
 
-                    var idPAccessToken = string.Empty;
-                    if (schemeInfo.parameterDictionary.TryGetValue(ACCESS_TOKEN_KEY, out idPAccessToken) == true)
+                    if (schemeInfo.scheme.Equals(SCHEME_AUTH_LOGIN) == true)
                     {
-                        idPAccessToken = schemeInfo.parameterDictionary[ACCESS_TOKEN_KEY];
-                        requestVO = AuthMessage.GetIDPLoginMessage(providerName, idPAccessToken);
+                        var session = string.Empty;
+                        if (schemeInfo.parameterDictionary.TryGetValue(SESSION_KEY, out session) == true)
+                        {                            
+                            requestVO = AuthMessage.GetIDPLoginMessage(providerName, session);
 
+                            WebviewAdapterManager.Instance.CloseWebView();
+                        }
+                    }
+                    else if(schemeInfo.scheme.Equals(SCHEME_WEBVIEW_CLOSE) == true)
+                    {
                         WebviewAdapterManager.Instance.CloseWebView();
                     }
-                }
-                );
+                });
         }
 
         private bool IsSupportedIDPByWebview(string providerName)
         {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            return providerName.Equals(GamebaseAuthProvider.GUEST, StringComparison.Ordinal) == true ||
-                   providerName.Equals(GamebaseAuthProvider.FACEBOOK, StringComparison.Ordinal) == true ||
-                   providerName.Equals(GamebaseAuthProvider.GOOGLE, StringComparison.Ordinal) == true ||
-                   providerName.Equals(GamebaseAuthProvider.TWITTER, StringComparison.Ordinal) == true ||
-                   providerName.Equals(GamebaseAuthProvider.LINE, StringComparison.Ordinal) == true ||
-                   providerName.Equals(GamebaseAuthProvider.NAVER, StringComparison.Ordinal) == true ||
-                   providerName.Equals(GamebaseAuthProvider.PAYCO, StringComparison.Ordinal) == true;
+            return true;
 
 #elif UNITY_FACEBOOK || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             return providerName == GamebaseAuthProvider.GUEST;

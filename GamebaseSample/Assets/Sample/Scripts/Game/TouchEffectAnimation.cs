@@ -5,7 +5,7 @@ namespace GamebaseSample
     public class TouchEffectAnimation : MonoBehaviour
     {
         [SerializeField]
-        private GameObject touchEffect;
+        private GameObject touchEffect = null;
 
         public void OnFinishAnimation()
         {

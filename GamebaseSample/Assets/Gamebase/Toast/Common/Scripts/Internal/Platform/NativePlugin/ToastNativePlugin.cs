@@ -76,7 +76,14 @@ namespace Toast.Internal
             {
                 try
                 {
-                    callback(response.Result, response);
+                    string uri = response.Uri;
+
+                    var result = new ToastResult(
+                        response.Result.IsSuccessful,
+                        response.Result.Code,
+                        response.Result.Message);
+
+                    callback(result, response);
                 }
                 finally
                 {

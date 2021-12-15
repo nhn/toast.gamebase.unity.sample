@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Toast.Internal;
 
 namespace Toast.Core
 {

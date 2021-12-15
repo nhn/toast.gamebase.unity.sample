@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Toast.Core
+﻿namespace Toast.Core
 {
 
     public class LogReceiver
@@ -9,7 +7,7 @@ namespace Toast.Core
         //private Queue<LogData> _receiverQueue;
         //private List<LogFilter> _filters;
         //private List<LogDataAdapter> _dataApapters;
-        
+
 
     }
 

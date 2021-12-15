@@ -6,17 +6,15 @@ namespace GamebaseSample
     public class ErrorPopup : MonoBehaviour
     {
         [SerializeField]
-        private Text message;
+        private Text message = null;
         [SerializeField]
-        private Text okButtonText;
+        private Text okButtonText = null;
         [SerializeField]
-        private Text cancelButtonText;
+        private Text cancelButtonText = null;
         [SerializeField]
-        private GameObject okGameObject;
+        private GameObject closeGameObject = null;
         [SerializeField]
-        private GameObject closeGameObject;
-        [SerializeField]
-        private GameObject detailGameObject;
+        private GameObject detailGameObject = null;
 
         private System.Action okCallback;
         private System.Action cancelCallback;

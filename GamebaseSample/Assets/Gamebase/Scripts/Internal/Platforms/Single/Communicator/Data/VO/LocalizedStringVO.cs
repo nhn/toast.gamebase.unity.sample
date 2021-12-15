@@ -32,7 +32,10 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public string launching_update_later_label;
         public string launching_blocked_user_title;
         public string launching_service_closed_title;
+        public string launching_unregistered_client_version;
+        public string launching_goto_store;
         public string server_push_kickout_message;
+        public string android_launching_market_app_not_exist_message;
     }
 }
 #endif

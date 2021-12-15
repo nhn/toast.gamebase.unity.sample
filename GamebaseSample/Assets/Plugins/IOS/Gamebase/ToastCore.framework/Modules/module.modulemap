@@ -1,6 +1,0 @@
-framework module ToastCore {
-  umbrella header "ToastCore.h"
-
-  export *
-  module * { export * }
-}

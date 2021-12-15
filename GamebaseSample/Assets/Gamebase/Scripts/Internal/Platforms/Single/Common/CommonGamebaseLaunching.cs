@@ -37,7 +37,7 @@ namespace Toast.Gamebase.Internal.Single
             requestVO = LaunchingMessage.GetLaunchingInfoMessage();
         }
         
-        public GamebaseResponse.Launching.LaunchingInfo GetLaunchingInformations()
+        public LaunchingResponse.LaunchingInfo GetLaunchingInformations()
         {
             if (GamebaseUnitySDK.IsInitialized == false)
             {
@@ -46,7 +46,7 @@ namespace Toast.Gamebase.Internal.Single
             }
 
             var vo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
-            return JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(JsonMapper.ToJson(vo));
+            return JsonMapper.ToObject<LaunchingResponse.LaunchingInfo>(JsonMapper.ToJson(vo));
         }
 
         public int GetLaunchingStatus()
@@ -66,20 +66,59 @@ namespace Toast.Gamebase.Internal.Single
             requestVO.apiId = Lighthouse.API.Launching.ID.GET_LAUNCHING;
             WebSocket.Instance.Request(requestVO, (response, error) =>
             {
-                if (null == error)
+                if (error == null)
                 {
-                    var vo = JsonMapper.ToObject<LaunchingResponse.LaunchingInfo>(response);                    
+                    var vo = JsonMapper.ToObject<LaunchingResponse.LaunchingInfo>(response);
 
                     if (vo.header.isSuccessful == true)
                     {
-                        DataContainer.SetData(VOKey.Launching.LAUNCHING_INFO, vo);
-                        Gamebase.SetDisplayLanguageCode(vo.request.displayLanguage);
-
                         GamebaseSystemPopup.Instance.ShowLaunchingPopup(vo);
+
+                        if (vo.launching.tcgbClient.introspection != null)
+                        {
+                            Introspect.Instance.SetInterval(vo.launching.tcgbClient.introspection.intervalSeconds);
+                        }
                     }
                     else
                     {
                         error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVO.transactionId, requestVO.apiId, vo.header, Domain);
+
+                        var errorExtras = vo.errorExtras;
+                        if (errorExtras != null)
+                        {
+                            var updateInfo = errorExtras.updateInfo;
+                            if (updateInfo != null)
+                            {
+                                error.extras.Add(GamebaseErrorExtras.UPDATE_INFO, JsonMapper.ToJson(updateInfo));
+                            }
+
+                            var language = errorExtras.language;
+                            if (language != null)
+                            {
+                                var deviceLanguage = language.deviceLanguage;
+
+                                if (DisplayLanguage.Instance.HasLocalizedStringVO(deviceLanguage) == true)
+                                {
+                                    // STEP 1: The device language in the NHN Cloud Console.
+                                    GamebaseUnitySDK.DisplayLanguageCode = deviceLanguage;
+                                }
+                                else
+                                {
+                                    var defaultLanguage = language.defaultLanguage;
+
+                                    if (DisplayLanguage.Instance.HasLocalizedStringVO(defaultLanguage) == true)
+                                    {
+                                        // STEP 2: The default language in the NHN Cloud Console.
+                                        GamebaseUnitySDK.DisplayLanguageCode = defaultLanguage;
+                                    }
+                                    else
+                                    {
+                                        // STEP 3: "en"
+                                        GamebaseUnitySDK.DisplayLanguageCode = GamebaseDisplayLanguageCode.English;
+                                    }
+                                }
+                            }
+                        }
 
                         GamebaseSystemPopup.Instance.ShowErrorPopup(error);
                     }
@@ -89,16 +128,16 @@ namespace Toast.Gamebase.Internal.Single
                     GamebaseSystemPopup.Instance.ShowErrorPopup(error);
                 }
 
-                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo>>(handle);
-                if (null == callback)
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo>>(handle);
+                if (callback == null)
                 {
                     return;
                 }
 
-                if (null == error)
+                if (error == null)
                 {
                     GamebaseUnitySDK.IsInitialized = true;
-                    callback(JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(response), error);
+                    callback(JsonMapper.ToObject<LaunchingResponse.LaunchingInfo>(response), error);
                     ExecuteSchedule();
                 }   
                 else
@@ -172,7 +211,7 @@ namespace Toast.Gamebase.Internal.Single
 
                 GamebaseLog.Debug("Check Launching Info", this);
 
-                GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> launchingInfoCallback = (launchingInfoTemp, errorTemp) =>
+                GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo> launchingInfoCallback = (launchingInfoTemp, errorTemp) =>
                 {
                     var launchingStatusCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<GamebaseResponse.Launching.LaunchingStatus>>(scheduleHandle);
                     if (null != launchingStatusCallback)
@@ -182,18 +221,15 @@ namespace Toast.Gamebase.Internal.Single
                         vo.message = launchingStatus.launching.status.message;
 
                         launchingStatusCallback(vo);
-                    }
+                    }                    
                     
-                    var observerCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage>>(GamebaseObserverManager.Instance.Handle);
-                    if (null != observerCallback)
-                    {
-                        var vo = new GamebaseResponse.SDK.ObserverMessage();
-                        vo.type = GamebaseObserverType.LAUNCHING;
-                        vo.data = new System.Collections.Generic.Dictionary<string, object>();
-                        vo.data.Add("code", launchingStatus.launching.status.code);
-                        vo.data.Add("message", launchingStatus.launching.status.message);
-                        observerCallback(vo);
-                    }
+                    var observerMessage = new GamebaseResponse.SDK.ObserverMessage();
+                    observerMessage.type = GamebaseObserverType.LAUNCHING;
+                    observerMessage.data = new System.Collections.Generic.Dictionary<string, object>();
+                    observerMessage.data.Add("code", launchingStatus.launching.status.code);
+                    observerMessage.data.Add("message", launchingStatus.launching.status.message);
+                    GamebaseObserverManager.Instance.OnObserverEvent(observerMessage);
+                    SendEventMessage(observerMessage);
 
                     OnLaunchingInfoCallback(handle);
                 };
@@ -204,7 +240,30 @@ namespace Toast.Gamebase.Internal.Single
             });
         }
         #endregion
-        
+
+        private void SendEventMessage(GamebaseResponse.SDK.ObserverMessage message)
+        {
+            GamebaseResponse.Event.GamebaseEventObserverData observerData = new GamebaseResponse.Event.GamebaseEventObserverData();
+
+            object codeData = null;
+            if (message.data.TryGetValue("code", out codeData) == true)
+            {
+                observerData.code = (int)codeData;
+            }
+
+            object messageData = null;
+            if (message.data.TryGetValue("message", out messageData) == true)
+            {
+                observerData.message = (string)messageData;
+            }
+
+            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
+            eventMessage.category = string.Format("observer{0}", GamebaseStringUtil.Capitalize(message.type));
+            eventMessage.data = JsonMapper.ToJson(observerData);
+
+            GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
+        }
+
         private void OnLaunchingInfoCallback(int handle)
         {
             if(-1 == handle)
@@ -212,7 +271,7 @@ namespace Toast.Gamebase.Internal.Single
                 return;
             }
 
-            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo>>(handle);
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo>>(handle);
             if (null == callback)
             {
                 return;

@@ -36,8 +36,30 @@ namespace Toast.Gamebase.Internal
 
         public void OpenContact(GamebaseCallback.ErrorDelegate callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             contact.OpenContact(handle);
+        }
+
+        public void OpenContact(GamebaseRequest.Contact.Configuration configuration, GamebaseCallback.ErrorDelegate callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("OpenContactWithConfiguration");
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            contact.OpenContact(configuration, handle);
+        }
+
+        public void RequestContactURL(GamebaseCallback.GamebaseDelegate<string> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            contact.RequestContactURL(handle);
+        }
+
+        public void RequestContactURL(GamebaseRequest.Contact.Configuration configuration, GamebaseCallback.GamebaseDelegate<string> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("RequestContactURLWithConfiguration");
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            contact.RequestContactURL(configuration, handle);
         }
     }
 }

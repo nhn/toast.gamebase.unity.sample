@@ -3,7 +3,7 @@
     public class ToastCoreGetUserIdAction : ToastUnityAction
     {
         public static string ACTION_URI = "toast://core/getUserId";
-        
+
         protected override string GetUri()
         {
             return ACTION_URI;

@@ -8,6 +8,8 @@ namespace Toast.Gamebase.Internal.Mobile
         void GetAsync(string jsonString);
 
         void Initialize(string className);
+
+		void InitializeUnityInterface();
     }
 }
 #endif

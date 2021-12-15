@@ -1,276 +1,311 @@
 ﻿#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+using System;
 using UnityEngine;
 
-public class StandaloneWebviewUI : MonoBehaviour
+namespace Toast.Gamebase.Adapter.Ui
 {
-    private enum BUTTON_TEXTURE_TYPE
+    public class StandaloneWebviewUI : MonoBehaviour
     {
-        BUTTON_CLOSE,
-        BUTTON_BACK
-    }
-
-    private const int       PADDING                     = 9;
-    private const int       TITLE_BAR_TEXTURE_WIDTH     = 2;
-    private const int       TITLE_BAR_TEXTURE_HEIGHT    = 41;
-    private const string    BUTTON_NAME_CLOSE           = "gamebase-close-white";
-    private const string    BUTTON_NAME_BACK            = "gamebase-back-white";
-
-    private Texture titleBarTexture;
-    private Texture2D[] backTexture;
-    private Texture2D[] closeTexture;
-
-    private bool isActiveWebview = false;
-    private bool isBackButtonVisible = false;
-    private int titleBarHeight = 0;
-
-    private string title;
-    private System.Action backCallback;
-    private System.Action closeCallback;    
-    private string cloasButtonName;
-    private string backButtonName;
-
-    
-
-    public int GetTitleBarHeight()
-    {
-        return titleBarHeight;
-    }
-
-    public void HideWebviewUI()
-    {
-        SetActiveWebview(false);
-    }
-
-    public void SetDefault()
-    {
-        SetTitleBar(0, new Color(75 / 255f, 150 / 255f, 230 / 255f, 1));
-        SetBackButtonVisible(true);
-        SetButtonTexture(BUTTON_NAME_CLOSE, BUTTON_NAME_BACK);
-        SetTitle("");
-    }
-
-    public void SetActiveWebview(bool isActiveWebview)
-    {
-        this.isActiveWebview = isActiveWebview;
-    }
-
-    public void SetCallback(System.Action backCallback, System.Action closeCallback)
-    {
-        this.backCallback = backCallback;
-        this.closeCallback = closeCallback;
-    }
-
-    public void SetTitle(string title)
-    {
-        this.title = title;
-    }
-
-    public void SetTitleBar(int titleBarHeight, Color color)
-    {
-        this.titleBarHeight = titleBarHeight;
-
-        Texture2D texture = new Texture2D(TITLE_BAR_TEXTURE_WIDTH, TITLE_BAR_TEXTURE_HEIGHT);
-
-        for (int y = 0; y < texture.height; y++)
+        public string Title
         {
-            for (int x = 0; x < texture.width; x++)
-            {
-                texture.SetPixel(x, y, color);
-            }
+            get;
+            set;
         }
-        texture.Apply();
-        titleBarTexture = texture;
 
-        if (titleBarTexture.height > titleBarHeight)
+        public int TitleBarHeight
         {
-            this.titleBarHeight = titleBarTexture.height;
+            get;
+            private set;
         }
-    }
 
-    public void SetButtonTexture(string cloasButtonName, string backButtonName)
-    {               
-        if (false == string.IsNullOrEmpty(cloasButtonName))
+        public bool IsActivated
         {
-            closeTexture = LoadButtonTexture(BUTTON_TEXTURE_TYPE.BUTTON_CLOSE, cloasButtonName, this.cloasButtonName);
+            private get;
+            set;
         }
-        else
+
+        public bool IsTitleVisible
         {
-            closeTexture = LoadButtonTexture(BUTTON_TEXTURE_TYPE.BUTTON_CLOSE, BUTTON_NAME_CLOSE, this.cloasButtonName);
+            private get;
+            set;
         }
+
+        public bool IsBackButtonVisible
+        {
+            private get;
+            set;
+        }        
+
+        public Action OnBackButton
+        {
+            private get;
+            set;
+        }
+
+        public Action OnCloaseButton
+        {
+            private get;
+            set;
+        }
+
+        private const int PADDING = 9;
+        private const int TITLE_BAR_TEXTURE_WIDTH = 100;
+        private const int TITLE_BAR_TEXTURE_HEIGHT = 100;
+
+        private const string DEFAILT_TEXTURE_CLOSE = "gamebase-close-white";
+        private const string DEFAILT_TEXTURE_BACK = "gamebase-back-white";
+
+        private Texture bgTexture;
+        private Rect webViewRect;
+
+        private Texture titleBarTexture;
+        private Rect titleBarRect;
+
+        private Vector2 backButtonSize;
+        private Vector2 closeButtonSize;
+
+        private string loadedBackButtonTextureName;
+        private string loadedCloseButtonTextureName;
         
-        if (false == string.IsNullOrEmpty(backButtonName))
+        public void Initialize()
         {
-            backTexture = LoadButtonTexture(BUTTON_TEXTURE_TYPE.BUTTON_CLOSE, backButtonName, this.backButtonName);
+            SetTitleBarColor(new Color(75f / 255f, 150f / 255f, 230f / 255f, 255f / 255f));
         }
-        else
+
+        public void SetTitleBarEnable(bool enable)
         {
-            backTexture = LoadButtonTexture(BUTTON_TEXTURE_TYPE.BUTTON_CLOSE, BUTTON_NAME_BACK, this.backButtonName);
+            IsActivated = enable;
         }
-    }
 
-    private Texture2D[] LoadButtonTexture(BUTTON_TEXTURE_TYPE buttonType, string textureName, string cachingTextureName = null)
-    {
-        Texture2D[] buttonTexture = new Texture2D[3];
-        Texture2D buttonSource;
-
-        switch(buttonType)
+        public void SetTitleTextColor(Color color)
         {
-            case BUTTON_TEXTURE_TYPE.BUTTON_BACK:
+            StandaloneWebviewUIStyle.SetTitleTextColor(color);
+        }
+
+        public void SetTitleVisible(bool isTitleVisible)
+        {
+            IsTitleVisible = isTitleVisible;
+        }
+
+        public void SetTitleText(string title)
+        {
+            Title = title;
+        }
+
+        public void SetTitleBarRect(Rect rect)
+        {
+            titleBarRect = rect;
+            TitleBarHeight = (int)rect.height;
+        }
+
+        public void SetTitleBarColor(Color barColor)
+        {            
+            titleBarTexture = MakeTexture(barColor);
+        }
+
+        public void SetTitleBarButton(bool isBackButtonVisible, string backButtonName, string closeButtonName)
+        {
+            IsBackButtonVisible = isBackButtonVisible;
+            SetButton(backButtonName, DEFAILT_TEXTURE_BACK, ref loadedBackButtonTextureName, ref backButtonSize, StandaloneWebviewUIStyle.BackButton);
+            SetButton(closeButtonName, DEFAILT_TEXTURE_CLOSE, ref loadedCloseButtonTextureName, ref closeButtonSize, StandaloneWebviewUIStyle.CloseButton);
+        }
+
+        public void SetBgColor(Color bgColor)
+        {
+            bgTexture = MakeTexture(bgColor);
+        }
+
+        public void SetBGRect(Rect webViewRect)
+        {
+            this.webViewRect = webViewRect;
+        }
+
+        private void OnGUI()
+        {
+            if (IsActivated == false)
+            {
+                return;
+            }
+            
+            DrawBG();
+            DrawTitleBarBG();
+            DrawTitleText();
+            DrawBackButton();
+            DrawCloseButton();
+        }
+
+        private void DrawBG()
+        {            
+            // TOP
+            GUI.DrawTexture(
+                new Rect(
+                    0, 
+                    0, 
+                    Screen.width, 
+                    webViewRect.y), 
+                bgTexture);
+
+            // BOTTOM
+            GUI.DrawTexture(
+                new Rect(
+                    0,
+                    webViewRect.y + webViewRect.height,
+                    Screen.width,
+                    Screen.height - (webViewRect.y + webViewRect.height)),
+                bgTexture);
+
+            // LEFT
+            GUI.DrawTexture(
+                new Rect(
+                    0,
+                    webViewRect.y,
+                    (Screen.width - webViewRect.width) / 2,
+                    webViewRect.height),
+                bgTexture);
+
+            // RIGHT
+            GUI.DrawTexture(
+                new Rect(
+                    webViewRect.width + ((Screen.width - webViewRect.width) / 2),
+                    webViewRect.y,
+                    (Screen.width - webViewRect.width) / 2,
+                    webViewRect.height),
+                bgTexture);
+        }
+
+        private void DrawTitleBarBG()
+        {
+            GUI.DrawTexture(titleBarRect, titleBarTexture);
+        }
+
+        private void DrawTitleText()
+        {
+            if (string.IsNullOrEmpty(Title) == true || IsTitleVisible == false)
+            {
+                return;
+            }
+
+            int textWidth = (int)titleBarRect.width - (PADDING * 2);
+            Vector2 textVector = StandaloneWebviewUIStyle.TitleLabel.CalcSize(new GUIContent(Title));
+
+            int textTop = (int)titleBarRect.y + (TitleBarHeight - StandaloneWebviewUIStyle.TitleLabel.fontSize) / 2;
+
+            string titleText = string.Empty;
+
+            if (textVector.x > textWidth)
+            {
+                for (int i = 0; i < Title.Length; i++)
                 {
-                    if(true == textureName.Equals(cloasButtonName))
+                    Vector2 size = StandaloneWebviewUIStyle.TitleLabel.CalcSize(new GUIContent(Title.Substring(0, i) + "..."));
+                    if (size.x > textWidth)
                     {
-                        return closeTexture;
+                        break;
                     }
-                    cloasButtonName = textureName;
-                    break;
+                    titleText = Title.Substring(0, i) + "...";
                 }
-            case BUTTON_TEXTURE_TYPE.BUTTON_CLOSE:
-                {
-                    if (true == textureName.Equals(backButtonName))
-                    {
-                        return backTexture;
-                    }
-                    backButtonName = textureName;
-                    break;
-                }                
-        }
- 
-        buttonSource = Resources.Load(textureName) as Texture2D;        
-
-        buttonTexture[0] = buttonSource;
-        buttonTexture[1] = AddTextureColor(buttonSource, true);
-        buttonTexture[2] = AddTextureColor(buttonSource, false);
-
-        return buttonTexture;
-    }
-
-    private Texture2D AddTextureColor(Texture2D targetTexture, bool isAdd)
-    {
-        Texture2D source = new Texture2D(targetTexture.width, targetTexture.height);
-        Color targetColor = new Color(0.2f, 0.2f, 0.2f, 0f);
-
-        for (int y = 0; y < source.height; y++)
-        {
-            for (int x = 0; x < source.width; x++)
+            }
+            else
             {
-                Color color = targetTexture.GetPixel(x, y);
+                titleText = Title;
+            }
 
-                if (isAdd)
-                {
-                    color += targetColor;
-                }
-                else
-                {
-                    color -= targetColor;
-                }
+            GUI.Label(
+                new Rect(titleBarRect.x + PADDING, textTop, textWidth, 20),
+                titleText,
+                StandaloneWebviewUIStyle.TitleLabel);
+        }
+                
+        public void DrawBackButton()
+        {
+            if (IsBackButtonVisible == false || OnBackButton == null)
+            {
+                return;
+            }
 
-                source.SetPixel(x, y, color);
+            var rect = new Rect(
+                titleBarRect.x + PADDING,
+                titleBarRect.y + (TitleBarHeight - backButtonSize.y) / 2, 
+                backButtonSize.x, 
+                backButtonSize.y);
+            if (GUI.Button(rect, string.Empty, StandaloneWebviewUIStyle.BackButton) == true)
+            {
+                OnBackButton();
             }
         }
-        source.Apply();
-        return source;
-    }
 
-    public void SetBackButtonVisible(bool isBackButtonVisible)
-    {
-        this.isBackButtonVisible = isBackButtonVisible;
-    }
-
-    void OnGUI()
-    {
-        if (false == isActiveWebview)
+        private void DrawCloseButton()
         {
-            return;
-        }
-
-        GUI.DrawTexture(new Rect(0, 0, Screen.width, titleBarHeight), titleBarTexture);
-
-        ShowTitle();
-        ShowCloseButton();
-        ShowBackButton();
-    }
-
-    private void ShowTitle()
-    {
-        if (true == string.IsNullOrEmpty(title))
-        {
-            return;
-        }
-
-        GUIStyle style = new GUIStyle();
-        style.normal.textColor = Color.white;
-        style.fontSize = 20;
-        style.alignment = TextAnchor.MiddleCenter;
-
-        int textWidth = Screen.width - (PADDING * 2);
-        Vector2 textVector = style.CalcSize(new GUIContent(title));
-
-        int textTop = (titleBarHeight - style.fontSize) / 2;
-
-        string titleText = "";
-
-        if (textVector.x > textWidth)
-        {
-            for (int i = 0; i < title.Length; i++)
+            var rect = new Rect(
+                titleBarRect.x + titleBarRect.width - closeButtonSize.x - PADDING,
+                titleBarRect.y + (TitleBarHeight - closeButtonSize.y) / 2,
+                closeButtonSize.x,
+                closeButtonSize.y);
+            if (GUI.Button(rect, string.Empty, StandaloneWebviewUIStyle.CloseButton) == true)
             {
-                Vector2 size = style.CalcSize(new GUIContent(title.Substring(0, i) + "..."));
-                if (size.x > textWidth)
+                if (OnCloaseButton != null)
                 {
-                    break;
+                    OnCloaseButton();
                 }
-                titleText = title.Substring(0, i) + "...";
             }
         }
-        else
+
+        private Texture2D MakeTexture(Color color)
         {
-            titleText = title;
-        }
+            Texture2D texture = new Texture2D(TITLE_BAR_TEXTURE_WIDTH, TITLE_BAR_TEXTURE_HEIGHT);
 
-        GUI.Label(
-            new Rect(PADDING, textTop, textWidth, 20),
-            titleText,
-            style
-            );
-    }
-
-    private void ShowCloseButton()
-    {
-        GUIStyle guiStyle = new GUIStyle();
-        guiStyle.normal.background = closeTexture[0];
-        guiStyle.hover.background = closeTexture[1];
-        guiStyle.active.background = closeTexture[2];
-
-        int buttonTop = (titleBarHeight - closeTexture[0].height) / 2;
-
-        if (true == GUI.Button(new Rect(Screen.width - closeTexture[0].width - PADDING, buttonTop, closeTexture[0].width, closeTexture[0].height), "", guiStyle))
-        {
-            if (null != closeCallback)
+            for (int y = 0; y < texture.height; y++)
             {
-                closeCallback();
+                for (int x = 0; x < texture.width; x++)
+                {
+                    texture.SetPixel(x, y, color);
+                }
             }
-        }
-    }
 
-    public void ShowBackButton()
-    {
-        if (true != isBackButtonVisible || null == backCallback)
-        {
-            return;
+            texture.Apply();
+
+            return texture;
         }
 
-        GUIStyle guiStyle = new GUIStyle();
-        guiStyle.normal.background = backTexture[0];
-        guiStyle.hover.background = backTexture[1];
-        guiStyle.active.background = backTexture[2];
-
-        int buttonTop = (titleBarHeight - backTexture[0].height) / 2;
-
-        if (true == GUI.Button(new Rect(PADDING, buttonTop, backTexture[0].width, backTexture[0].height), "", guiStyle))
+        private void SetButton(
+            string resourceName,
+            string defaultResourceName,
+            ref string loadedResourceName,
+            ref Vector2 buttonSize,
+            GUIStyle style)
         {
-            if (null != backCallback)
+            if (string.IsNullOrEmpty(resourceName) == true)
             {
-                backCallback();
+                resourceName = defaultResourceName;
             }
+
+            if (resourceName.Equals(loadedResourceName) == false)
+            {
+                var texture = Resources.Load(resourceName) as Texture2D;
+                style.normal.background = texture;
+                style.hover.background = AddTextureColor(texture, new Color(-0.1f, -0.1f, -0.1f, 0));
+                style.active.background = AddTextureColor(texture, new Color(-0.2f, -0.2f, -0.2f, 0));
+                buttonSize = new Vector2(texture.width, texture.height);
+
+                loadedResourceName = resourceName;
+            }
+        }
+
+        private Texture2D AddTextureColor(Texture2D targetTexture, Color addColor)
+        {
+            Texture2D texture = new Texture2D(targetTexture.width, targetTexture.height);
+
+            for (int y = 0; y < texture.height; y++)
+            {
+                for (int x = 0; x < texture.width; x++)
+                {
+                    Color color = targetTexture.GetPixel(x, y);
+                    color += addColor;
+                    texture.SetPixel(x, y, color);
+                }
+            }
+
+            texture.Apply();
+            return texture;
         }
     }
 }

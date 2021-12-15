@@ -2,32 +2,32 @@
 
 namespace Toast.Internal
 {
-	public abstract class ToastUnityAction 
-	{
-		private string _transactionId;
+    public abstract class ToastUnityAction
+    {
+        private string _transactionId;
 
-		protected abstract string GetUri();
+        protected abstract string GetUri();
 
-		protected abstract string Action(JSONObject payload);
+        protected abstract string Action(JSONObject payload);
 
-		public string OnMessage(ToastUnityMessage unityMessage) 
+        public string OnMessage(ToastUnityMessage unityMessage)
         {
             string transactionId = unityMessage.TransactionId;
 
-			if (string.IsNullOrEmpty (transactionId)) 
+            if (string.IsNullOrEmpty(transactionId))
             {
-				throw new UnityException("Required field does not exist. (empty transactionId).");
-			}
+                throw new UnityException("Required field does not exist. (empty transactionId).");
+            }
 
-			_transactionId = transactionId;
-			JSONObject payload = unityMessage.GetPayload();
-		
-			return Action(payload);
-		}
+            _transactionId = transactionId;
+            JSONObject payload = unityMessage.GetPayload();
 
-		public string GetTransactionId() 
+            return Action(payload);
+        }
+
+        public string GetTransactionId()
         {
-			return _transactionId;
-		}
-	}
+            return _transactionId;
+        }
+    }
 }

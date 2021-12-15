@@ -23,7 +23,7 @@
             string key = payload["key"].Value;
             string value = payload["value"].Value;
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(key) || value == null)
             {
                 return ToastNativeMessage.CreateErrorMessage(this.GetUri(),
                                                              this.GetTransactionId(),

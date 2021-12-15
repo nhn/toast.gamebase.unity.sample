@@ -1,8 +1,6 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Toast.Internal;
-using Toast.Core;
 
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.Networking;
@@ -80,7 +78,9 @@ namespace Toast.Logger
             string jsonString = "";
 
             float timeout = 5.0f;
+            #pragma warning disable 0219
             bool isTimeout = false;
+            #pragma warning restore 0219
 
 #if UNITY_2017_2_OR_NEWER
             var downloadHandler = new DownloadHandlerBuffer();
@@ -89,17 +89,25 @@ namespace Toast.Logger
             using (var request = new UnityWebRequest(url,
                 UnityWebRequest.kHttpVerbPOST,
                 downloadHandler, uploadHandler))
-            {                
+            {
                 request.SetRequestHeader("Content-Type", "application/json");
                 request.timeout = System.Convert.ToInt32(timeout);
 
                 yield return request.SendWebRequest();
 
                 errorString = request.error;
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                    request.result == UnityWebRequest.Result.ProtocolError)
+                    {
+                        isTimeout = true;
+                    }
+#else
                 if (request.isNetworkError || request.isHttpError)
                 {
                     isTimeout = true;
                 }
+#endif
                 else
                 {
                     jsonString = request.downloadHandler.text;
@@ -140,9 +148,9 @@ namespace Toast.Logger
 #if UNITY_STANDALONE || UNITY_EDITOR
             if (isTimeout == false && string.IsNullOrEmpty(errorString)) // success
             {
-                if (ToastFileManager.FileCheck(ToastLoggerCommonLogic.AppKey, createTime, transactionId))
+                if (BackupLogManager.FileCheck(ToastLoggerCommonLogic.AppKey, createTime, transactionId))
                 {
-                    ToastFileManager.FileDelete(ToastLoggerCommonLogic.AppKey, createTime, transactionId);
+                    BackupLogManager.FileDelete(ToastLoggerCommonLogic.AppKey, createTime, transactionId);
                 }
                 ToastLoggerSendQueue.Instance.EnqueueInFile();
 
@@ -150,21 +158,21 @@ namespace Toast.Logger
                 {
                     foreach (ToastLoggerLogObject logData in bulkLog.Gets())
                     {
-                        CrashLoggerListenerReceiver.Instance.OnLogSuccess(logData);
+                        CrashLoggerListenerReceiver.Instance.OnLogSuccessWithToastLoggerObject(logData);
                     }
                 }
             }
             else
             {
-                if (ToastFileManager.GetProjectFileCount(ToastLoggerCommonLogic.AppKey) < MAX_FILE_SIZE)
+                if (BackupLogManager.GetProjectFileCount(ToastLoggerCommonLogic.AppKey) < MAX_FILE_SIZE)
                 {
-                    ToastFileManager.FileSave(ToastLoggerCommonLogic.AppKey, createTime, transactionId, logContents);
+                    BackupLogManager.FileSave(ToastLoggerCommonLogic.AppKey, createTime, transactionId, logContents);
 
                     if (ToastLoggerCommonLogic.IsLoggerListener)
                     {
                         foreach (ToastLoggerLogObject logData in bulkLog.Gets())
                         {
-                            CrashLoggerListenerReceiver.Instance.OnLogSave(logData);
+                            CrashLoggerListenerReceiver.Instance.OnLogSaveWithToastLoggerObject(logData);
                         }
                     }
                 }
@@ -180,7 +188,7 @@ namespace Toast.Logger
                 {
                     foreach (ToastLoggerLogObject logData in bulkLog.Gets())
                     {
-                        CrashLoggerListenerReceiver.Instance.OnLogError(logData, errorString);
+                        CrashLoggerListenerReceiver.Instance.OnLogErrorWithToastLoggerObject(logData, errorString);
                     }
                 }
             }

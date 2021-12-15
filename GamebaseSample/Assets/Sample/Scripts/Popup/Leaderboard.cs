@@ -10,12 +10,12 @@ namespace GamebaseSample
         private const int LEADERBOARD_RECORD_HEIGHT = 940;
 
         [SerializeField]
-        private LeaderboardRankItem myRankItem;
+        private LeaderboardRankItem myRankItem = null;
         [SerializeField]
-        private LeaderboardRankView topRankView;
+        private LeaderboardRankView topRankView = null;
 
         [SerializeField]
-        private RectTransform rectTransform;
+        private RectTransform rectTransform = null;
 
         private void Awake()
         {

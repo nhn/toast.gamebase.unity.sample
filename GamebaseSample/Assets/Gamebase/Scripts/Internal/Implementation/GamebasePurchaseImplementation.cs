@@ -37,97 +37,77 @@ namespace Toast.Gamebase.Internal
 
         public void RequestPurchase(long itemSeq, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName("RequestPurchaseWithItemSeq");
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestPurchase(itemSeq, handle);
         }
 
-
-        public void RequestPurchase(string marketItemId, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
+        public void RequestPurchase(string gamebaseProductId, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName("RequestPurchaseWithGamebaseProductId");
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
-            purchase.RequestPurchase(marketItemId, handle);
+            purchase.RequestPurchase(gamebaseProductId, handle);
+        }
+
+        public void RequestPurchase(string gamebaseProductId, string payload, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("RequestPurchaseWithGamebaseProductIdAndPayload");
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            purchase.RequestPurchase(gamebaseProductId, payload, handle);
         }
 
         public void RequestItemListOfNotConsumed(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestItemListOfNotConsumed(handle);
         }
 
         public void RequestRetryTransaction(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableRetryTransactionResult> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestRetryTransaction(handle);
         }
 
         public void RequestItemListPurchasable(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableItem>> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestItemListPurchasable(handle);
         }
 
         public void RequestItemListAtIAPConsole(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableItem>> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestItemListAtIAPConsole(handle);
         }
 
         public void SetPromotionIAPHandler(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.SetPromotionIAPHandler(handle);
         }
 
         public void SetStoreCode(string storeCode)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             purchase.SetStoreCode(storeCode);
         }
 
         public string GetStoreCode()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return purchase.GetStoreCode();
         }
 
         public void RequestActivatedPurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestActivatedPurchases(handle);         
         }
-/*
-        public void SetPurchaseUpdateListener(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.IapPurchase> callback)
-        {
-            GamebaseIapManager.Instance.SetPurchaseUpdateListener(callback);
-        }
-
-        public void RequestProductDetails(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.RequestProductDetails> callback)
-        {
-            GamebaseIapManager.Instance.RequestProductDetails(callback);
-        }
-
-        public void Purchase(string productId, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.IapPurchase> callback)
-        {
-            GamebaseIapManager.Instance.Purchase(productId, callback);
-        }
-
-        public void RequestConsumablePurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.IapPurchase>> callback)
-        {
-            GamebaseIapManager.Instance.RequestConsumablePurchases(callback);
-        }
-
-        public void RequestRestorePurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.IapPurchase>> callback)
-        {
-            GamebaseIapManager.Instance.RequestRestorePurchases(callback);
-        }
-
-        public void RequestActivatedPurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.IapPurchase>> callback)
-        {
-            GamebaseIapManager.Instance.RequestActivatedPurchases(callback);
-        }
-
-        public void SetExtraData(Dictionary<string, string> extraData)
-        {
-            GamebaseIapManager.Instance.SetExtraData(extraData);
-        }
-*/
     }
 }

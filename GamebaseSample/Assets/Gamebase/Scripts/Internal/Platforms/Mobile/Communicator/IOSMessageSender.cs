@@ -6,6 +6,8 @@ namespace Toast.Gamebase.Internal.Mobile.IOS
 {
     public sealed class IOSMessageSender : INativeMessageSender
     {
+		[DllImport("__Internal")]
+		private static extern void initializeUnityInterface();
         [DllImport("__Internal")]
         private static extern void initialize(string className);
         [DllImport("__Internal")]
@@ -56,6 +58,11 @@ namespace Toast.Gamebase.Internal.Mobile.IOS
             GamebaseLog.Debug(string.Format("className : {0}", className), this);
             initialize(className);
         }
+
+		public void InitializeUnityInterface()
+		{
+			initializeUnityInterface();
+		}
     }
 }
 #endif

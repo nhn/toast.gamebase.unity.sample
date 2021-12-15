@@ -1,7 +1,5 @@
 ﻿#if (UNITY_STANDALONE || UNITY_WEBGL || UNITY_EDITOR)
 
-using UnityEngine;
-using System.Collections;
 
 namespace Toast.Internal
 {

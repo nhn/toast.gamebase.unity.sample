@@ -25,9 +25,9 @@ namespace Toast.Gamebase.Internal.Single.WebGL
             www.SetRequestHeader("X-TCGB-Transaction-Id", Lighthouse.CreateTransactionId().ToString().ToLower());
             www.timeout = CommunicatorConfiguration.timeout;
 
-            yield return UnityCompatibility.UnityWebRequest.Send(www);
+            yield return UnityCompatibility.WebRequest.Send(www);
 
-            if (true == UnityCompatibility.UnityWebRequest.IsError(www))
+            if (true == UnityCompatibility.WebRequest.IsError(www))
             {
                 GamebaseLog.Debug(string.Format("error:{0}", www.error), this);
             }

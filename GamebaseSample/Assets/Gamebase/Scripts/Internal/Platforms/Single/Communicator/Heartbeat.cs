@@ -133,13 +133,10 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                             });
                         }
 
-                        GamebaseSystemPopup.Instance.ShowHeartbeatErrorPopup(heartbeatError);                       
+                        GamebaseSystemPopup.Instance.ShowHeartbeatErrorPopup(heartbeatError);
 
-                        var observerCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage>>(GamebaseObserverManager.Instance.Handle);
-                        if (null != observerCallback)
-                        {                            
-                            observerCallback(vo);
-                        }
+                        GamebaseObserverManager.Instance.OnObserverEvent(vo);
+                        SendEventMessage(vo);
                     }
                     GamebaseLog.Debug(string.Format("Send heartbeat failed. error:{0}", GamebaseJsonUtil.ToPrettyJsonString(heartbeatError)), this);
                 }
@@ -147,7 +144,24 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 lastSentTime = DateTime.Now;
             });
         }
-        
+
+        private void SendEventMessage(GamebaseResponse.SDK.ObserverMessage message)
+        {
+            GamebaseResponse.Event.GamebaseEventObserverData observerData = new GamebaseResponse.Event.GamebaseEventObserverData();
+
+            object codeData = null;
+            if (message.data.TryGetValue("code", out codeData) == true)
+            {
+                observerData.code = (int)codeData;
+            }
+
+            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
+            eventMessage.category = string.Format("observer{0}", GamebaseStringUtil.Capitalize(message.type));
+            eventMessage.data = JsonMapper.ToJson(observerData);
+
+            GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
+        }
+
         private bool IsSendable()
         {
             if (HeartbeatStatus.Start == status)

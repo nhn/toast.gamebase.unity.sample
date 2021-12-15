@@ -77,7 +77,7 @@
             {
                 if(data.type.Equals(GamebaseObserverType.LAUNCHING) == true)
                 {
-                    var launchingInfo =  Gamebase.Launching.GetLaunchingInformations();
+                    var launchingInfo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
                     SetRemoteSettings(launchingInfo);
                 }
             });
@@ -103,7 +103,7 @@
             GamebaseLog.SetDebugLog(logSetting.IsDebugMode(isDebugMode));
         }
 
-        public void SetRemoteSettings(GamebaseResponse.Launching.LaunchingInfo launchingInfo)
+        public void SetRemoteSettings(LaunchingResponse.LaunchingInfo launchingInfo)
         {
             if(launchingInfo == null 
                 || launchingInfo.launching == null
@@ -121,7 +121,7 @@
                 
                 GamebaseLog.SetDebugLog(logSetting.IsDebugMode(isDebugMode));
 
-                GamebaseLogReport.Instance.Initialize(
+                GamebaseInternalReport.Instance.Initialize(
                     logSetting.IsIndicatorMode(), 
                     forceRemoteSettings.log.appKeyIndicator, 
                     forceRemoteSettings.log.appKeyLog);

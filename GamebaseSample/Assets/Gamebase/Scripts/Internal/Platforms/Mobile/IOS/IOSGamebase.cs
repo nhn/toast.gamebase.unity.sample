@@ -7,7 +7,7 @@ namespace Toast.Gamebase.Internal.Mobile.IOS
         {
             CLASS_NAME      = "TCGBGamebasePlugin";
             messageSender   = IOSMessageSender.Instance;
-            
+
             base.Init();
         }
     }

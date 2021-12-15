@@ -3,7 +3,8 @@
     internal interface IGamebasePurchase
     {
         void RequestPurchase(long itemSeq, int handle);
-        void RequestPurchase(string marketItemId, int handle);
+        void RequestPurchase(string gamebaseProductId, int handle);
+        void RequestPurchase(string gamebaseProductId, string payload, int handle);
         void RequestItemListOfNotConsumed(int handle);
         void RequestRetryTransaction(int handle);
         void RequestItemListPurchasable(int handle);

@@ -7,7 +7,7 @@ namespace Toast.Gamebase.Mobile.Android
     {
         override protected void Init()
         {
-            CLASS_NAME = "com.toast.android.gamebase.unityplugin.GamebaseLoggerPlugin";
+            CLASS_NAME = "com.toast.android.gamebase.plugin.GamebaseLoggerPlugin";
             messageSender = AndroidMessageSender.Instance;
 
             base.Init();

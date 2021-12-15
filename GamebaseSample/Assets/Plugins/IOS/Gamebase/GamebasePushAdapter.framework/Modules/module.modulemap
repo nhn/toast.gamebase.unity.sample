@@ -1,6 +1,0 @@
-framework module GamebasePushAdapter {
-  umbrella header "GamebasePushAdapter.h"
-
-  export *
-  module * { export * }
-}

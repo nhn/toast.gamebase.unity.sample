@@ -5,7 +5,7 @@ namespace Toast.Gamebase.Internal.Mobile.Android
     {
         override protected void Init()
         {
-            CLASS_NAME      = "com.toast.android.gamebase.unityplugin.GamebasePurchasePlugin";
+            CLASS_NAME      = "com.toast.android.gamebase.plugin.GamebasePurchasePlugin";
             messageSender   = AndroidMessageSender.Instance;
 
             base.Init();

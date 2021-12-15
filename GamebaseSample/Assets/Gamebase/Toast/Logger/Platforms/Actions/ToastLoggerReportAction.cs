@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Toast.Internal
 {
@@ -23,23 +22,24 @@ namespace Toast.Internal
                                                              this.GetUri() + " action not found").ToJsonString();
             }
 
+            string logType = payload["logType"].Value;
             string level = payload["logLevel"].Value;
             string message = payload["message"].Value;
             string dmpData = payload["dmpData"].ToString();
-
+            
             JSONObject jsonUserFields = payload["userFields"] as JSONObject;
             Dictionary<string, string> userFields = new Dictionary<string, string>();
 
-			if (jsonUserFields != null) 
-			{
-				foreach (string key in jsonUserFields.Keys)
-				{
-					string value = jsonUserFields[key].ToString();
-					userFields.Add(key, value);
-				}
-			}
+            if (jsonUserFields != null)
+            {
+                foreach (string key in jsonUserFields.Keys)
+                {
+                    string value = jsonUserFields[key].ToString();
+                    userFields.Add(key, value);
+                }
+            }
 
-			ToastLoggerSdk.Instance.NativeLogger.Report(level, message, dmpData, userFields);
+            ToastLoggerSdk.Instance.NativeLogger.Report(logType, level, message, dmpData, userFields);
 
             return ToastNativeMessage.CreateSuccessMessage(this.GetUri(),
                                                            this.GetTransactionId()).ToJsonString();

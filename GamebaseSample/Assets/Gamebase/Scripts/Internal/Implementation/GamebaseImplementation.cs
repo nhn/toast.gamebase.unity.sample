@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR && UNITY_ANDROID
+#if !UNITY_EDITOR && UNITY_ANDROID
 using Toast.Gamebase.Internal.Mobile.Android;
 #elif !UNITY_EDITOR && UNITY_IOS
 using Toast.Gamebase.Internal.Mobile.IOS;
@@ -6,10 +6,6 @@ using Toast.Gamebase.Internal.Mobile.IOS;
 using Toast.Gamebase.Internal.Single.WebGL;
 #else
 using Toast.Gamebase.Internal.Single.Standalone;
-#endif
-
-#if !UNITY_EDITOR
-using UnityEngine;
 #endif
 
 using System.Collections.Generic;
@@ -20,13 +16,11 @@ using System.Text;
 namespace Toast.Gamebase.Internal
 {
     public sealed class GamebaseImplementation
-    {        
-        private const string GAMEBASE_INDICATOR_REPORT_UNITY_EDITOR_VERSION = "UNITY_EDITOR_VERSION";
-        private const string GAMEBASE_INDICATOR_REPORT_SDK_VERSION = "GAMEBASE_INDICATOR_REPORT_SDK_VERSION";
-        private const string SEND_DATA_KEY_LAUNCHING_ZONE = "LaunchingZone";
-        public const string SEND_DATA_KEY_UNITY_EDITOR_VERSION = "UnityEditorVersion";
-        public const string SEND_DATA_KEY_UNITY_SDK_VERSION = "UnitySDKVersion";
-        public const string SEND_DATA_KEY_PLATFORM_SDK_VERSION = "PlatformSDKVersion";
+    {
+        private const string INITIALIZE_WITH_CONFIGURATION = "INITIALIZE_WITH_CONFIGURATION";
+        private const string INITIALIZE_WITH_INSPECTOR = "INITIALIZE_WITH_INSPECTOR";
+
+        private string initializeType = INITIALIZE_WITH_CONFIGURATION;
 
         private static readonly GamebaseImplementation instance = new GamebaseImplementation();
 
@@ -35,7 +29,7 @@ namespace Toast.Gamebase.Internal
             get { return instance; }
         }
 
-        IGamebase sdk;
+        private IGamebase sdk;
 
         private GamebaseImplementation()
         {
@@ -52,39 +46,65 @@ namespace Toast.Gamebase.Internal
 
         public void SetDebugMode(bool isDebugMode)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             sdk.SetDebugMode(isDebugMode);
         }
 
         public void Initialize(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> callback)
         {
+            initializeType = INITIALIZE_WITH_INSPECTOR;
+
             Initialize(GetGamebaseConfiguration(), callback);
         }
 
         public void Initialize(GamebaseRequest.GamebaseConfiguration configuration, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> callback)
         {
+            if(initializeType.Equals(INITIALIZE_WITH_INSPECTOR) == true)
+            {
+                GamebaseGameInformationReport.Instance.AddApiName("InitializeWithInspector");
+            }
+            else
+            {
+                GamebaseGameInformationReport.Instance.AddApiName("InitializeWithConfiguration");
+            }            
+
             var sb = new StringBuilder();
             sb.AppendLine(string.Format("Gamebase VERSION:{0}", GamebaseUnitySDK.SDKVersion));
             sb.AppendLine(string.Format("Gamebase Configuration:{0}", GamebaseJsonUtil.ToPrettyJsonString(configuration)));
             GamebaseLog.Debug(string.Format("{0}", sb), this);
             
             InitializeUnitySDK();
-
+#pragma warning disable 0618
             configuration.zoneType = GetVerifiedZoneType(configuration.zoneType);
-
+#pragma warning restore 0618
             SetGamebaseConfiguration(configuration);
 
-            GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> initializeCallback = (launchingInfo, error) =>
+            GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo> initializeCallback = (launchingInfo, error) =>
             {
-                if ((error == null || error.code == GamebaseErrorCode.SUCCESS))
+                if (Gamebase.IsSuccess(error) == true)
                 {
                     GamebaseDebugSettings.Instance.SetRemoteSettings(launchingInfo);
 
                     GamebaseWaterMark.ShowWaterMark();
                 }
 
-                SendUnityEditorInfomation();                
+                GamebaseInternalReport.Instance.SetAppId(GamebaseUnitySDK.AppID);
+                
+                GamebaseGameInformationReport.Instance.SendGameInformation();
 
-                callback(launchingInfo, error);
+                if (Gamebase.IsSuccess(error) == true)
+                {
+                    string jsonString = JsonMapper.ToJson(launchingInfo);
+                    callback(
+                        JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(jsonString),
+                        error);
+
+                    return;
+                }
+                else
+                {
+                    callback(null, error);
+                }
             };
 
             int handle = GamebaseCallbackHandler.RegisterCallback(initializeCallback);            
@@ -93,66 +113,79 @@ namespace Toast.Gamebase.Internal
                
         public string GetSDKVersion()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetSDKVersion();
         }
 
         public string GetUserID()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetUserID();
         }
 
         public string GetAccessToken()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetAccessToken();
         }
 
         public string GetLastLoggedInProvider()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetLastLoggedInProvider();
         }
                         
         public string GetDeviceLanguageCode()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetDeviceLanguageCode();
         }
 
         public string GetCarrierCode()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetCarrierCode();
         }
 
         public string GetCarrierName()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetCarrierName();
         }
 
         public string GetCountryCode()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetCountryCode();
         }
 
         public string GetCountryCodeOfUSIM()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetCountryCodeOfUSIM();
         }
 
         public string GetCountryCodeOfDevice()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetCountryCodeOfDevice();
         }
 
         public bool IsSandbox()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.IsSandbox();
         }
 
         public void SetDisplayLanguageCode(string languageCode)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             sdk.SetDisplayLanguageCode(languageCode);
         }
         
         public string GetDisplayLanguageCode()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetDisplayLanguageCode();
         }
         
@@ -179,13 +212,17 @@ namespace Toast.Gamebase.Internal
             var configuration                               = new GamebaseRequest.GamebaseConfiguration();
             configuration.appID                             = GamebaseUnitySDK.AppID;
             configuration.appVersion                        = GamebaseUnitySDK.AppVersion;
+#pragma warning disable 0618
             configuration.zoneType                          = GamebaseUnitySDK.ZoneType;
+#pragma warning restore 0618
             configuration.displayLanguageCode               = GamebaseUnitySDK.DisplayLanguageCode;
             configuration.enablePopup                       = GamebaseUnitySDK.EnablePopup;
             configuration.enableLaunchingStatusPopup        = GamebaseUnitySDK.EnableLaunchingStatusPopup;
             configuration.enableBanPopup                    = GamebaseUnitySDK.EnableBanPopup;
             configuration.enableKickoutPopup                = GamebaseUnitySDK.EnableKickoutPopup;
+#pragma warning disable 0618
             configuration.fcmSenderId                       = GamebaseUnitySDK.FcmSenderId;
+#pragma warning restore 0618
             configuration.storeCode                         = GamebaseUnitySDK.StoreCode;
             configuration.useWebViewLogin                   = GamebaseUnitySDK.UseWebViewLogin;
             return configuration;
@@ -195,13 +232,17 @@ namespace Toast.Gamebase.Internal
         {
             GamebaseUnitySDK.AppID                          = configuration.appID;
             GamebaseUnitySDK.AppVersion                     = configuration.appVersion;
+#pragma warning disable 0618
             GamebaseUnitySDK.ZoneType                       = configuration.zoneType;
+#pragma warning restore 0618
             GamebaseUnitySDK.DisplayLanguageCode            = configuration.displayLanguageCode;
             GamebaseUnitySDK.EnablePopup                    = configuration.enablePopup;
             GamebaseUnitySDK.EnableLaunchingStatusPopup     = configuration.enableLaunchingStatusPopup;
             GamebaseUnitySDK.EnableBanPopup                 = configuration.enableBanPopup;
             GamebaseUnitySDK.EnableKickoutPopup             = configuration.enableKickoutPopup;
+#pragma warning disable 0618
             GamebaseUnitySDK.FcmSenderId                    = configuration.fcmSenderId;
+#pragma warning restore 0618
             GamebaseUnitySDK.StoreCode                      = configuration.storeCode;
             GamebaseUnitySDK.UseWebViewLogin                = configuration.useWebViewLogin;
         }
@@ -225,65 +266,65 @@ namespace Toast.Gamebase.Internal
 
         public void AddObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             GamebaseObserverManager.Instance.AddObserver(observer);
             sdk.AddObserver(GamebaseObserverManager.Instance.Handle);
         }
 
         public void RemoveObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             GamebaseObserverManager.Instance.RemoveObserver(observer);
             sdk.RemoveObserver();
         }
 
         public void RemoveAllObserver()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             GamebaseObserverManager.Instance.RemoveAllObserver();
             sdk.RemoveAllObserver();
         }
 
         public void AddServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             GamebaseServerPushEventManager.Instance.AddServerPushEvent(serverPushEvent);
             sdk.AddServerPushEvent(GamebaseServerPushEventManager.Instance.Handle);
         }
         
         public void RemoveServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             GamebaseServerPushEventManager.Instance.RemoveServerPushEvent(serverPushEvent);
             sdk.RemoveServerPushEvent();
         }
         
         public void RemoveAllServerPushEvent()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             GamebaseServerPushEventManager.Instance.RemoveAllServerPushEvent();
             sdk.RemoveAllServerPushEvent();
         }
 
-        private void SendUnityEditorInfomation()
+        public void AddEventHandler(GamebaseCallback.DataDelegate<GamebaseResponse.Event.GamebaseEventMessage> eventHandler)
         {
-#if !UNITY_EDITOR
-            string unityEditorVersion = PlayerPrefs.GetString(GAMEBASE_INDICATOR_REPORT_UNITY_EDITOR_VERSION, string.Empty);
-            string gamebaseSDKVersion = PlayerPrefs.GetString(GAMEBASE_INDICATOR_REPORT_SDK_VERSION, string.Empty);
-            
-            if (unityEditorVersion.Equals(Application.unityVersion) == true && gamebaseSDKVersion.Equals(GamebaseUnitySDK.SDK_VERSION) == true)
-            {
-                return;
-            }
+            GamebaseGameInformationReport.Instance.AddApiName();
+            GamebaseEventHandlerManager.Instance.AddEventHandler(eventHandler);
+            sdk.AddEventHandler(GamebaseEventHandlerManager.Instance.Handle);
+        }
 
-            PlayerPrefs.SetString(GAMEBASE_INDICATOR_REPORT_UNITY_EDITOR_VERSION, Application.unityVersion);
-            PlayerPrefs.SetString(GAMEBASE_INDICATOR_REPORT_SDK_VERSION, GamebaseUnitySDK.SDK_VERSION);
+        public void RemoveEventHandler(GamebaseCallback.DataDelegate<GamebaseResponse.Event.GamebaseEventMessage> eventHandler)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            GamebaseEventHandlerManager.Instance.RemoveEventHandler(eventHandler);
+            sdk.RemoveEventHandler();
+        }
 
-            GamebaseLogReport.Instance.SendIndicatorReport(
-                GamebaseLogReport.IndicatorReport.LevelType.INDICATOR_REPORT,
-                GAMEBASE_INDICATOR_REPORT_UNITY_EDITOR_VERSION,
-                new Dictionary<string, string>
-                {
-                    { SEND_DATA_KEY_LAUNCHING_ZONE,    GamebaseUnitySDK.ZoneType },
-                    { SEND_DATA_KEY_UNITY_EDITOR_VERSION, Application.unityVersion },
-                    { SEND_DATA_KEY_UNITY_SDK_VERSION, GamebaseUnitySDK.SDKVersion },
-                    { SEND_DATA_KEY_PLATFORM_SDK_VERSION, GetSDKVersion() }
-                });
-#endif
+        public void RemoveAllEventHandler()
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            GamebaseEventHandlerManager.Instance.RemoveAllEventHandler();
+            sdk.RemoveAllEventHandler();
         }
     }
 }

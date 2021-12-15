@@ -37,11 +37,13 @@ namespace Toast.Gamebase.Internal
 
         public void ShowAlert(string title, string message)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             util.ShowAlert(title, message);
         }
 
         public void ShowAlert(string title, string message, GamebaseCallback.VoidDelegate buttonCallback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName("ShowAlertWithButtonCallback");
             int handle = GamebaseCallbackHandler.RegisterCallback(buttonCallback);
 
             util.ShowAlert(title, message, handle);
@@ -49,11 +51,13 @@ namespace Toast.Gamebase.Internal
         
         public void ShowToast(string message, GamebaseUIToastType type)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             util.ShowToast(message, type);
         }
         
         public void ShowAlert(Dictionary<string, string> parameters, GamebaseUtilAlertType alertType, GamebaseCallback.DataDelegate<GamebaseUtilAlertButtonID> buttonCallback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName("ShowAlertWithParametersAndAlertTypeAndButtonCallback");
             int handle = GamebaseCallbackHandler.RegisterCallback(buttonCallback);
             util.ShowAlert(parameters, alertType, handle);
         }

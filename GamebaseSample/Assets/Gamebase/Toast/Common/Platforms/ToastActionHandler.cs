@@ -1,25 +1,22 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
+﻿using System.Collections.Generic;
 
 namespace Toast.Internal
 {
-	public class ToastActionHandler 
-	{
+    public class ToastActionHandler
+    {
         private const string INSTANCE_LOGGER = "toast://logger/";
 
         private static Dictionary<string, ToastUnityAction> _actions = new Dictionary<string, ToastUnityAction>();
 
-		public static void RegisterAction(string uri, ToastUnityAction action)
-		{
-			_actions.Add (uri, action);
-		}
-			
-		public static ToastUnityAction GetAction(string uri) 
-		{
-			if(_actions.ContainsKey(uri) == false) 
-			{
+        public static void RegisterAction(string uri, ToastUnityAction action)
+        {
+            _actions.Add(uri, action);
+        }
+
+        public static ToastUnityAction GetAction(string uri)
+        {
+            if (_actions.ContainsKey(uri) == false)
+            {
                 if (uri.Contains(INSTANCE_LOGGER) == true)
                 {
                     string AppKey = uri.Substring(INSTANCE_LOGGER.Length);
@@ -36,9 +33,9 @@ namespace Toast.Internal
                 {
                     return null;
                 }
-			}
+            }
 
-			return _actions[uri];
-		}
-	}
+            return _actions[uri];
+        }
+    }
 }

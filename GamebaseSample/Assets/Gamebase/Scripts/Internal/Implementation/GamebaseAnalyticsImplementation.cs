@@ -36,11 +36,13 @@ namespace Toast.Gamebase.Internal
 
         public void SetGameUserData(GamebaseRequest.Analytics.GameUserData gameUserData)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             analytics.SetGameUserData(gameUserData);
         }
 
         public void TraceLevelUp(GamebaseRequest.Analytics.LevelUpData levelUpData)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             analytics.TraceLevelUp(levelUpData);
         }
     }

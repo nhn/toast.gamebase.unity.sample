@@ -8,7 +8,7 @@ namespace GamebaseSample
         private const float MOVE_CHECK_RANGE = 0.2f;
         private const float REACH_RANGE = 20f;
 
-        [SerializeField] private Transform shotPoint;
+        [SerializeField] private Transform shotPoint = null;
 
         private float enableShotTime;
         private Vector2 moveTargetPos;

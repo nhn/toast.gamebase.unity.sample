@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Toast.Internal 
+namespace Toast.Internal
 {
     public static class ToastReflectionHelper
     {
@@ -21,7 +21,7 @@ namespace Toast.Internal
         {
             var type = Type.GetType(className);
 
-            if(type != null)
+            if (type != null)
             {
                 return type.GetMethod(methodName);
             }
@@ -35,7 +35,7 @@ namespace Toast.Internal
 
             if (type != null)
             {
-                MethodInfo method = type.GetMethod(methodName, bindAttr);        
+                MethodInfo method = type.GetMethod(methodName, bindAttr);
 
                 if (method != null)
                 {

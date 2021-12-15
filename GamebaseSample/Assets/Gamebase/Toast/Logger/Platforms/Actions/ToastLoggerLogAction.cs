@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Toast.Core;
+﻿using System.Collections.Generic;
 
 namespace Toast.Internal
 {
@@ -41,14 +39,14 @@ namespace Toast.Internal
             JSONObject jsonUserFields = payload["userFields"] as JSONObject;
             Dictionary<string, string> userFields = new Dictionary<string, string>();
 
-			if (jsonUserFields != null) 
-			{
-				foreach (string key in jsonUserFields.Keys)
-				{
+            if (jsonUserFields != null)
+            {
+                foreach (string key in jsonUserFields.Keys)
+                {
                     string value = jsonUserFields[key].Value;
-					userFields.Add(key, value);
-				}
-			}
+                    userFields.Add(key, value);
+                }
+            }
 
             ToastLoggerSdk.Instance.NativeLogger.Log(level, message, userFields);
 

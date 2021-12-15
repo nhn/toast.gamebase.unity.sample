@@ -5,7 +5,7 @@
         public const string German = "de";
         public const string English = "en";
         public const string Spanish = "es";
-        public const string Finish = "fi";
+        public const string Finnish = "fi";
         public const string French = "fr";
         public const string Indonesian = "id";
         public const string Italian = "it";

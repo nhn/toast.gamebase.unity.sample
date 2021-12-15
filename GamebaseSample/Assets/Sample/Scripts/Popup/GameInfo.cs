@@ -8,29 +8,29 @@ namespace GamebaseSample
     public class GameInfo : MonoBehaviour
     {
         [SerializeField]
-        private Text appVersionText;
+        private Text appVersionText = null;
         [SerializeField]
-        private Text sdkVersionText;
+        private Text sdkVersionText = null;
         [SerializeField]
-        private Text userIDText;
+        private Text userIDText = null;
         [SerializeField]
-        private Text accessTokenText;
+        private Text accessTokenText = null;
         [SerializeField]
-        private Text lastLoggedInProviderText;
+        private Text lastLoggedInProviderText = null;
         [SerializeField]
-        private Text languageCodeText;
+        private Text languageCodeText = null;
         [SerializeField]
-        private Text carrierCodeText;
+        private Text carrierCodeText = null;
         [SerializeField]
-        private Text carrierNameText;
+        private Text carrierNameText = null;
         [SerializeField]
-        private Text countryCodeText;
+        private Text countryCodeText = null;
         [SerializeField]
-        private Text countryCodeOfUSIMText;
+        private Text countryCodeOfUSIMText = null;
         [SerializeField]
-        private Text countryCodeOfDeviceText;
+        private Text countryCodeOfDeviceText = null;
         [SerializeField]
-        private Text authProviderProfileText;
+        private Text authProviderProfileText = null;
 
         private void OnEnable()
         {

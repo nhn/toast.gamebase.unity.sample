@@ -1,59 +1,62 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
-using Toast.Internal;
-
-namespace Toast.Logger
+﻿namespace Toast.Logger
 {
+    using System;
+    using System.Collections.Generic;
+    using Toast.Internal;
+    using Toast.Core;
+
     public class ToastLoggerLogObject
     {
         private Dictionary<string, string> _data = new Dictionary<string, string>();
 
         public string GetLogSource()
         {
-            return Get(ToastLoggerFields.LOG_SOURCE);
+            return Get(LogFields.LOG_SOURCE);
         }
 
         public void SetUserId(string userId)
         {
-            Put(ToastLoggerFields.USER_ID, userId);
+            if (ContainsFiled(LogFields.USER_ID))
+            {
+                Remove(LogFields.USER_ID);
+            }
+
+            Put(LogFields.USER_ID, userId);
         }
 
         public string GetUserId()
         {
-            return Get(ToastLoggerFields.USER_ID);
+            return Get(LogFields.USER_ID);
         }
 
         public string GetLogVersion()
         {
-            return Get(ToastLoggerFields.LOG_VERSION);
+            return Get(LogFields.LOG_VERSION);
         }
 
         public ToastLogLevel GetLogLevel()
         {
-            return (ToastLogLevel)Enum.Parse(typeof(ToastLogLevel), Get(ToastLoggerFields.LOG_LEVEL));
+            return (ToastLogLevel)Enum.Parse(typeof(ToastLogLevel), Get(LogFields.LOG_LEVEL));
         }
 
         public string GetLoggerType()
         {
-            return Get(ToastLoggerFields.LOG_TYPE);
+            return Get(LogFields.LOG_TYPE);
         }
 
         public string GetLogMessage()
         {
-            return Get(ToastLoggerFields.LOG_MESSAGE);
+            return Get(LogFields.LOG_MESSAGE);
         }
 
         public long GetCreateTime()
         {
-            return long.Parse(Get(ToastLoggerFields.LOG_CREATE_TIME));
+            return long.Parse(Get(LogFields.LOG_CREATE_TIME));
         }
 
         public string GetTransactionId()
         {
-            return Get(ToastLoggerFields.LOG_TRANSACTION_ID);
+            return Get(LogFields.LOG_TRANSACTION_ID);
         }
 
         public bool ContainsFiled(string field)
@@ -76,18 +79,29 @@ namespace Toast.Logger
             _data.Add(field, value);
         }
 
+        private void Remove(string field)
+        {
+            _data.Remove(field);
+        }
+
         public void PutAll(Dictionary<string, string> data)
         {
             var enumerator = data.GetEnumerator();
-            while(enumerator.MoveNext())
+            while (enumerator.MoveNext())
             {
-                _data.Add(enumerator.Current.Key, enumerator.Current.Value); 
+                _data.Add(enumerator.Current.Key, enumerator.Current.Value);
             }
         }
 
         public void SetUserField(string field, string value)
         {
-            string convertedField = ToastLoggerFields.ConvertField(field);
+            string convertedField = LogFields.ConvertField(field);
+
+            if (ContainsFiled(convertedField))
+            {
+                Remove(convertedField);
+            }
+
             Put(convertedField, value);
         }
 
@@ -102,25 +116,25 @@ namespace Toast.Logger
 
         public void SetLogSource(string logSource)
         {
-            _data.Remove(ToastLoggerFields.LOG_SOURCE);
-            Put(ToastLoggerFields.LOG_SOURCE, logSource);
+            _data.Remove(LogFields.LOG_SOURCE);
+            Put(LogFields.LOG_SOURCE, logSource);
         }
 
         public string GetProjectKey()
         {
-            return Get(ToastLoggerFields.PROJECT_KEY);
+            return Get(LogFields.PROJECT_KEY);
         }
 
         public void SetLogObject(string projectKey, string logType, ToastLogLevel logLevel, string logMessage, string transactionId = "")
         {
-            _data.Add(ToastLoggerFields.PROJECT_KEY, projectKey);
-            _data.Add(ToastLoggerFields.LOG_TYPE, logType);
-            _data.Add(ToastLoggerFields.LOG_SOURCE, ToastLoggerContants.DEFAULT_LOG_SOURCE);
-            _data.Add(ToastLoggerFields.LOG_VERSION, ToastLoggerVersion.VERSION);
-            _data.Add(ToastLoggerFields.LOG_LEVEL, logLevel.ToString());
-            _data.Add(ToastLoggerFields.LOG_MESSAGE, logMessage);
-            _data.Add(ToastLoggerFields.LOG_CREATE_TIME, ToastUtil.GetEpochMilliSeconds().ToString());
-            _data.Add(ToastLoggerFields.LOG_TRANSACTION_ID, (transactionId == "") ? Guid.NewGuid().ToString() : transactionId);
+            _data.Add(LogFields.PROJECT_KEY, projectKey);
+            _data.Add(LogFields.LOG_TYPE, logType);
+            _data.Add(LogFields.LOG_SOURCE, ToastLoggerContants.DEFAULT_LOG_SOURCE);
+            _data.Add(LogFields.LOG_VERSION, ToastLoggerVersion.VERSION);
+            _data.Add(LogFields.LOG_LEVEL, logLevel.ToString());
+            _data.Add(LogFields.LOG_MESSAGE, logMessage);
+            _data.Add(LogFields.LOG_CREATE_TIME, ToastUtil.GetEpochMilliSeconds().ToString());
+            _data.Add(LogFields.LOG_TRANSACTION_ID, (transactionId == "") ? Guid.NewGuid().ToString() : transactionId);
         }
 
         public string GetJSONString()
@@ -139,7 +153,7 @@ namespace Toast.Logger
             JSONNode node = new JSONObject();
             foreach (var parameter in _data)
             {
-                if (parameter.Key != ToastLoggerFields.LOG_CREATE_TIME && parameter.Key != ToastLoggerFields.LOG_TRANSACTION_ID)
+                if (parameter.Key != LogFields.LOG_CREATE_TIME && parameter.Key != LogFields.LOG_TRANSACTION_ID)
                 {
                     node.Add(parameter.Key, parameter.Value);
                 }
