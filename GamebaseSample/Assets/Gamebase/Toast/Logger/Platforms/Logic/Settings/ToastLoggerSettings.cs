@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Toast.Logger;
 using Toast.Internal;
 
 #if UNITY_2017_2_OR_NEWER
@@ -46,6 +45,8 @@ namespace Toast.Logger
         public List<string> filterLogTypes = new List<string>();
         public long filterDuplicateLogExpiredTimeSeconds = 2;
 
+        public delegate void SettingLoadFinishDelegate();
+
         private static ToastLoggerSettings _instance;
         public static ToastLoggerSettings Instance
         {
@@ -71,19 +72,22 @@ namespace Toast.Logger
             }
         }
 
-        public void LoadToastLoggerSettings(ToastServiceZone serviceZone)
+        public void LoadToastLoggerSettings(SettingLoadFinishDelegate loadFinishDelegate)
         {
-            StartCoroutine(SetToastLoggerSettingsByJson(ToastLoggerCommonLogic.SettingUrl));
+            StartCoroutine(SetToastLoggerSettingsByJson(ToastLoggerCommonLogic.SettingUrl, loadFinishDelegate));
         }
 
-        public IEnumerator SetToastLoggerSettingsByJson(string url)
+        public IEnumerator SetToastLoggerSettingsByJson(string url, SettingLoadFinishDelegate loadFinishDelegate)
         {
             string errorString = "";
             string jsonString = "";
 
             float timeout = 5.0f;
-            bool isTimeout = false;
 
+
+            #pragma warning disable 0219
+            bool isTimeout = false;
+            #pragma warning restore 0219
 #if UNITY_2017_2_OR_NEWER
             using (var request = UnityWebRequest.Get(url))
             {
@@ -91,10 +95,18 @@ namespace Toast.Logger
 
                 yield return request.SendWebRequest();
                 errorString = request.error;
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                    request.result == UnityWebRequest.Result.ProtocolError)
+                    {
+                        isTimeout = true;
+                    }
+#else
                 if (request.isNetworkError || request.isHttpError)
                 {
                     isTimeout = true;
                 }
+#endif
                 else
                 {
                     jsonString = request.downloadHandler.text;
@@ -133,7 +145,7 @@ namespace Toast.Logger
             if (isTimeout == false && string.IsNullOrEmpty(errorString)) // success
             {
 #if UNITY_STANDALONE || UNITY_EDITOR
-                ToastFileManager.SettingFileSave(ToastLoggerCommonLogic.AppKey, jsonString);
+                SettingsFileManager.FileSave(ToastLoggerCommonLogic.AppKey, jsonString);
 #endif  // UNITY_STANDALONE || UNITY_EDITOR
 
                 if (string.IsNullOrEmpty(jsonString) == false)
@@ -145,13 +157,18 @@ namespace Toast.Logger
             {
 #if UNITY_STANDALONE || UNITY_EDITOR
                 // Get information from a file
-                jsonString = ToastFileManager.SettingFileLoad(ToastLoggerCommonLogic.AppKey);
+                jsonString = SettingsFileManager.FileLoad(ToastLoggerCommonLogic.AppKey);
 
                 if (string.IsNullOrEmpty(jsonString) == false)
                 {
                     LoadSettingsInfoByJson(jsonString);
                 }
 #endif  // UNITY_STANDALONE || UNITY_EDITOR
+            }
+
+            if (loadFinishDelegate != null)
+            {
+                loadFinishDelegate();
             }
         }
 

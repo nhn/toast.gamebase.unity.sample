@@ -20,52 +20,52 @@ namespace GamebaseSample
         private bool isPaycoMapping = false;
 
         [SerializeField]
-        private Image pushSettingButton;
+        private Image pushSettingButton = null;
 
         [SerializeField]
-        private GameObject koreanCheckImage;
+        private GameObject koreanCheckImage = null;
         [SerializeField]
-        private GameObject englishCheckImage;
+        private GameObject englishCheckImage = null;
         [SerializeField]
-        private GameObject japaneseCheckImage;
+        private GameObject japaneseCheckImage = null;
 
         [SerializeField]
-        private GameObject mappingView;
+        private GameObject mappingView = null;
 
         [SerializeField]
-        private GameObject googleButton;
+        private GameObject googleButton = null;
         [SerializeField]
-        private GameObject gamecenterButton;
+        private GameObject gamecenterButton = null;
         [SerializeField]
-        private GameObject facebookButton;
+        private GameObject facebookButton = null;
         [SerializeField]
-        private GameObject paycoButton;
+        private GameObject paycoButton = null;
 
         [SerializeField]
-        private GameObject transferAccountView;
+        private GameObject transferAccountView = null;
 
         [SerializeField]
-        private Image googleMappingMark;
+        private Image googleMappingMark = null;
         [SerializeField]
-        private Image gamecenterMappingMark;
+        private Image gamecenterMappingMark = null;
         [SerializeField]
-        private Image facebookMappingMark;
+        private Image facebookMappingMark = null;
         [SerializeField]
-        private Image paycoMappingMark;
+        private Image paycoMappingMark = null;
 
         [SerializeField]
-        private Sprite mappingOnSprite;
+        private Sprite mappingOnSprite = null;
 
         [SerializeField]
-        private Toggle gamebaseDebugMode;
+        private Toggle gamebaseDebugMode = null;
 
         [SerializeField]
-        private Slider smartDlThreadCountSlider;
+        private Slider smartDlThreadCountSlider = null;
         [SerializeField]
-        private Text smartDlThreadCountText;
+        private Text smartDlThreadCountText = null;
 
-        private string accountId;
-        private string accountPassword;
+        private string accountId = null;
+        private string accountPassword = null;
 
         private void ChangeDisplayLanguage(string language)
         {
@@ -658,8 +658,8 @@ namespace GamebaseSample
 
         private void ForcingMapping(string providerName, GamebaseError error)
         {
-            var forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.MakeForcingMappingTicket(error);
-
+            var forcingMappingTicket = GamebaseResponse.Auth.ForcingMappingTicket.From(error);
+            
             var message = new StringBuilder();
             message.AppendLine(LocalizationManager.Instance.GetLocalizedValue(GameStrings.SETTINGS_FORCING_MAPPING_ALREADY_LINKED));
             message.AppendLine(string.Format("User ID:{0}", forcingMappingTicket.mappedUserId));
@@ -673,9 +673,9 @@ namespace GamebaseSample
                 LocalizationManager.Instance.GetLocalizedValue(GameStrings.COMMON_OK_BUTTON),
                 () =>
                 {
-                    Gamebase.AddMappingForcibly(providerName, forcingMappingTicket.forcingMappingKey, (authToken, mappingError) =>
+                    Gamebase.AddMappingForcibly(forcingMappingTicket, (authTokenForcibly, errorForcibly) =>
                     {
-                        if (Gamebase.IsSuccess(mappingError) == true)
+                        if (Gamebase.IsSuccess(error) == true)
                         {
                             GetAuthMappingList();
                         }

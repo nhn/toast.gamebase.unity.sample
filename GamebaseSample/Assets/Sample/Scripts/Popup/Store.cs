@@ -6,7 +6,7 @@ namespace GamebaseSample
     public class Store : MonoBehaviour
     {
         [SerializeField]
-        private Purchase[] productList;
+        private Purchase[] productList = null;
 
         private void Start()
         {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Toast.Gamebase.Internal.Mobile
 {
-    public class NativeRequest
+    public static class NativeRequest
     {
-        public class SDK
+        public static class SDK
         {
             public class Initialize
             {
@@ -19,12 +19,7 @@ namespace Toast.Gamebase.Internal.Mobile
             }
         }
 
-        public class Launching
-        {
-
-        }
-
-        public class Auth
+        public static class Auth
         {
             public class Login
             {
@@ -89,19 +84,20 @@ namespace Toast.Gamebase.Internal.Mobile
             }
         }
 
-        public class Purchase
+        public static class Purchase
         {
             public class PurchaseItemSeq
             {
                 public long itemSeq;
             }
-            public class PurchaseMarketItemId
+            public class PurchaseProductId
             {
-                public string marketItemId;
+                public string gamebaseProductId;
+                public string payload;
             }
         }
 
-        public class Push
+        public static class Push
         {
             public class RegisterPush
             {
@@ -119,7 +115,7 @@ namespace Toast.Gamebase.Internal.Mobile
             }
         }
 
-        public class Webview
+        public static class Webview
         {
             public class WebviewConfiguration
             {
@@ -128,13 +124,22 @@ namespace Toast.Gamebase.Internal.Mobile
             }
         }
 
-        public class Util
+        public static class Util
         {
             public class AlertDialog
             {
                 public string title;
                 public string message;
                 public int duration;
+            }
+        }
+
+        public static class Terms
+        {
+            public class UpdateTermsData
+            {
+                public string termsVersion;
+                public List<GamebaseRequest.Terms.Content> list;
             }
         }
     }

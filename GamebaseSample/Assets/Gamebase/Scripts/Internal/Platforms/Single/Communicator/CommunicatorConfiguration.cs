@@ -4,7 +4,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 {
     public class CommunicatorConfiguration
     {
-        public const int connectionTimeout  = 10;
+        public const int connectionTimeout  = 30;
         public const int timeout            = 5;
         public const int heartbeatInterval  = 120;
         public const int launchingInterval  = 120;

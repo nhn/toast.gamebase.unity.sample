@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
 
 using System;
 using System.Collections;
@@ -38,57 +38,29 @@ namespace Toast.Gamebase.Internal.Single
         
         public void Initialize(GamebaseRequest.GamebaseConfiguration configuration, int handle)
         {
-            if(initializeHandle != -1)
+            if (initializeHandle != -1)
             {
                 GamebaseCallbackHandler.UnregisterCallback(initializeHandle);
             }
 
-            GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> initializeCallback = (launchingInfo, error) =>
+            GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo> initializeCallback = (launchingInfo, error) =>
             {
-                GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability stability = null;
-                if (error == null || error.code == GamebaseErrorCode.SUCCESS)
-                {                   
-#region Iap Setting
-                    GamebaseLog.Debug("ToastSdk Initialize", this);
-                    ToastSdk.Initialize();
+                if (Gamebase.IsSuccess(error) == true)
+                {
+                    DataContainer.SetData(VOKey.Launching.LAUNCHING_INFO, launchingInfo);
+                    Gamebase.SetDisplayLanguageCode(launchingInfo.request.displayLanguage);
 
-                    if (PurchaseAdapterManager.Instance.CreateIDPAdapter("iapadapter") == true)
-                    {
-                        var iapConfiguration = new GamebaseRequest.Purchase.Configuration();
-                        iapConfiguration.appKey = launchingInfo.tcProduct.iap.appKey;
-                        iapConfiguration.storeCode = configuration.storeCode;
-                        PurchaseAdapterManager.Instance.SetConfiguration(iapConfiguration);
-                    }
-
-                    stability = launchingInfo.launching.tcgbClient.stability;                    
-                    #endregion
+                    ToastSdkInitialize();
+                    IapAdapterInitialize(configuration, launchingInfo);
                 }
 
-                GamebaseIndicatorReport.Initialize(
-                    stability,
-                    ()=>{
-                        if (Gamebase.IsSuccess(error)  == false)
-                        {
-                            initializeFailCount++;
-                            if (initializeFailCount > GamebaseIndicatorReport.stability.initFailCount)
-                            {
-                                GamebaseIndicatorReport.SendIndicatorData(
-                                    GamebaseIndicatorReportType.LogType.INIT,
-                                    GamebaseIndicatorReportType.StabilityCode.GB_INIT_FAILED_MULTIPLE_TIMES,
-                                    GamebaseIndicatorReportType.LogLevel.WARN,
-                                    new Dictionary<string, string>()
-                                    {
-                                 { GamebaseIndicatorReportType.AdditionalKey.GB_CONFIGURATION, JsonMapper.ToJson(configuration) }
-                                    });
-                                initializeFailCount = 0;
-                            }
-                        }
-                        else
-                        {
-                            initializeFailCount = 0;
-                        }
-
-                        var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo>>(handle);
+                IndicatorReportInitialize(
+                    configuration,
+                    launchingInfo,
+                    error,
+                    () =>
+                    {
+                        var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo>>(handle);
 
                         if (callback != null)
                         {
@@ -96,10 +68,10 @@ namespace Toast.Gamebase.Internal.Single
                         }
 
                         GamebaseCallbackHandler.UnregisterCallback(handle);
-                    });                
+                    });
             };
 
-            initializeHandle = GamebaseCallbackHandler.RegisterCallback(initializeCallback); 
+            initializeHandle = GamebaseCallbackHandler.RegisterCallback(initializeCallback);
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.CORE_TYPE, Init());
         }
 
@@ -128,8 +100,13 @@ namespace Toast.Gamebase.Internal.Single
 
         public string GetLastLoggedInProvider()
         {
-            GamebaseErrorNotifier.FireNotSupportedAPI(this);
-            return string.Empty;
+            var vo = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
+            if (vo == null)
+            {
+                return string.Empty;
+            }
+
+            return vo.token.sourceIdPCode;
         }
         
         public string GetDeviceLanguageCode()
@@ -184,24 +161,47 @@ namespace Toast.Gamebase.Internal.Single
 
         public void SetDisplayLanguageCode(string languageCode)
         {
-            if (true == DisplayLanguage.Instance.HasLocalizedStringVO(languageCode))
+            if (DisplayLanguage.Instance.HasLocalizedStringVO(languageCode) == true)
             {
+                // STEP 1: User input
                 GamebaseUnitySDK.DisplayLanguageCode = languageCode;
             }
             else
             {
-                var launchingVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
-                var launchingDeviceLanguageCode = launchingVO.launching.app.language.deviceLanguage;
-
-                if (true == DisplayLanguage.Instance.HasLocalizedStringVO(launchingDeviceLanguageCode))
+                var launchingInfo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
+                if (launchingInfo == null)
                 {
-                    GamebaseUnitySDK.DisplayLanguageCode = launchingDeviceLanguageCode;
+                    // If initialization fails, data is null.
+                    // Return after setting en.
+                    GamebaseUnitySDK.DisplayLanguageCode = GamebaseDisplayLanguageCode.English;
+                    return;
+                }
+
+                var languageData = launchingInfo.launching.app.language;
+                var deviceLanguageCode = languageData.deviceLanguage;
+
+                if (DisplayLanguage.Instance.HasLocalizedStringVO(deviceLanguageCode) == true)
+                {
+                    // STEP 2: The device language in the NHN Cloud Console.
+                    GamebaseUnitySDK.DisplayLanguageCode = deviceLanguageCode;
                     GamebaseLog.Warn(GamebaseStrings.DISPLAY_LANGUAGE_CODE_NOT_FOUND, this);
                 }
                 else
                 {
-                    GamebaseUnitySDK.DisplayLanguageCode = GamebaseDisplayLanguageCode.English;
-                    GamebaseLog.Warn(GamebaseStrings.SET_DEFAULT_DISPLAY_LANGUAGE_CODE, this);
+                    var defaultLanguage = languageData.defaultLanguage;
+
+                    if (DisplayLanguage.Instance.HasLocalizedStringVO(defaultLanguage) == true)
+                    {
+                        // STEP 3: The default language in the NHN Cloud Console.
+                        GamebaseUnitySDK.DisplayLanguageCode = defaultLanguage;
+                        GamebaseLog.Warn(GamebaseStrings.SET_CONSOLE_DEFAULT_DISPLAY_LANGUAGE_CODE, this);
+                    }
+                    else
+                    {
+                        // STEP 4: "en"
+                        GamebaseUnitySDK.DisplayLanguageCode = GamebaseDisplayLanguageCode.English;
+                        GamebaseLog.Warn(GamebaseStrings.SET_DEFAULT_DISPLAY_LANGUAGE_CODE, this);
+                    }                    
                 }
             }
         }
@@ -226,7 +226,7 @@ namespace Toast.Gamebase.Internal.Single
                     return;
                 }
 
-                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo>>(initializeHandle);
+                var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo>>(initializeHandle);
 
                 if (callback != null)
                 {
@@ -272,7 +272,75 @@ namespace Toast.Gamebase.Internal.Single
         public void RemoveAllServerPushEvent()
         {
 
-        }    
+        }
+
+        public void AddEventHandler(int handle)
+        {
+
+        }
+
+        public void RemoveEventHandler()
+        {
+
+        }
+
+        public void RemoveAllEventHandler()
+        {
+
+        }
+        
+        private void ToastSdkInitialize()
+        {
+            ToastSdk.Initialize();
+        }
+
+        private void IapAdapterInitialize(GamebaseRequest.GamebaseConfiguration configuration, LaunchingResponse.LaunchingInfo launchingInfo)
+        {
+            if (PurchaseAdapterManager.Instance.CreateIDPAdapter("iapadapter") == true)
+            {
+                var iapConfiguration = new PurchaseRequest.Configuration();
+                iapConfiguration.appKey = launchingInfo.tcProduct.iap.appKey;
+                iapConfiguration.storeCode = configuration.storeCode;
+                PurchaseAdapterManager.Instance.SetConfiguration(iapConfiguration);
+            }
+        }
+
+        private void IndicatorReportInitialize(GamebaseRequest.GamebaseConfiguration configuration, LaunchingResponse.LaunchingInfo launchingInfo, GamebaseError error, Action callback)
+        {
+            LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stability = null;
+
+            if (error == null || error.code == GamebaseErrorCode.SUCCESS)
+            {
+                stability = launchingInfo.launching.tcgbClient.stability;
+            }
+
+            GamebaseIndicatorReport.Initialize(
+                stability,
+                () => {
+                    if (Gamebase.IsSuccess(error) == false)
+                    {
+                        initializeFailCount++;
+                        if (initializeFailCount > GamebaseIndicatorReport.stability.initFailCount)
+                        {
+                            GamebaseIndicatorReport.SendIndicatorData(
+                                GamebaseIndicatorReportType.LogType.INIT,
+                                GamebaseIndicatorReportType.StabilityCode.GB_INIT_FAILED_MULTIPLE_TIMES,
+                                GamebaseIndicatorReportType.LogLevel.WARN,
+                                new Dictionary<string, string>()
+                                {
+                                 { GamebaseIndicatorReportType.AdditionalKey.GB_CONFIGURATION, JsonMapper.ToJson(configuration) }
+                                });
+                            initializeFailCount = 0;
+                        }
+                    }
+                    else
+                    {
+                        initializeFailCount = 0;
+                    }
+
+                    callback();
+                });
+        }
     }
 }
 #endif

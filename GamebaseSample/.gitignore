@@ -4,6 +4,7 @@
 [Oo]bj/
 [Bb]uild/
 [Bb]uilds/
+[Ll]ogs/
 
 # IDE directory
 .vs/
@@ -47,3 +48,6 @@ ipch/
 *.vsp
 *.vspx
 *.sap
+
+# Gamebase
+GamebaseSDK/

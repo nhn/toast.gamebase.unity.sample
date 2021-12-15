@@ -3,10 +3,9 @@ using System.Collections;
 using System.IO;
 using Toast.Gamebase.Internal;
 using Toast.Gamebase.Internal.Single.Communicator;
-using UnityEngine;
 using UnityEngine.Networking;
 
-public class GamebaseStringLoader : MonoBehaviour
+public class GamebaseStringLoader
 {
     public void LoadStringFromFile(string filePath, System.Action<string> callback)
     {        
@@ -34,7 +33,7 @@ public class GamebaseStringLoader : MonoBehaviour
         UnityWebRequest www = UnityWebRequest.Get(filePath);
         www.timeout = CommunicatorConfiguration.timeout;
 
-        yield return UnityCompatibility.UnityWebRequest.Send(www);
+        yield return UnityCompatibility.WebRequest.Send(www);
 
         if (www.isDone == true)
         {
@@ -42,7 +41,7 @@ public class GamebaseStringLoader : MonoBehaviour
 
             if (200 == www.responseCode)
             {
-                if (UnityCompatibility.UnityWebRequest.IsError(www) == false)
+                if (UnityCompatibility.WebRequest.IsError(www) == false)
                 {                 
                     if (string.IsNullOrEmpty(www.downloadHandler.text) == false)
                     {

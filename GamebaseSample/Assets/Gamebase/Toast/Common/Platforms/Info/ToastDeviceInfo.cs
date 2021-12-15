@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Toast.Internal
@@ -10,12 +8,12 @@ namespace Toast.Internal
         private const string TOASTSDK_UDID = "ToastSDK.udid";
 
         private static string _deviceUDID;
-        
+
         public static string GetDeviceUniqueIdentifier()
         {
-            if (string.IsNullOrEmpty(_deviceUDID) == false && _deviceUDID.Equals("n/a", StringComparison.Ordinal) )
+            if (string.IsNullOrEmpty(_deviceUDID) == false && _deviceUDID.Equals("n/a", StringComparison.Ordinal))
             {
-                return _deviceUDID;   
+                return _deviceUDID;
             }
 
             string guid = PlayerPrefs.GetString(TOASTSDK_UDID);

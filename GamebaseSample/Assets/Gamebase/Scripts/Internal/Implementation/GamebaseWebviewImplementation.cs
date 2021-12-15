@@ -37,12 +37,13 @@ namespace Toast.Gamebase.Internal
 
         public void OpenWebBrowser(string url)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             webview.OpenWebBrowser(url);
         }
 
         public void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null, GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
         {
-
+            GamebaseGameInformationReport.Instance.AddApiName();
             int closeCallbackHandle = -1;
             int schemeEventHandle = -1;
 
@@ -61,6 +62,7 @@ namespace Toast.Gamebase.Internal
 
         public void CloseWebView()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             webview.CloseWebView();
         }
     }

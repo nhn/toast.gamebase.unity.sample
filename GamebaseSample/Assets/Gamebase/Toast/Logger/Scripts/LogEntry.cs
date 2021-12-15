@@ -33,7 +33,7 @@ namespace Toast.Logger
             var result = new LogEntry
             {
                 LogType = logJson[Keys.Type],
-                LogLevel = (ToastLogLevel) Enum.Parse(typeof(ToastLogLevel), logJson[Keys.Level]),
+                LogLevel = (ToastLogLevel)Enum.Parse(typeof(ToastLogLevel), logJson[Keys.Level]),
                 Message = logJson[Keys.Message],
                 TransactionId = logJson[Keys.TransactionId],
                 CreateTime = logJson[Keys.CreateTime]

@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace Toast.Logger
+﻿namespace Toast.Logger
 {
     public class ToastLoggerLogLevelFilter : IToastLoggerFilter
     {
@@ -15,7 +11,7 @@ namespace Toast.Logger
             else
             {
                 return (logData.GetLogLevel() >= ToastLoggerSettings.Instance.filterLogLevel);
-            }            
+            }
         }
     }
 }

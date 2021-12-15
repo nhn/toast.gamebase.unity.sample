@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using Toast.Logger;
+﻿using Toast.Logger;
+using UnityEngine;
 
 namespace Toast.Internal
 {
@@ -75,6 +75,6 @@ namespace Toast.Internal
                 new ToastLoggerSetLoggerListenerAction());
 
         }
-    } 
+    }
 }
 

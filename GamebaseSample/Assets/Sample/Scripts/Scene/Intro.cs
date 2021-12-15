@@ -7,12 +7,12 @@ namespace GamebaseSample
     public class Intro : MonoBehaviour
     {
         [SerializeField]
-        private Image bi;
+        private Image bi = null;
         [SerializeField]
-        private Image poweredBy;
+        private Image poweredBy = null;
 
-        private GameObject biTweenObject;
-        private GameObject poweredByTweenObject;
+        private GameObject biTweenObject = null;
+        private GameObject poweredByTweenObject = null;
 
         private void Start()
         {

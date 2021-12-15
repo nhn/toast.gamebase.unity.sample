@@ -10,7 +10,7 @@ using Toast.Gamebase.Single.Standalone;
 
 using System.Collections.Generic;
 
-namespace Toast.Gamebase
+namespace Toast.Gamebase.Internal
 {
     public sealed class GamebaseLoggerImplementation
     {        
@@ -26,74 +26,85 @@ namespace Toast.Gamebase
             get { return instance; }
         }
 
-        private IGamebaseLogger sdk;
+        private IGamebaseLogger logger;
 
         private GamebaseLoggerImplementation()
         {
 #if !UNITY_EDITOR && UNITY_ANDROID
-            sdk = new AndroidGamebaseLogger();
+            logger = new AndroidGamebaseLogger();
 #elif !UNITY_EDITOR && UNITY_IOS
-            sdk = new IOSGamebaseLogger();
+            logger = new IOSGamebaseLogger();
 #elif !UNITY_EDITOR && UNITY_WEBGL
-            sdk = new WebGLGamebaseLogger();
+            logger = new WebGLGamebaseLogger();
 #else
-            sdk = new StandaloneGamebaseLogger();
+            logger = new StandaloneGamebaseLogger();
 #endif
         }
 
         public void Initialize(GamebaseRequest.Logger.Configuration loggerConfiguration)
         {
-            sdk.Initialize(loggerConfiguration);
+            GamebaseGameInformationReport.Instance.AddApiName("Logger:Initialize");
+            logger.Initialize(loggerConfiguration);
         }
 
         public void Debug(string message, Dictionary<string, string> userFields = null)
         {
-            sdk.Debug(message, userFields);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.Debug(message, userFields);
         }
 
         public void Info(string message, Dictionary<string, string> userFields = null)
         {
-            sdk.Info(message, userFields);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.Info(message, userFields);
         }
 
         public void Warn(string message, Dictionary<string, string> userFields = null)
         {
-            sdk.Warn(message, userFields);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.Warn(message, userFields);
         }
 
         public void Error(string message, Dictionary<string, string> userFields = null)
         {
-            sdk.Error(message, userFields);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.Error(message, userFields);
         }
 
         public void Fatal(string message, Dictionary<string, string> userFields = null)
         {
-            sdk.Fatal(message, userFields);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.Fatal(message, userFields);
         }
 
         public void SetUserField(string key, string value)
         {
-            sdk.SetUserField(key, value);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.SetUserField(key, value);
         }
 
         public void SetLoggerListener(GamebaseCallback.Logger.ILoggerListener listener)
         {
-            sdk.SetLoggerListener(listener);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.SetLoggerListener(listener);
         }
 
         public void SetCrashListener(GamebaseCallback.Logger.CrashListener listener)
         {
-            sdk.SetCrashListener(listener);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.SetCrashListener(listener);
         }
 
         public void AddCrashFilter(GamebaseCallback.Logger.CrashFilter filter)
         {
-            sdk.AddCrashFilter(filter);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.AddCrashFilter(filter);
         }
 
         public void RemoveCrashFilter(GamebaseCallback.Logger.CrashFilter filter)
         {
-            sdk.RemoveCrashFilter(filter);
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.RemoveCrashFilter(filter);
         }
     }
 }

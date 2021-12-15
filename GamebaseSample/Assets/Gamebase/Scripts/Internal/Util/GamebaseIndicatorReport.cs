@@ -31,6 +31,7 @@ namespace Toast.Gamebase.Internal
         public const string GAME_ENGINE = "UNITY";
 
         #region Indicator key
+        public const string GB_GAME_NAME = "GBGameName";
         public const string GB_STABILITY_CODE = "GBStabilityCode";
         public const string GB_PLATFORM = "GBPlatform";
         public const string GB_PROJECT_APP_ID = "GBProjectAppID";
@@ -50,8 +51,10 @@ namespace Toast.Gamebase.Internal
         public const string GB_COUNTRY_CODE_DEVICE = "GBCountryCodeDevice";
         public const string GB_NETWORK_TYPE = "GBNetworkType";
         public const string GB_GAME_ENGINE = "GBGameEngine";
+        public const string GB_CARRIER = "GBCarrier";
+        public const string GB_DEVICE_MODEL = "GBDeviceModel";
 
-        
+
 
         public const string GB_EXCEPTION = "txtGBException";
         public const string GB_ERROR_CODE = "GBErrorCode";
@@ -70,7 +73,7 @@ namespace Toast.Gamebase.Internal
         private const int APP_KEY_VERSION = 1;
         private const int INIT_FAIL_COUNT = 5;
 
-        public static GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability stability = new GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability();
+        public static LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stability = new LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability();
         
         public static Dictionary<string, string> basicDataDictionary;
 
@@ -78,7 +81,7 @@ namespace Toast.Gamebase.Internal
 
         private static string platform = string.Empty;
 
-        public static void Initialize(GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability stability, System.Action callback)
+        public static void Initialize(LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stability, System.Action callback)
         {
 
 #if UNITY_ANDROID
@@ -105,7 +108,7 @@ namespace Toast.Gamebase.Internal
                                 "jsonString : {0}", 
                                 jsonString),
                             typeof(GamebaseIndicatorReport));
-                        Dictionary<string, GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability> stabilityDictionary = JsonMapper.ToObject<Dictionary<string, GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability>>(jsonString);
+                        Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability> stabilityDictionary = JsonMapper.ToObject<Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability>>(jsonString);
                         if (stabilityDictionary != null)
                         {
                             if(string.IsNullOrEmpty(GamebaseUnitySDK.ZoneType) == true)
@@ -143,13 +146,10 @@ namespace Toast.Gamebase.Internal
             bool isUserCanceled = false, 
             bool isExternalLibraryError = false)
         {
-            if(stability.useFlagSpecificUser == false)
+            if (stability.useFlag == false)
             {
-                if(stability.useFlag == false)
-                {
-                    return;
-                }
-            }
+                return;
+            }            
 
             if(ConvertLogLevelToEnum(stability.logLevel) > ConvertLogLevelToEnum(logLevel))
             {
@@ -159,6 +159,11 @@ namespace Toast.Gamebase.Internal
             Dictionary<string, string> userFields =  MakeindicatorDictionary(stabilityCode, customFields, error, isUserCanceled, isExternalLibraryError);
                         
             logger.Log(logType, (ToastLogLevel)ConvertLogLevelToEnum(logLevel), stabilityCode, userFields);
+        }
+
+        public static LogLevel GetLogLevel()
+        {
+            return ConvertLogLevelToEnum(stability.logLevel);
         }
 
         private static Dictionary<string, string> MakeindicatorDictionary(
@@ -205,7 +210,7 @@ namespace Toast.Gamebase.Internal
             return indicatorDictionary;
         }
 
-        private static void SetStability(GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability stability)
+        private static void SetStability(LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stability)
         {
             string stabilityKey = string.Format(
                 "{0}_{1}",
@@ -224,7 +229,7 @@ namespace Toast.Gamebase.Internal
             {
                 if(PlayerPrefs.HasKey(stabilityKey) == true)
                 {
-                    GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability stabilityPreference = JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo.GamebaseLaunching.TCGBClient.Stability>(PlayerPrefs.GetString(stabilityKey));
+                    LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stabilityPreference = JsonMapper.ToObject<LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability>(PlayerPrefs.GetString(stabilityKey));
                     if(stabilityPreference.appKeyVersion >= GamebaseIndicatorReport.stability.appKeyVersion)
                     {
                         GamebaseIndicatorReport.stability = stabilityPreference;
@@ -284,6 +289,7 @@ namespace Toast.Gamebase.Internal
         {
             basicDataDictionary = new Dictionary<string, string>()
             {
+                { GB_GAME_NAME, Application.productName },
                 { GB_PLATFORM, platform },
                 { GB_PROJECT_APP_ID, GamebaseUnitySDK.AppID },
                 { GB_APP_CLIENT_VERSION, GamebaseUnitySDK.AppVersion },
@@ -295,10 +301,12 @@ namespace Toast.Gamebase.Internal
                 { GB_GUEST_UUID, GamebaseUnitySDK.UUID },
                 { GB_DEVICE_LANGUAGE_CODE, Gamebase.GetDeviceLanguageCode() },
                 { GB_DISPLAY_LANGUAGE_CODE, Gamebase.GetDisplayLanguageCode() },
-                { GB_COUNTRY_CODE_USIM, Gamebase.GetCountryCodeOfUSIM() },
+                { GB_COUNTRY_CODE_USIM, string.Empty },
                 { GB_COUNTRY_CODE_DEVICE, Gamebase.GetCountryCodeOfDevice() },
-                { GB_NETWORK_TYPE, Gamebase.Network.GetNetworkType().ToString() },
-                { GB_GAME_ENGINE, GAME_ENGINE }
+                { GB_NETWORK_TYPE, Gamebase.Network.GetNetworkType().ToString().Replace("TYPE_","") },
+                { GB_GAME_ENGINE, GAME_ENGINE },
+                { GB_CARRIER, "NONE" },
+                { GB_DEVICE_MODEL, SystemInfo.deviceModel }
             };
             
             if (PlayerPrefs.HasKey(KEY_LAST_LOGGEDIN_IDP) == true)

@@ -6,9 +6,9 @@ namespace GamebaseSample
     public class LeaderboardRankView : MonoBehaviour
     {
         [SerializeField]
-        private RectTransform ItemPrefab;
+        private RectTransform ItemPrefab = null;
         [SerializeField]
-        private GameObject EmptyView;
+        private GameObject EmptyView = null;
 
         private List<LeaderboardRankItem> items = new List<LeaderboardRankItem>();
 

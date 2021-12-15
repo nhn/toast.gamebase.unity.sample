@@ -17,6 +17,7 @@ namespace Toast.Gamebase.Internal
             PLUGIN_TYPE,
             WATER_MARK_TYPE,
             STRING_LOADER,
+            INTROSPECT_TYPE,
         }
 
         static private Dictionary<GameObjectType, GameObject> gameObjectDictionary = new Dictionary<GameObjectType, GameObject>();

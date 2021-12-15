@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Toast.Internal;
-using Toast.Core;
 
 namespace Toast.Logger
 {
@@ -11,7 +10,7 @@ namespace Toast.Logger
         public InstanceLogger(string appKey, ToastServiceZone zone = ToastServiceZone.REAL) : this(appKey, new DefaultSettings(), zone)
         {
         }
-        
+
         public InstanceLogger(string appKey, ILoggerSettings settings, ToastServiceZone zone = ToastServiceZone.REAL)
         {
             _appKey = appKey;
@@ -26,10 +25,15 @@ namespace Toast.Logger
 
         public void Log(string type, ToastLogLevel level, string message, IDictionary<string, string> userFields = null)
         {
+            if (string.IsNullOrEmpty(type))
+            {
+                type = "NORMAL";
+            }
+
             var uri = ToastUri.Create("logger", new ToastUri.VariableSegment(_appKey), "log");
             var methodCall = MethodCall.CreateSyncCall(uri);
             methodCall.AddParameter("level", level.ToString())
-                .AddParameter("logType", type)
+                .AddParameter("type", type)
                 .AddParameter("message", message);
 
             if (userFields != null)

@@ -1,8 +1,9 @@
-using Toast.Internal;
-using UnityEngine;
-
 namespace Toast.Logger
 {
+    using UnityEngine;
+    using Toast.Core;
+    using Toast.Internal;
+    
     public class CrashLoggerListenerReceiver : MonoBehaviour
     {
         private const string SERVICE_NAME = "logger";
@@ -17,7 +18,7 @@ namespace Toast.Logger
             get
             {
                 return _instance;
-            }            
+            }
         }
 
         public static bool TryAttachReceiver()
@@ -53,14 +54,57 @@ namespace Toast.Logger
             }
         }
 
-        public void OnLogSuccess(ToastLoggerLogObject logObject)
+        private LogEntry ConvertLogEntry(ToastLoggerLogObject logObject)
         {
             LogEntry log = new LogEntry();
-            log.LogType = logObject.GetLoggerType();
-            log.LogLevel = logObject.GetLogLevel();
-            log.Message = logObject.GetLogMessage();
-            log.TransactionId = logObject.GetTransactionId();
-            log.CreateTime = logObject.GetCreateTime();
+            JSONNode jSONNode = logObject.GetJSONNode();
+
+            foreach (string key in jSONNode.Keys)
+            {
+                if (key.Equals(LogFields.PROJECT_KEY) || key.Equals(LogFields.LOG_SOURCE)
+                    || key.Equals(LogFields.LOG_VERSION) || key.Equals(LogFields.USER_ID)
+                    || key.Equals(LogFields.PROJECT_VERSION) || key.Equals(LogFields.DEVICE_ID)
+                    || key.Equals(LogFields.PLATFORM_NAME) || key.Equals(LogFields.LAUNCHED_ID)
+                    || key.Equals(LogFields.SDK_VERSION) || key.Equals(LogFields.SESSION_ID)
+                    || key.Equals(LogFields.DEVICE_MODEL) || key.Equals(LogFields.COUNTRY_CODE)
+                    || key.Equals(LogFields.LOG_BULK_INDEX))
+                {
+                    continue;
+                }
+                else if (key.Equals(LogFields.LOG_LEVEL))
+                {
+                    log.LogLevel = logObject.GetLogLevel();
+                }
+                else if (key.Equals(LogFields.LOG_TYPE))
+                {
+                    log.LogType = logObject.GetLoggerType();
+                }
+                else if (key.Equals(LogFields.LOG_MESSAGE))
+                {
+                    log.Message = logObject.GetLogMessage();
+                }
+                else if (key.Equals(LogFields.LOG_CREATE_TIME))
+                {
+                    log.CreateTime = logObject.GetCreateTime();
+                }
+                else if (key.Equals(LogFields.LOG_TRANSACTION_ID))
+                {
+                    log.TransactionId = logObject.GetTransactionId();
+                }
+                else
+                {
+                    log.UserFields.Add(key, jSONNode[key].Value);
+                }
+            }
+
+            return log;
+        }
+
+        public void OnLogSuccessWithToastLoggerObject(ToastLoggerLogObject logObject)
+        {
+            ToastLog.Debug("[OnLogSuccessWithToastLoggerObject] {0}", logObject.GetJSONString());
+
+            LogEntry log = ConvertLogEntry(logObject);
 
             if (log.LogType == ToastLoggerType.CRASH_FROM_UNITY)
             {
@@ -96,18 +140,20 @@ namespace Toast.Logger
             }
         }
 
-        public void OnLogFilter(string filterName, ToastLoggerLogObject logObject)
+        public void OnLogFilterWithToastLoggerObject(string filterName, ToastLoggerLogObject logObject)
         {
-            LogEntry log = new LogEntry();
-            log.LogType = logObject.GetLoggerType();
-            log.LogLevel = logObject.GetLogLevel();
-            log.Message = logObject.GetLogMessage();
-            log.TransactionId = logObject.GetTransactionId();
-            log.CreateTime = logObject.GetCreateTime();
+            LogEntry log = ConvertLogEntry(logObject);
 
-            if (_listenerLogger != null)
+            if (log.LogType == ToastLoggerType.CRASH_FROM_UNITY)
             {
-                _listenerLogger.OnFilter(log, LogFilter.FromName(filterName));
+                InvokeCrashListener(true, log);
+            }
+            else
+            {
+                if (_listenerLogger != null)
+                {
+                    _listenerLogger.OnFilter(log, LogFilter.FromName(filterName));
+                }
             }
         }
 
@@ -123,27 +169,36 @@ namespace Toast.Logger
                 {
                     if (filter.IsObject)
                     {
-                        if (_listenerLogger != null)
+                        if (log.LogType == ToastLoggerType.CRASH_FROM_UNITY)
                         {
-                            _listenerLogger.OnFilter(log, LogFilter.From(filter.AsObject));
+                            InvokeCrashListener(true, log);
+                        }
+                        else
+                        {
+                            if (_listenerLogger != null)
+                            {
+                                _listenerLogger.OnFilter(log, LogFilter.From(filter.AsObject));
+                            }
                         }
                     }
                 }
             }
         }
 
-        public void OnLogSave(ToastLoggerLogObject logObject)
+        public void OnLogSaveWithToastLoggerObject(ToastLoggerLogObject logObject)
         {
-            LogEntry log = new LogEntry();
-            log.LogType = logObject.GetLoggerType();
-            log.LogLevel = logObject.GetLogLevel();
-            log.Message = logObject.GetLogMessage();
-            log.TransactionId = logObject.GetTransactionId();
-            log.CreateTime = logObject.GetCreateTime();
+            LogEntry log = ConvertLogEntry(logObject);
 
-            if (_listenerLogger != null)
+            if (log.LogType == ToastLoggerType.CRASH_FROM_UNITY)
             {
-                _listenerLogger.OnSave(log);
+                InvokeCrashListener(true, log);
+            }
+            else
+            {
+                if (_listenerLogger != null)
+                {
+                    _listenerLogger.OnSave(log);
+                }
             }
         }
 
@@ -154,21 +209,23 @@ namespace Toast.Logger
             LogEntry log;
             if (TryParseLog(jsonString, out log))
             {
-                if (_listenerLogger != null)
+                if (log.LogType == ToastLoggerType.CRASH_FROM_UNITY)
                 {
-                    _listenerLogger.OnSave(log);
+                    InvokeCrashListener(true, log);
+                }
+                else
+                {
+                    if (_listenerLogger != null)
+                    {
+                        _listenerLogger.OnSave(log);
+                    }
                 }
             }
         }
 
-        public void OnLogError(ToastLoggerLogObject logObject, string errorMessage)
+        public void OnLogErrorWithToastLoggerObject(ToastLoggerLogObject logObject, string errorMessage)
         {
-            LogEntry log = new LogEntry();
-            log.LogType = logObject.GetLoggerType();
-            log.LogLevel = logObject.GetLogLevel();
-            log.Message = logObject.GetLogMessage();
-            log.TransactionId = logObject.GetTransactionId();
-            log.CreateTime = logObject.GetCreateTime();
+            LogEntry log = ConvertLogEntry(logObject);
 
             if (log.LogType == ToastLoggerType.CRASH_FROM_UNITY)
             {
@@ -179,7 +236,7 @@ namespace Toast.Logger
                 if (_listenerLogger != null)
                 {
                     _listenerLogger.OnError(log,
-                        string.IsNullOrEmpty(errorMessage) ? "Unknown error" : errorMessage );
+                        string.IsNullOrEmpty(errorMessage) ? "Unknown error" : errorMessage);
                 }
             }
 
@@ -204,7 +261,7 @@ namespace Toast.Logger
                         if (_listenerLogger != null)
                         {
                             _listenerLogger.OnError(log,
-                                body.ContainsKey("errorMessage") ? (string) body["errorMessage"] : "Unknown error");
+                                body.ContainsKey("errorMessage") ? (string)body["errorMessage"] : "Unknown error");
                         }
                     }
                 }

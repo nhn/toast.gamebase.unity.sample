@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using Toast.Core;
+﻿using Toast.Core;
+using UnityEngine;
 
 namespace Toast.Internal
 {
@@ -56,8 +56,8 @@ namespace Toast.Internal
         {
             ToastActionHandler.RegisterAction(
                 ToastUri.Create(SERVICE_NAME, "initialize".ToLower()),
-                new ToastCoreInitializeAction());            
-            
+                new ToastCoreInitializeAction());
+
             ToastActionHandler.RegisterAction(
                 ToastUri.Create(SERVICE_NAME, "GetUserId".ToLower()),
                 new ToastCoreGetUserIdAction());

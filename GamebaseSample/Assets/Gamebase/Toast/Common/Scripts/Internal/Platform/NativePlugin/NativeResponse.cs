@@ -32,7 +32,7 @@
             var body = root[JsonKeys.Body].AsObject;
 
             response.Uri = root[JsonKeys.Uri];
-            response.Header = new NativeResponseHeader {TransactionId = header[JsonKeys.TransactionId]};
+            response.Header = new NativeResponseHeader { TransactionId = header[JsonKeys.TransactionId] };
             response.Result = new ToastResult(
                 body[JsonKeys.IsSuccessful].AsBool,
                 body[JsonKeys.ResultCode].AsInt,

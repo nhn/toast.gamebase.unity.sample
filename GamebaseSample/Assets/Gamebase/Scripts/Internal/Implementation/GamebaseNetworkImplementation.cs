@@ -38,21 +38,25 @@ namespace Toast.Gamebase.Internal
 
         public GamebaseNetworkType GetNetworkType()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return network.GetNetworkType();
         }
 
         public string GetNetworkTypeName()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return network.GetNetworkTypeName();
         }
 
         public bool IsConnected()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return network.IsConnected();
         }
         
         public void IsConnected(GamebaseCallback.DataDelegate<bool> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             network.IsConnected(handle);
         }

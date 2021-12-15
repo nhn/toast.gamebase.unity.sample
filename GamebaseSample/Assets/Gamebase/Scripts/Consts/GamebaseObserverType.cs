@@ -6,5 +6,6 @@
         public const string NETWORK         = "network";
         public const string HEARTBEAT       = "heartbeat";
         public const string WEBVIEW         = "webview";    // Unity standalone only
+        public const string INTROSPECT      = "introspect"; // Unity standalone only
     }
 }

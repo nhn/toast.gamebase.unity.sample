@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Toast.Core;
+using UnityEngine;
 
 namespace Toast.Internal
 {
@@ -12,19 +11,13 @@ namespace Toast.Internal
 
         public static string AppKey { get; set; }
         public static ServiceZone ServiceZone = ServiceZone.REAL;
-        public static Dictionary<string, string> Fileds = new Dictionary<string, string>();
-        public static string CollectorUrl = LogUrlConstants.COLLECTOR_REAL_URL;        
+        public static Dictionary<string, string> Fields = new Dictionary<string, string>();
+        public static string CollectorUrl = LogUrlConstants.COLLECTOR_REAL_URL;
 
         private static string GetCollectorURL(string uri)
         {
             // settins uri : v2
             return uri + "/" + LogVersion.VERSION + "/log";
-        }
-
-        private static string GetSettingsURL(string uri, string appKey)
-        {
-            // settins uri : v2
-            return uri + "/" + LogVersion.VERSION + "/" + appKey + "/logsconf";
         }
 
         public static void Initialize(ServiceZone serviceZone)
@@ -50,6 +43,10 @@ namespace Toast.Internal
             }
 
             LogTransfer.Instance.StartSender();
+
+#if UNITY_STANDALONE || UNITY_EDITOR
+            BackupLogManager.RemoveOldFiles(AppKey);
+#endif
         }
 
         public static void Log(string type, string logLevel, string message, Dictionary<string, string> userFields)
@@ -70,23 +67,28 @@ namespace Toast.Internal
                 logData.SetUserId(ToastCoreCommonLogic.UserId);
             }
 
+            SetCommonData(logData);
+
             if (userFields != null)
             {
                 logData.SetUserFields(userFields);
             }
 
-            SetCommonData(logData, loggerType);
-
             LogSendQueue.Instance.AddToastLoggerLogObject(logData);
         }
 
-        private static void SetCommonData(LogObject logObject, string loggerType)
+        private static void SetCommonData(LogObject logObject)
         {
             logObject.Put(LogFields.PROJECT_VERSION, Application.version);
             logObject.Put(LogFields.DEVICE_ID, ToastDeviceInfo.GetDeviceUniqueIdentifier());
             logObject.Put(LogFields.PLATFORM_NAME, ToastApplicationInfo.GetPlatformName());
             logObject.Put(LogFields.LAUNCHED_ID, ToastApplicationInfo.GetLaunchedId());
             logObject.Put(LogFields.SDK_VERSION, ToastApplicationInfo.GetSDKVersion());
+
+            foreach (var item in Fields)
+            {
+                logObject.SetUserField(item.Key, item.Value);
+            }
         }
 
         public static void SetUserField(string key, string value)
@@ -100,7 +102,14 @@ namespace Toast.Internal
                 return;
             }
 
-            Fileds.Add(key, value);
+            string convertedKey = LogFields.ConvertField(key);
+
+            if (Fields.ContainsKey(convertedKey))
+            {
+                Fields.Remove(convertedKey);
+            }
+
+            Fields.Add(convertedKey, value);
         }
     }
 }

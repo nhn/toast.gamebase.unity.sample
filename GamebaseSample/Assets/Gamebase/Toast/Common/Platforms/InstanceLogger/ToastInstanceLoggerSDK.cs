@@ -4,7 +4,7 @@ namespace Toast.Internal
 {
     public class ToastInstanceLoggerSdk : MonoBehaviour
     {
-        private static string SERVICE_NAME = "Instancelogger";
+        private static readonly string SERVICE_NAME = "Instancelogger";
 
         private static ToastInstanceLoggerSdk _instance;
         private IToastNativeInstanceLogger _nativeInstanceLogger = null;

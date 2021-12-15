@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace Toast.Gamebase.Internal
 {
-    public sealed class GamebaseLogReport
+    public sealed class GamebaseInternalReport
     {
         private class SendData
         {
@@ -38,6 +38,7 @@ namespace Toast.Gamebase.Internal
             {
                 public const string TRACE = "TRACE";
                 public const string DEBUG = "DEBUG";
+                public const string INFO = "INFO";
                 public const string WARN = "WARN";
                 public const string ERROR = "ERROR";
             }
@@ -48,35 +49,36 @@ namespace Toast.Gamebase.Internal
                 public const string UNITY_DEBUG_REPORT = "UNITY_DEBUG_REPORT";
                 public const string UNITY_WARN_REPORT = "UNITY_WARN_REPORT";
                 public const string UNITY_ERROR_REPORT = "UNITY_ERROR_REPORT";
+                public const string UNITY_PLUGIN_REPORT = "UNITY_PLUGIN_REPORT";
             }
         }
 
         private const string URL = "https://api-logncrash.cloud.toast.com/v2/log";
         private const string PROJECT_VERSION = "1.0.0";
         private const string LOG_VERSION = "v2";
-        
-        #region key for basic data        
-        private const string BASIC_DATA_KEY_APP_ID = "AppID";
-        private const string BASIC_DATA_KEY_UUID = "UUID";
-        private const string BASIC_DATA_KEY_USER_ID = "UserId";
-        private const string BASIC_DATA_KEY_APP_VERSION = "ClientVersion";
-        private const string BASIC_DATA_KEY_PLATFORM = "Platform";
-        private const string BASIC_DATA_KEY_PROJECT_VERSION = "projectVersion";
-        private const string BASIC_DATA_KEY_LOG_VERSION = "logVersion";
+
+        #region Log&Crash        
+        private const string LOG_AND_CRASH_PROJECT_NAME = "projectName";
+        private const string LOG_AND_CRASH_PROJECT_VERSION = "projectVersion";
+        private const string LOG_AND_CRASH_LOG_LEVEL = "logLevel";        
+        private const string LOG_AND_CRASH_LOG_VERSION = "logVersion";
+        private const string LOG_AND_CRASH_BODY = "body";
+        private const string LOG_AND_CRASH_PLATFORM = "Platform";
         #endregion
 
-        #region key for send data
-        private const string SEND_DATA_KEY_PROJECT_NAME = "projectName";
-        private const string SEND_DATA_KEY_LOG_LEVEL = "logLevel";
-        private const string SEND_DATA_KEY_BODY = "body";
-        private const string SEND_DATA_KEY_CLIENT_LOG_TIME = "ClientLogTime";
+        #region Gamebase        
+        private const string GB_APP_ID = "GBAppID";
+        private const string GB_APP_VERSION = "GBClientVersion";
+        private const string GB_UUID = "GBUUID";
+        private const string GB_USER_ID = "GBUserId";
+        private const string GB_CLIENT_LOG_TIME = "GBClientLogTime";
         #endregion
 
         public const float LONG_INTERVAL = 1f;
                 
-        private static readonly GamebaseLogReport instance = new GamebaseLogReport();
+        private static readonly GamebaseInternalReport instance = new GamebaseInternalReport();
 
-        public static GamebaseLogReport Instance
+        public static GamebaseInternalReport Instance
         {
             get { return instance; }
         }
@@ -89,7 +91,7 @@ namespace Toast.Gamebase.Internal
         private string appKeyLog = "rPf9A4PrR6t0mGHs";
         private string appKeyIndicator = "5247A7zrh1RPFQI6";
 
-        private GamebaseLogReport()
+        private GamebaseInternalReport()
         {
             CreateBasicData();            
         }
@@ -130,14 +132,37 @@ namespace Toast.Gamebase.Internal
             }            
         }
 
+        public void SetAppId(string appId)
+        {
+            MergeDictionary(
+                ref basicDataDic,
+                new Dictionary<string, string>
+                {
+                    { GB_APP_ID, appId }
+                });
+        }
+
         public void SetUserId(string userId)
         {            
             MergeDictionary(
                 ref basicDataDic, 
                 new Dictionary<string, string>
                 {
-                    { BASIC_DATA_KEY_USER_ID, userId }
+                    { GB_USER_ID, userId }
                 });
+        }
+        
+        public void SendPluginLog(Dictionary<string, string> data)
+        {
+            if (CheckIndicatorStatus(appKeyLog, data) == false)
+            {
+                return;
+            }
+            
+            SendLogHTTPPost(
+                Log.LevelType.INFO,
+                Log.BodyType.UNITY_PLUGIN_REPORT,
+                data);
         }
 
         public void SendDebugLog(Dictionary<string, string> data)
@@ -192,6 +217,20 @@ namespace Toast.Gamebase.Internal
                 data);
         }
 
+        public void AddBasicData(Dictionary<string, string> data)
+        {
+            if(data == null)
+            {
+                return;
+            }
+
+            GamebaseLog.Debug(
+                string.Format(
+                    "Data : {0}", 
+                    GamebaseJsonUtil.ToPrettyJsonString(data)),
+                this);
+            MergeDictionary(ref basicDataDic, data);
+        }
 
         private bool CheckIndicatorStatus(string appKey, Dictionary<string, string> data)
         {
@@ -279,7 +318,7 @@ namespace Toast.Gamebase.Internal
                                 ref sendData.sendDataDic, 
                                 new Dictionary<string, string>
                                 {
-                                    { SEND_DATA_KEY_PROJECT_NAME, appKeyLog}
+                                    { LOG_AND_CRASH_PROJECT_NAME, appKeyLog}
                                 });
 
                             yield return GamebaseCoroutineManager.StartCoroutine(
@@ -321,7 +360,7 @@ namespace Toast.Gamebase.Internal
                                 ref sendData.sendDataDic,
                                 new Dictionary<string, string>
                                 {
-                                    { SEND_DATA_KEY_PROJECT_NAME, appKeyIndicator}
+                                    { LOG_AND_CRASH_PROJECT_NAME, appKeyIndicator}
                                 });
 
                         yield return GamebaseCoroutineManager.StartCoroutine(
@@ -350,19 +389,19 @@ namespace Toast.Gamebase.Internal
             www.method          = "POST";
             www.SetRequestHeader("Content-Type", "application/json");            
 
-            yield return UnityCompatibility.UnityWebRequest.Send(www);
+            yield return UnityCompatibility.WebRequest.Send(www);
         }
 
         private void CreateBasicData()
         {
             basicDataDic = new Dictionary<string, string>
             {                
-                { BASIC_DATA_KEY_APP_ID,            GamebaseUnitySDK.AppID },
-                { BASIC_DATA_KEY_APP_VERSION,       GamebaseUnitySDK.AppVersion },
-                { BASIC_DATA_KEY_UUID,              GamebaseUnitySDK.UUID },
-                { BASIC_DATA_KEY_PLATFORM,          Application.platform.ToString() },            
-                { BASIC_DATA_KEY_PROJECT_VERSION,   PROJECT_VERSION },
-                { BASIC_DATA_KEY_LOG_VERSION,       LOG_VERSION }
+                { GB_APP_ID,       GamebaseUnitySDK.AppID },
+                { GB_APP_VERSION,  GamebaseUnitySDK.AppVersion },
+                { GB_UUID,         GamebaseUnitySDK.UUID },
+                { LOG_AND_CRASH_PLATFORM,    SystemInfo.operatingSystem },
+                { LOG_AND_CRASH_PROJECT_VERSION,    PROJECT_VERSION },
+                { LOG_AND_CRASH_LOG_VERSION,        LOG_VERSION }
             };
         }
 
@@ -370,9 +409,9 @@ namespace Toast.Gamebase.Internal
         {
             Dictionary<string, string> sendDataDic = new Dictionary<string, string>(basicDataDic)
             {
-                { SEND_DATA_KEY_BODY,               bodyType },
-                { SEND_DATA_KEY_LOG_LEVEL,          levelType },
-                { SEND_DATA_KEY_CLIENT_LOG_TIME,    GetDateTimeNow()}
+                { LOG_AND_CRASH_BODY,               bodyType },
+                { LOG_AND_CRASH_LOG_LEVEL,          levelType },
+                { GB_CLIENT_LOG_TIME,    GetDateTimeNow()}
             };
 
             MergeDictionary(ref sendDataDic, data);            
@@ -383,9 +422,9 @@ namespace Toast.Gamebase.Internal
         {
             Dictionary<string, string> sendDataDic = new Dictionary<string, string>(basicDataDic)
             {
-                { SEND_DATA_KEY_BODY,               bodyType },
-                { SEND_DATA_KEY_LOG_LEVEL,          levelType },
-                { SEND_DATA_KEY_CLIENT_LOG_TIME,    GetDateTimeNow() }
+                { LOG_AND_CRASH_BODY,               bodyType },
+                { LOG_AND_CRASH_LOG_LEVEL,          levelType },
+                { GB_CLIENT_LOG_TIME,    GetDateTimeNow() }
             };
 
             MergeDictionary(ref sendDataDic, data);

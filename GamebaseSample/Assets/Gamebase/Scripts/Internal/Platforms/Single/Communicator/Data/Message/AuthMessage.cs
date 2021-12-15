@@ -1,14 +1,15 @@
 ﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
+using System;
 using Toast.Gamebase.LitJson;
 using UnityEngine;
 
 namespace Toast.Gamebase.Internal.Single.Communicator
 {
-    public class AuthMessage
+    public static class AuthMessage
     {
         public static WebSocketRequest.RequestVO GetIDPLoginMessage(
             string providerName, 
-            string accessToken = null,
+            string session = null,
             string authorizationCode = null)
         {
             var launchingInfoVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
@@ -17,10 +18,22 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             var vo = new AuthRequest.LoginVO();
             vo.parameter.appId = GamebaseUnitySDK.AppID;
             
-            if (providerName == GamebaseAuthProvider.GUEST)
+            if (providerName.Equals(GamebaseAuthProvider.GUEST, StringComparison.Ordinal) == true)
+            {
                 vo.payload.idPInfo.accessToken = string.Format("GAMEBASE{0}", GamebaseUnitySDK.UUID);
+            }
             else
-                vo.payload.idPInfo.accessToken = accessToken;
+            {
+                vo.payload.idPInfo.session = session;
+                if (providerName.Equals(GamebaseAuthProvider.APPLEID) == true)
+                {
+                    vo.payload.idPInfo.subCode = "sign_in_with_apple_js";
+                }
+                else if (providerName.Equals(GamebaseAuthProvider.HANGAME) == true)
+                {
+                    vo.payload.idPInfo.subCode = "web";
+                }
+            }   
 
             vo.payload.idPInfo.authorizationCode = authorizationCode;
             vo.payload.idPInfo.clientId = idpDic[providerName].clientId;
@@ -41,15 +54,13 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.payload.member.usimCountryCode = "ZZ";
             vo.payload.member.uuid = GamebaseUnitySDK.UUID;
 
-            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(
-                Lighthouse.API.Gateway.PRODUCT_ID,
-                Lighthouse.API.VERSION,
-                GamebaseUnitySDK.AppID);
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.IDP_LOGIN,
+                parameters = vo.parameter,
+                payload = JsonMapper.ToJson(vo.payload)
+            };
 
-            requestVO.apiId = Lighthouse.API.Gateway.ID.IDP_LOGIN;
-            requestVO.parameters = vo.parameter;
-            requestVO.payload = JsonMapper.ToJson(vo.payload);
-            
             return requestVO;
         }
         
@@ -61,13 +72,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.parameter.userId = loginInfoVO.member.userId;
             vo.parameter.accessToken = loginInfoVO.token.accessToken;
 
-            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(
-                Lighthouse.API.Gateway.PRODUCT_ID,
-                Lighthouse.API.VERSION,
-                GamebaseUnitySDK.AppID);
-
-            requestVO.apiId = Lighthouse.API.Gateway.ID.LOGOUT;
-            requestVO.parameters = vo.parameter;
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.LOGOUT,
+                parameters = vo.parameter
+            };
 
             return requestVO;
         }
@@ -75,16 +84,41 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public static WebSocketRequest.RequestVO GetWithdrawMessage()
         {
             var vo = new AuthRequest.WithdrawVO();
-            vo.parameter.appId = GamebaseUnitySDK.AppID;
             vo.parameter.userId = Gamebase.GetUserID();
 
-            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(
-                Lighthouse.API.Gateway.PRODUCT_ID,
-                Lighthouse.API.VERSION,
-                GamebaseUnitySDK.AppID);
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.WITHDRAW,
+                parameters = vo.parameter
+            };
 
-            requestVO.apiId = Lighthouse.API.Gateway.ID.WITHDRAW;
-            requestVO.parameters = vo.parameter;
+            return requestVO;
+        }
+
+        public static WebSocketRequest.RequestVO GetTemporaryWithdrawalMessage()
+        {
+            var vo = new AuthRequest.TemporaryWithdrawalVO();
+            vo.parameter.userId = Gamebase.GetUserID();
+
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.TEMPORARY_WITHDRAWAL,
+                parameters = vo.parameter
+            };
+
+            return requestVO;
+        }
+
+        public static WebSocketRequest.RequestVO GetCancelTemporaryWithdrawalMessage()
+        {
+            var vo = new AuthRequest.CancelTemporaryWithdrawalVO();
+            vo.parameter.userId = Gamebase.GetUserID();
+
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.CANCEL_TEMPORARY_WITHDRAWAL,
+                parameters = vo.parameter
+            };
 
             return requestVO;
         }
@@ -97,13 +131,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.parameter.purpose = purpose;
             vo.parameter.expiresIn = expiresIn;
 
-            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(
-               Lighthouse.API.Gateway.PRODUCT_ID,
-               Lighthouse.API.VERSION,
-               GamebaseUnitySDK.AppID);
-
-            requestVO.apiId = Lighthouse.API.Gateway.ID.ISSUE_SHORT_TERM_TICKET;
-            requestVO.parameters = vo.parameter;
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.ISSUE_SHORT_TERM_TICKET,
+                parameters = vo.parameter
+            };
 
             return requestVO;
         }

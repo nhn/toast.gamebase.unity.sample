@@ -17,14 +17,5 @@
             FATAL = 4,
             NONE = 5
         }
-
-        public enum LogType
-        {
-            ERROR = 0,
-            ASSERT = 1,
-            WARNING = 2,
-            LOG = 3,
-            EXCEPTION = 4
-        }
     }
 }

@@ -11,15 +11,15 @@ namespace GamebaseSample
         private static Dictionary<string, Sprite> idPTextures = new Dictionary<string, Sprite>();
 
         [SerializeField]
-        private Text rankText;
+        private Text rankText = null;
         [SerializeField]
-        private Text userIdText;
+        private Text userIdText = null;
         [SerializeField]
-        private Text scoreText;
+        private Text scoreText = null;
         [SerializeField]
-        private Image idPImage;
+        private Image idPImage = null;
         [SerializeField]
-        private Image MyRankMark;
+        private Image MyRankMark = null;
 
         public void SetInfo(LeaderboardVo.UserInfo userInfo)
         {

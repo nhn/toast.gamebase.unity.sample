@@ -62,6 +62,23 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 payload = new Payload();
             }
         }
+
+        public class IntrospectVO : BaseVO
+        {
+            public class Parameter
+            {
+                public string userId;
+                public string idPCode;
+                public string accessToken;
+            }
+
+            public Parameter parameter;
+
+            public IntrospectVO()
+            {
+                parameter = new Parameter();
+            }
+        }
     }
 }
 #endif

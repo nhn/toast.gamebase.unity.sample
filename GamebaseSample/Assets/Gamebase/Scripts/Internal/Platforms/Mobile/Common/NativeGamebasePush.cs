@@ -7,9 +7,12 @@ namespace Toast.Gamebase.Internal.Mobile
     {
         protected class GamebasePush
         {
-            public const string PUSH_API_REGISTER_PUSH      = "gamebase://registerPush";
-            public const string PUSH_API_QUERY_PUSH         = "gamebase://queryPush";
-            public const string PUSH_API_SET_SANDBOX_MODE   = "gamebase://setSandboxMode";
+            public const string PUSH_API_REGISTER_PUSH              = "gamebase://registerPush";
+            public const string PUSH_API_QUERY_PUSH                 = "gamebase://queryPush";
+            public const string PUSH_API_SET_SANDBOX_MODE           = "gamebase://setSandboxMode";
+            public const string PUSH_API_REGISTER_PUSH_WITH_OPTION  = "gamebase://registerPushWithOption";
+            public const string PUSH_API_QUERY_TOKEN_INFO           = "gamebase://queryTokenInfo";
+            public const string PUSH_API_GET_NOTIFICATION_OPTIONS   = "gamebase://getNotificationOptions";
         }
 
         protected INativeMessageSender  messageSender       = null;
@@ -24,11 +27,13 @@ namespace Toast.Gamebase.Internal.Mobile
         {
             messageSender.Initialize(CLASS_NAME);
 
-            DelegateManager.AddDelegate(GamebasePush.PUSH_API_REGISTER_PUSH,    DelegateManager.SendErrorDelegateOnce);
-            DelegateManager.AddDelegate(GamebasePush.PUSH_API_QUERY_PUSH,       DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Push.PushConfiguration>);
+            DelegateManager.AddDelegate(GamebasePush.PUSH_API_REGISTER_PUSH,                DelegateManager.SendErrorDelegateOnce);
+            DelegateManager.AddDelegate(GamebasePush.PUSH_API_QUERY_PUSH,                   DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Push.PushConfiguration>);
+            DelegateManager.AddDelegate(GamebasePush.PUSH_API_REGISTER_PUSH_WITH_OPTION,    DelegateManager.SendErrorDelegateOnce);
+            DelegateManager.AddDelegate(GamebasePush.PUSH_API_QUERY_TOKEN_INFO,             DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Push.TokenInfo>);
         }
 
-        virtual public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, int handle)
+        public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, int handle)
         {
             string jsonString = null;
             if (null != pushConfiguration)
@@ -45,7 +50,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void QueryPush(int handle)
+        public void QueryPush(int handle)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
@@ -57,7 +62,56 @@ namespace Toast.Gamebase.Internal.Mobile
 
         virtual public void SetSandboxMode(bool isSandbox)
         {
-        }       
+        }
+
+        public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, GamebaseRequest.Push.NotificationOptions options, int handle)
+        {
+            string jsonString = null;
+            if (null != pushConfiguration)
+            {
+                jsonString = JsonMapper.ToJson(pushConfiguration);
+            }
+
+            string jsonStringExtra = null;
+            if (null != options)
+            {
+                jsonStringExtra = JsonMapper.ToJson(options);
+            }
+
+            string jsonData = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebasePush.PUSH_API_REGISTER_PUSH_WITH_OPTION,
+                    handle: handle,
+                    jsonData: jsonString,
+                    extraData: jsonStringExtra
+                    ));
+            messageSender.GetAsync(jsonData);
+        }
+
+        public void QueryTokenInfo(int handle)
+        {
+            string jsonData = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebasePush.PUSH_API_QUERY_TOKEN_INFO,
+                    handle: handle
+                    ));
+            messageSender.GetAsync(jsonData);
+        }
+
+        public GamebaseResponse.Push.NotificationOptions GetNotificationOptions()
+        {
+            string jsonData = JsonMapper.ToJson(new UnityMessage(GamebasePush.PUSH_API_GET_NOTIFICATION_OPTIONS));
+            string jsonString = messageSender.GetSync(jsonData);
+
+            GamebaseResponse.Push.NotificationOptions notificationOptions = null;
+
+            if (jsonString != null)
+            {
+                notificationOptions = JsonMapper.ToObject<GamebaseResponse.Push.NotificationOptions>(jsonString);
+            }
+
+            return notificationOptions;
+        }
     }
 }
 #endif

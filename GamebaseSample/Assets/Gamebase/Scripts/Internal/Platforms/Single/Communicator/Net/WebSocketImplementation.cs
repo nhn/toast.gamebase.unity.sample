@@ -1,9 +1,9 @@
-﻿#if UNITY_EDITOR || UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Toast.Gamebase.WebSocketSharp;
 using UnityEngine;
-using WebSocketSharp;
 
 namespace Toast.Gamebase.Internal.Single.Communicator
 {
@@ -51,24 +51,27 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             socket.ConnectAsync();
 
-            float waitTime = 0;
-            while (false == IsConnected() && null == GetErrorMessage() && waitTime < CommunicatorConfiguration.connectionTimeout)
+            var watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+
+            while (IsConnected() == false && string.IsNullOrEmpty(GetErrorMessage()) == true && watch.Elapsed.Seconds < CommunicatorConfiguration.connectionTimeout)
             {
-                waitTime += Time.unscaledDeltaTime;
                 yield return null;
             }
 
+            watch.Stop();
+
             GamebaseError error = null;
 
-            if (false == string.IsNullOrEmpty(GetErrorMessage()))
+            if (string.IsNullOrEmpty(GetErrorMessage()) == false)
             {
-                error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, message:GetErrorMessage());
+                error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, message:string.Format("{0}. {1}", GamebaseStrings.SOCKET_CONNECTION_FAILED, GetErrorMessage()));
             }
             else
             {
-                if (waitTime >= CommunicatorConfiguration.connectionTimeout)
+                if (watch.Elapsed.Seconds >= CommunicatorConfiguration.connectionTimeout)
                 {
-                    error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR);
+                    error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, message:GamebaseStrings.SOCKET_CONNECTION_TIMEOUT);
                 }
             }
 
@@ -90,9 +93,9 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 #else
         private void WebSocketCloseOnEditor()
         {
-            if (false == UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode == false)
             {
-                if (true == UnityEditor.EditorApplication.isPlaying)
+                if (UnityEditor.EditorApplication.isPlaying == true)
                 {
                     Close();
                 }
@@ -104,7 +107,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public IEnumerator Reconnect(GamebaseCallback.ErrorDelegate callback)
         {
-            if (null == socket)
+            if (socket == null)
             {
                 yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, Connect(callback));
                 yield break;
@@ -129,13 +132,13 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public IEnumerator Send(string jsonString, GamebaseCallback.ErrorDelegate callback)
         {
-            if (false == IsConnected())
+            if (IsConnected() == false)
             {
                 yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, Reconnect((error) =>
                 {
                     callback(error);
 
-                    if (null == error)
+                    if (error == null)
                     {
                         socket.Send(jsonString);
                     }
@@ -154,7 +157,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public void StartRecvPolling()
         {
-            if (null != recvPolling)
+            if (recvPolling != null)
             {
                 StopRecvPolling();
             }
@@ -163,7 +166,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public void StopRecvPolling()
         {
-            if (null != recvPolling)
+            if (recvPolling != null)
             {
                 GamebaseCoroutineManager.StopCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, recvPolling);
                 recvPolling = null;
@@ -182,7 +185,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 }
                 else
                 {
-                    yield return new WaitForSecondsRealtime(WebSocket.LONG_INTERVAL);
+                    yield return new WaitForSecondsRealtime(WebSocket.RESPONSE_DELAY);
                 }
             }            
         }
@@ -194,7 +197,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 if (null != recvCallback)
                 {
                     string response = messages.Dequeue();
-                    if(false == string.IsNullOrEmpty(response))
+                    if(string.IsNullOrEmpty(response) == false)
                     {
                         recvCallback(response);
                     }                    
@@ -204,14 +207,14 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public void Close()
         {
-            if (null == socket)
+            if (socket == null)
             {
                 return;
             }
 
             RemoveEvents();
 
-            if (false == IsConnected())
+            if (IsConnected() == false)
             {
                 socket = null;
                 return;
@@ -225,7 +228,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public bool IsConnected()
         {
-            if (null == socket)
+            if (socket == null)
             {
                 return false;
             }

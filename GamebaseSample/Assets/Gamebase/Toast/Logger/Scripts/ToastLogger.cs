@@ -62,6 +62,8 @@ namespace Toast.Logger
                 loggerConfiguration.EnableCrashErrorLog);
 
             _isInitialized = true;
+
+            ToastAuditLog.SendUsageLog();
         }
 
         public static void Log(ToastLogLevel logLevel, string message, Dictionary<string, string> userFields = null)
@@ -245,6 +247,11 @@ namespace Toast.Logger
                 .AddParameter("error", "OnLogError");
 
             Dispatcher.Instance.Post(() => ToastNativeSender.SyncSendMessage(methodCall));
+        }
+
+        public static void SetCrashDataAdapter(ICrashDataAdapter crashDataAdapter)
+        {
+            ToastCrashManager.Instance.SetCrashDataAdapter(crashDataAdapter);
         }
     }
 }

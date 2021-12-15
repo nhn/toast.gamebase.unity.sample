@@ -6,18 +6,18 @@ namespace GamebaseSample
     public class DownloadPanel : MonoBehaviour
     {
         [SerializeField]
-        private Text messageText;
+        private Text messageText = null;
         [SerializeField]
-        private Text totalDownloadStatusText;
+        private Text totalDownloadStatusText = null;
         [SerializeField]
-        private Progressbar totalDownloadProgress;
+        private Progressbar totalDownloadProgress = null;
         [SerializeField]
-        private GameObject progressObject;
+        private GameObject progressObject = null;
         [SerializeField]
-        private GameObject filesObject;
+        private GameObject filesObject = null;
 
         [SerializeField]
-        private DownloadResourceView downloadResourceView;
+        private DownloadResourceView downloadResourceView = null;
 
         private bool expanded = true;
 

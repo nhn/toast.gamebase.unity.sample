@@ -8,16 +8,17 @@ namespace Toast.Gamebase.Internal.Mobile
     {
         protected class GamebasePurchase
         {
-            public const string PURCHASE_API_REQUEST_PURCHASE_SEQ                   = "gamebase://requestPurchaseSeq";
-            public const string PURCHASE_API_REQUEST_PURCHASE                       = "gamebase://requestPurchase";
-            public const string PURCHASE_API_REQUEST_ITEM_LIST_OF_NOT_CONSUMED      = "gamebase://requestItemListOfNotConsumed";
-            public const string PURCHASE_API_REQUEST_RETYR_TRANSACTION              = "gamebase://requestRetryTransaction";
-            public const string PURCHASE_API_REQUEST_ITEM_LIST_PURCHASABLE          = "gamebase://requestItemListPurchasable";
-            public const string PURCHASE_API_REQUEST_ITEM_LIST_AT_AP_CONSOLE        = "gamebase://requestItemListAtIAPConsole";
-            public const string PURCHASE_API_SET_PROMOTION_IAP_HANDLER              = "gamebase://setPromotionIAPHandler";
-            public const string PURCHASE_API_SET_STORE_CODE                         = "gamebase://setStoreCode";
-            public const string PURCHASE_API_GET_STORE_CODE                         = "gamebase://getStoreCode";
-            public const string PURCHASE_API_REQUEST_ACTIVATED_PURCHASES            = "gamebase://requestActivatedPurchases";
+            public const string PURCHASE_API_REQUEST_PURCHASE_SEQ                       = "gamebase://requestPurchaseSeq";
+            public const string PURCHASE_API_REQUEST_PURCHASE_PRODUCTID                 = "gamebase://requestPurchaseProductId";
+            public const string PURCHASE_API_REQUEST_PURCHASE_PRODUCTID_WITH_PAYLOAD    = "gamebase://requestPurchaseProductIdWithPayload";
+            public const string PURCHASE_API_REQUEST_ITEM_LIST_OF_NOT_CONSUMED          = "gamebase://requestItemListOfNotConsumed";
+            public const string PURCHASE_API_REQUEST_RETYR_TRANSACTION                  = "gamebase://requestRetryTransaction";
+            public const string PURCHASE_API_REQUEST_ITEM_LIST_PURCHASABLE              = "gamebase://requestItemListPurchasable";
+            public const string PURCHASE_API_REQUEST_ITEM_LIST_AT_AP_CONSOLE            = "gamebase://requestItemListAtIAPConsole";
+            public const string PURCHASE_API_SET_PROMOTION_IAP_HANDLER                  = "gamebase://setPromotionIAPHandler";
+            public const string PURCHASE_API_SET_STORE_CODE                             = "gamebase://setStoreCode";
+            public const string PURCHASE_API_GET_STORE_CODE                             = "gamebase://getStoreCode";
+            public const string PURCHASE_API_REQUEST_ACTIVATED_PURCHASES                = "gamebase://requestActivatedPurchases";
         }
 
         protected INativeMessageSender  messageSender   = null;
@@ -32,17 +33,18 @@ namespace Toast.Gamebase.Internal.Mobile
         {
             messageSender.Initialize(CLASS_NAME);
 
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE_SEQ,                 DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE,                     DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_OF_NOT_CONSUMED,    DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableReceipt>>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_RETYR_TRANSACTION,            DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableRetryTransactionResult>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_PURCHASABLE,        DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableItem>>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_AT_AP_CONSOLE,      DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableItem>>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_SET_PROMOTION_IAP_HANDLER,            DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
-            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ACTIVATED_PURCHASES,          DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableReceipt>>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE_SEQ,                     DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE_PRODUCTID,               DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE_PRODUCTID_WITH_PAYLOAD,  DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_OF_NOT_CONSUMED,        DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableReceipt>>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_RETYR_TRANSACTION,                DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableRetryTransactionResult>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_PURCHASABLE,            DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableItem>>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_AT_AP_CONSOLE,          DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableItem>>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_SET_PROMOTION_IAP_HANDLER,                DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Purchase.PurchasableReceipt>);
+            DelegateManager.AddDelegate(GamebasePurchase.PURCHASE_API_REQUEST_ACTIVATED_PURCHASES,              DelegateManager.SendGamebaseDelegateOnce<List<GamebaseResponse.Purchase.PurchasableReceipt>>);
         }
 
-        virtual public void RequestPurchase(long itemSeq, int handle)
+        public void RequestPurchase(long itemSeq, int handle)
         {
             NativeRequest.Purchase.PurchaseItemSeq vo = new NativeRequest.Purchase.PurchaseItemSeq();
             vo.itemSeq = itemSeq;
@@ -56,21 +58,36 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        public void RequestPurchase(string marketItemId, int handle)
+        public void RequestPurchase(string gamebaseProductId, int handle)
         {
-            NativeRequest.Purchase.PurchaseMarketItemId vo = new NativeRequest.Purchase.PurchaseMarketItemId();
-            vo.marketItemId = marketItemId;
+            NativeRequest.Purchase.PurchaseProductId vo = new NativeRequest.Purchase.PurchaseProductId();
+            vo.gamebaseProductId = gamebaseProductId;
 
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
-                    GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE,
+                    GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE_PRODUCTID,
                     jsonData: JsonMapper.ToJson(vo),
                     handle: handle
                     ));
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void RequestItemListOfNotConsumed(int handle)
+        public void RequestPurchase(string gamebaseProductId, string payload, int handle)
+        {
+            NativeRequest.Purchase.PurchaseProductId vo = new NativeRequest.Purchase.PurchaseProductId();
+            vo.gamebaseProductId = gamebaseProductId;
+            vo.payload = payload;
+
+            string jsonData = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebasePurchase.PURCHASE_API_REQUEST_PURCHASE_PRODUCTID_WITH_PAYLOAD,
+                    jsonData: JsonMapper.ToJson(vo),
+                    handle: handle
+                    ));
+            messageSender.GetAsync(jsonData);
+        }
+
+        public void RequestItemListOfNotConsumed(int handle)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
@@ -80,7 +97,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void RequestRetryTransaction(int handle)
+        public void RequestRetryTransaction(int handle)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(GamebasePurchase.PURCHASE_API_REQUEST_RETYR_TRANSACTION,
@@ -89,7 +106,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void RequestItemListPurchasable(int handle)
+        public void RequestItemListPurchasable(int handle)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(GamebasePurchase.PURCHASE_API_REQUEST_ITEM_LIST_PURCHASABLE,
@@ -98,7 +115,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void RequestItemListAtIAPConsole(int handle)
+        public void RequestItemListAtIAPConsole(int handle)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
@@ -119,7 +136,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void SetStoreCode(string storeCode)
+        public void SetStoreCode(string storeCode)
         {
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
@@ -129,7 +146,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetSync(jsonData);
         }
 
-        virtual public string GetStoreCode()
+        public string GetStoreCode()
         {
             string jsonData = JsonMapper.ToJson(new UnityMessage(GamebasePurchase.PURCHASE_API_GET_STORE_CODE));
             return messageSender.GetSync(jsonData);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Toast.Gamebase.Internal.Single.Communicator
 {
-    public class AuthRequest
+    public static class AuthRequest
     {
         public class LoginVO : BaseVO
         {
@@ -23,6 +23,12 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public string clientSecret;
                     public Dictionary<string, string> extraParams;
                     public string idPCode;
+                    /// <summary>
+                    /// 웹로그인시 회원에서 내려주는 로그인 session 값.
+                    /// Gamebase Server로 로그인할때 사용된다.
+                    /// </summary>
+                    public string session;
+                    public string subCode;
                 }
 
                 public class Member
@@ -91,8 +97,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public class WithdrawVO : BaseVO
         {
             public class Parameter
-            {
-                public string appId;
+            {                
                 public string userId;
             }
 
@@ -103,6 +108,38 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 parameter = new Parameter();
             }
         }
+
+        public class TemporaryWithdrawalVO : BaseVO
+        {
+            public class Parameter
+            {
+                public string userId;
+            }
+
+            public Parameter parameter;
+
+            public TemporaryWithdrawalVO()
+            {
+                parameter = new Parameter();
+            }
+        }
+
+        public class CancelTemporaryWithdrawalVO : BaseVO
+        {
+            public class Parameter
+            {
+                public string userId;
+            }
+
+            public Parameter parameter;
+
+            public CancelTemporaryWithdrawalVO()
+            {
+                parameter = new Parameter();
+            }
+        }
+
+        
 
         public class IssueShortTermTicketVO : BaseVO
         {

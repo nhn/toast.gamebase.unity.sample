@@ -1,5 +1,4 @@
-﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
-namespace Toast.Gamebase.Internal.Single.Communicator
+﻿namespace Toast.Gamebase.Internal
 {
     public class VOKey
     {
@@ -16,4 +15,3 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         }
     }
 }
-#endif

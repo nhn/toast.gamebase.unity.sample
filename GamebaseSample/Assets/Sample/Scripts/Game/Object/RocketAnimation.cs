@@ -14,7 +14,7 @@ namespace GamebaseSample
         private readonly int[] animationOrder = { 0, 1, 2, 3, 4, 3, 2, 1 };
 
         [SerializeField]
-        private GameObject[] sprite;
+        private GameObject[] sprite = null;
         private float animationIndex = 0f;
         private AnimationSpeed animationSpeed = AnimationSpeed.SPEED_SLOW;
 

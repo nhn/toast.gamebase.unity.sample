@@ -1,8 +1,10 @@
-﻿namespace Toast.Gamebase.Internal
+﻿using Toast.Gamebase.Internal.Single.Communicator;
+
+namespace Toast.Gamebase.Internal
 {
     public interface IGamebaseLaunching
     {
-        GamebaseResponse.Launching.LaunchingInfo GetLaunchingInformations();
+        LaunchingResponse.LaunchingInfo GetLaunchingInformations();
         int GetLaunchingStatus();
     }
 }

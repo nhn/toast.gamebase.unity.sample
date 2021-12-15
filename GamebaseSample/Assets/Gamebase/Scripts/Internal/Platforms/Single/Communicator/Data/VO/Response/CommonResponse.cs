@@ -1,7 +1,6 @@
-﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Toast.Gamebase.Internal.Single.Communicator
+namespace Toast.Gamebase.Internal
 {
     public class ProtocolResponse
     {
@@ -58,13 +57,18 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 public long regDate;
             }
 
+            public class TemporaryWithdrawal
+            {
+                public long gracePeriodDate;
+            }
+
             public string appId;
             public List<AuthMappingInfo> authList;
             public long lastLoginDate;
             public long regDate;
             public string userId;
             public string valid;
+            public TemporaryWithdrawal temporaryWithdrawal;
         }
     }
 }
-#endif

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 
 namespace Toast.Core
 {
@@ -14,7 +12,7 @@ namespace Toast.Core
         public static void Initialize()
         {
 
-        }        
+        }
 
         public static void SetOptionalPolices(List<string> properties)
         {
@@ -25,7 +23,7 @@ namespace Toast.Core
 
         private static void RequestLaunchingInfo()
         {
-            
+
         }
     }
 }

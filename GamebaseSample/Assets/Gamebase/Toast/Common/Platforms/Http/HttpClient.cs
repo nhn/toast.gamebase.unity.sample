@@ -1,15 +1,12 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.Networking;
 #endif  // UNITY_2017_2_OR_NEWER
 
 namespace Toast.Internal
-{ 
-   
+{
     public static class HttpClient
     {
         public delegate void WebRequestDelegate(bool isTimeout, string errorString, string jsonString);
@@ -18,7 +15,9 @@ namespace Toast.Internal
         {
             var uriBuilder = new UriBuilder("https", host) { Path = path };
 
+            #pragma warning disable 0219
             bool isTimeout = false;
+            #pragma warning restore 0219
             string errorString = "";
             string jsonString = "";
 
@@ -35,10 +34,18 @@ namespace Toast.Internal
                     yield return request.SendWebRequest();
 
                     errorString = request.error;
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                    request.result == UnityWebRequest.Result.ProtocolError)
+                    {
+                        isTimeout = true;
+                    }
+#else
                     if (request.isNetworkError || request.isHttpError)
                     {
                         isTimeout = true;
                     }
+#endif
                     else
                     {
                         jsonString = request.downloadHandler.text;
@@ -61,10 +68,18 @@ namespace Toast.Internal
                     yield return request.SendWebRequest();
 
                     errorString = request.error;
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                    request.result == UnityWebRequest.Result.ProtocolError)
+                    {
+                        isTimeout = true;
+                    }
+#else
                     if (request.isNetworkError || request.isHttpError)
                     {
                         isTimeout = true;
                     }
+#endif
                     else
                     {
                         jsonString = request.downloadHandler.text;
@@ -74,7 +89,7 @@ namespace Toast.Internal
 
 #else
 
-            float timer = 0;
+                    float timer = 0;
 
             Dictionary<string, string> header = new Dictionary<string, string>();
             header.Add("Content-Type", "application/json");

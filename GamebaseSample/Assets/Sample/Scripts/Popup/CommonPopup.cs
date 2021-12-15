@@ -6,17 +6,16 @@ namespace GamebaseSample
     public class CommonPopup : MonoBehaviour
     {
         [SerializeField]
-        private Text title;
+        private Text title = null;
         [SerializeField]
-        private Text message;
+        private Text message = null;
         [SerializeField]
-        private Text okButtonText;
+        private Text okButtonText = null;
         [SerializeField]
-        private Text cancelButtonText;
+        private Text cancelButtonText = null;
+
         [SerializeField]
-        private GameObject okGameObject;
-        [SerializeField]
-        private GameObject closeGameObject;
+        private GameObject closeGameObject = null;
 
         private System.Action okCallback;
         private System.Action cancelCallback;

@@ -8,6 +8,8 @@ using Toast.Gamebase.Internal.Single.WebGL;
 using Toast.Gamebase.Internal.Single.Standalone;
 #endif
 
+using Toast.Gamebase.LitJson;
+
 namespace Toast.Gamebase.Internal
 {
     public sealed class GamebaseLaunchingImplementation
@@ -38,11 +40,14 @@ namespace Toast.Gamebase.Internal
         
         public GamebaseResponse.Launching.LaunchingInfo GetLaunchingInformations()
         {
-            return launching.GetLaunchingInformations();
+            GamebaseGameInformationReport.Instance.AddApiName();
+            var launchingInfo = launching.GetLaunchingInformations();
+            return JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(JsonMapper.ToJson(launchingInfo));            
         }
 
         public int GetLaunchingStatus()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return launching.GetLaunchingStatus();
         }
 

@@ -1,6 +1,6 @@
 ﻿
 namespace Toast.Logger
-{ 
+{
     public static class ToastLoggerFilterKeys
     {
         public static string LOG_TYPE_FILTER = typeof(ToastLoggerLogTypeFilter).FullName;

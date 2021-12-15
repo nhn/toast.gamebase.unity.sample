@@ -1,6 +1,0 @@
-framework module GamebasePurchaseIAPAdapter {
-  umbrella header "GamebasePurchaseIAPAdapter.h"
-
-  export *
-  module * { export * }
-}

@@ -23,6 +23,10 @@
         /// </summary>
         public const int IN_REVIEW                      = 204;
         /// <summary>
+        /// Beta.
+        /// </summary>
+        public const int IN_BETA                        = 205;
+        /// <summary>
         /// Update is required.
         /// </summary>
         public const int REQUIRE_UPDATE                 = 300;
