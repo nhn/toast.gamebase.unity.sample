@@ -309,26 +309,7 @@ namespace GamebaseSample
         #region UIButton.onClick
         public void ClickGameStartButton()
         {
-            PopupManager.ShowPopup(popupRoot, "DownloadView");
-
-            ResourceDownloader.Instance.StartDownload(
-                (result) =>
-                {
-                    if (result == true)
-                    {
-                        SceneManager.LoadSceneAsync("ingame");
-                    }
-                    else
-                    {
-                        PopupManager.ShowErrorPopup(
-                            gameObject,
-                            GameStrings.RESOURCE_DOWNLOAD_FAILED_MESSAGE,
-                            null,
-                            GameStrings.COMMON_OK_BUTTON,
-                            null);
-                    }
-                },
-                "/Sample/stage");
+            SceneManager.LoadSceneAsync("ingame");
         }
 
         public void ClickStoreButton()

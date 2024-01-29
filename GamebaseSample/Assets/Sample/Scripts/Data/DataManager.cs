@@ -12,7 +12,6 @@ namespace GamebaseSample
 
         private const string LANGUAGE_SAVE_KEY = "toast.gbsample.language";
         private const string GAMEBASE_DEBUG_MODE_KEY = "toast.gbsample.gamebase.debugmode";
-        private const string SMART_DL_DOWNLOAD_THREAD_COUNT = "toast.gbsample.smartdl.threadCount";
 
         private static readonly UserData user = new UserData();
 
@@ -77,24 +76,6 @@ namespace GamebaseSample
                 ApplyDebugMode();
             }
         }
-
-        public static int SmartDlThreadCount
-        {
-            get
-            {
-                if (PlayerPrefs.HasKey(SMART_DL_DOWNLOAD_THREAD_COUNT) == false)
-                {
-                    return 0;
-                }
-
-                return PlayerPrefs.GetInt(SMART_DL_DOWNLOAD_THREAD_COUNT);
-            }
-            set
-            {
-                PlayerPrefs.SetInt(SMART_DL_DOWNLOAD_THREAD_COUNT, value);
-            }
-        }
-
 
         public static LaunchingData.Sample Launching
         {

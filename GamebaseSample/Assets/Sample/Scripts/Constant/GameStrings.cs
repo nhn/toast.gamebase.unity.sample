@@ -65,10 +65,6 @@
         public const string GAME_EXIT_MESSAGE = "GAME_EXIT_MESSAGE";
         public const string GAME_EXIT = "GAME_EXIT";
         public const string GAME_CONTINUE = "GAME_CONTINUE";
-        public const string RESOURCE_DOWNLOAD_TITLE = "RESOURCE_DOWNLOAD_TITLE";
-        public const string RESOURCE_DOWNLOAD_FAILED_MESSAGE = "RESOURCE_DOWNLOAD_FAILED_MESSAGE";
-        public const string RESOURCE_DOWNLOAD_WAIT = "RESOURCE_DOWNLOAD_WAIT";
-        public const string DELETE_DOWNLOAD_RESOURCES = "DELETE_DOWNLOAD_RESOURCES";
         public const string LEADERBOARD_TITLE = "LEADERBOARD_TITLE";
         public const string LEADERBOARD_LIST_EMPTY = "LEADERBOARD_LIST_EMPTY";
         public const string RETRY = "RETRY";
