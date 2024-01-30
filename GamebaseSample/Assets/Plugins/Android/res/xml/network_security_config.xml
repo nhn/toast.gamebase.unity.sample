@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
   <domain-config cleartextTrafficPermitted="true">
-    <!-- Smart Downloader start -->
-    <domain includeSubdomains="true">toastcdn.net</domain>
-    <!-- Smart Downloader end -->
+
   </domain-config>
 </network-security-config>
