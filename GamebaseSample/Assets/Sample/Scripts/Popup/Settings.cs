@@ -59,11 +59,6 @@ namespace GamebaseSample
         [SerializeField]
         private Toggle gamebaseDebugMode = null;
 
-        [SerializeField]
-        private Slider smartDlThreadCountSlider = null;
-        [SerializeField]
-        private Text smartDlThreadCountText = null;
-
         private string accountId = null;
         private string accountPassword = null;
 
@@ -141,11 +136,6 @@ namespace GamebaseSample
 
             GetAuthMappingList();
             ActiveTransferAccountButtons();
-
-            smartDlThreadCountSlider.minValue = 0;
-            smartDlThreadCountSlider.maxValue = System.Environment.ProcessorCount;
-            smartDlThreadCountSlider.value = DataManager.SmartDlThreadCount;
-            RefreshThreadCountText();
         }
 
         #region UIButton.onClick
@@ -302,22 +292,7 @@ namespace GamebaseSample
         {
             toggle.targetGraphic.color = toggle.isOn ? Color.white : TAB_DESELECTED_COLOR;
         }
-
-        public void ChangeSmartDlThreadCount()
-        {
-            int threadCount = (int)smartDlThreadCountSlider.value;
-
-            DataManager.SmartDlThreadCount = threadCount;
-            RefreshThreadCountText();
-        }
         #endregion
-
-        private void RefreshThreadCountText()
-        {
-            int threadCount = (int)smartDlThreadCountSlider.value;
-
-            smartDlThreadCountText.text = threadCount > 0 ? threadCount.ToString() : TEXT_AUTO;
-        }
 
         private void Logout()
         {

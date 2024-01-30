@@ -19,9 +19,6 @@ namespace GamebaseSample
         private GameObject otherButtonContainer = null;
 
         [SerializeField]
-        private GameObject cacheDeleteButton = null;
-
-        [SerializeField]
         private GameObject popupRoot = null;
 
         [SerializeField]
@@ -120,11 +117,6 @@ namespace GamebaseSample
         public void ClickGamecenterLoginButton()
         {
             LoginWithProviderName(GamebaseAuthProvider.GAMECENTER);
-        }
-
-        public void ClickDeleteCacheButton()
-        {
-            ResourceDownloader.Instance.DeleteCaches();
         }
         #endregion
 
@@ -268,33 +260,14 @@ namespace GamebaseSample
 
         private void LoadMainScene()
         {
-            PopupManager.ShowPopup(popupRoot, "DownloadView");
-
-            ResourceDownloader.Instance.StartDownload(
-                (result) =>
-                {
-                    if (result == true)
-                    {
-                        DataManager.User.Id = Gamebase.GetUserID();
+            DataManager.User.Id = Gamebase.GetUserID();
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-                        DataManager.User.IdP = Gamebase.GetLastLoggedInProvider();
+            DataManager.User.IdP = Gamebase.GetLastLoggedInProvider();
 #else
-                        DataManager.User.IdP = "guest";
+            DataManager.User.IdP = "guest";
 #endif
 
-                        SceneManager.LoadSceneAsync("main");
-                    }
-                    else
-                    {
-                        PopupManager.ShowErrorPopup(
-                            transform.parent.parent.gameObject,
-                            GameStrings.RESOURCE_DOWNLOAD_FAILED_MESSAGE,
-                            null,
-                            GameStrings.COMMON_OK_BUTTON,
-                            () => { Application.Quit(); });
-                    }
-                },
-                "/Sample/default");
+            SceneManager.LoadSceneAsync("main");
         }
 
         private void SendLevelAfterLogin()
@@ -306,7 +279,6 @@ namespace GamebaseSample
         private void ActiveButton(bool isActive)
         {
             loginButtonContainer.SetActive(isActive);
-            cacheDeleteButton.SetActive(isActive);
 
 #if !UNITY_EDITOR && UNITY_IOS
             gamecenterButton.SetActive(isActive);

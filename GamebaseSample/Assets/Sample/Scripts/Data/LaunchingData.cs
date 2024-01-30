@@ -4,12 +4,6 @@
     {
         public class Sample
         {
-            public class SmartDownloader
-            {
-                public string appkey;
-                public string service_android;
-            }
-
             public class Leaderboard
             {
                 public string appkey;
@@ -21,7 +15,6 @@
                 }
             }
 
-            public SmartDownloader smartdl;
             public Leaderboard leaderboard;
         }
 
