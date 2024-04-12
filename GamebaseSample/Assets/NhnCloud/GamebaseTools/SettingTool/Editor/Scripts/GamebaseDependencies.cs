@@ -31,16 +31,16 @@ namespace NhnCloud.GamebaseTools.SettingTool
 
             if (adapterSettings.useAndroid == true)
             {
-                AddXmlChild(document, androidPackages, adapterSettings.android.fileName, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.ANDROID_CURRENT_VERSION));
+                AddXmlChild(document, androidPackages, new SelectedAdapterInfo { name = adapterSettings.android.fileName }, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID));
             }
 
             if (adapterSettings.useIOS == true)
             {
-                AddXmlChild(document, iosPods, adapterSettings.ios.fileName, "iosPod", "name", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.IOS_CURRENT_VERSION));
+                AddXmlChild(document, iosPods, new SelectedAdapterInfo { name = adapterSettings.ios.fileName }, "iosPod", "name", GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS));
             }
 
-            AppendChildren(adapterSettings.android, document, androidPackages, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.ANDROID_CURRENT_VERSION));
-            AppendChildren(adapterSettings.ios, document, iosPods, "iosPod", "name", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.IOS_CURRENT_VERSION));
+            AppendChildren(adapterSettings.android, document, androidPackages, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID));
+            AppendChildren(adapterSettings.ios, document, iosPods, "iosPod", "name", GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS));
 
             EditorCoroutines.StartCoroutine(SaveGamebaseAllDependenciesFile(document, callback), this);
         }
@@ -81,25 +81,31 @@ namespace NhnCloud.GamebaseTools.SettingTool
             string newAttributeName,
             string version)
         {
-            var fileNameList = GetFileListByPlatform(platform);
+            var adapterInfoList = GetSelectedAdapterInfoListByPlatform(platform);
 
-            foreach (var fileName in fileNameList)
+            foreach (var adapterInfo in adapterInfoList)
             {
-                AddXmlChild(document, parentNode, fileName, newNodeName, newAttributeName, version);
+                AddXmlChild(document, parentNode, adapterInfo, newNodeName, newAttributeName, version);
             }
+        }
+
+        public class SelectedAdapterInfo
+        {
+            public string name;
+            public List<string> repositories;
         }
 
         private void AddXmlChild(
             XmlDocument document,
             XmlNode parentNode,
-            string fileName,
+            SelectedAdapterInfo adapterInfo,
             string newNodeName,
             string newAttributeName,
             string version)
         {
             var newNode = document.CreateElement(newNodeName);
             var attribute = document.CreateAttribute(newAttributeName);
-            attribute.Value = fileName;
+            attribute.Value = adapterInfo.name;
             newNode.Attributes.Append(attribute);
 
             // Platform-specific version information must be written in a different way.
@@ -107,6 +113,21 @@ namespace NhnCloud.GamebaseTools.SettingTool
             {
                 case "androidPackage":
                     {
+                        if (adapterInfo.repositories != null)
+                        {
+                            var repositoriesNode = document.CreateElement("repositories");
+                            newNode.AppendChild(repositoriesNode);
+
+                            XmlElement repositoryNode;
+
+                            foreach (var repository in adapterInfo.repositories)
+                            {
+                                repositoryNode = document.CreateElement("repository");
+                                repositoryNode.InnerText = repository;
+                                repositoriesNode.AppendChild(repositoryNode);
+                            }                            
+                        }
+
                         attribute.Value = string.Format("{0}:{1}", attribute.Value, version);
                         break;
                     }
@@ -122,29 +143,28 @@ namespace NhnCloud.GamebaseTools.SettingTool
             parentNode.AppendChild(newNode);
         }
 
-        private List<string> GetFileListByPlatform(SettingToolResponse.AdapterSettings.Platform platform)
+        private List<SelectedAdapterInfo> GetSelectedAdapterInfoListByPlatform(SettingToolResponse.AdapterSettings.Platform platform)
         {
-            List<string> fileNameList = new List<string>();
+            var adapterInfoList = new List<SelectedAdapterInfo>();
+            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.authentication.adapters));
+            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.purchase.adapters));
+            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.push.adapters));
+            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.etc.adapters));
 
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.authentication.adapters)).ToList();
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.purchase.adapters)).ToList();
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.push.adapters)).ToList();
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.etc.adapters)).ToList();
-
-            return fileNameList;
+            return adapterInfoList;
         }
 
-        private List<string> GetFileListByAdapterList(List<SettingToolResponse.AdapterSettings.Platform.Category.Adapter> adapterList)
+        private List<SelectedAdapterInfo> GetSelectedAdapterInfoListByAdapterList(List<SettingToolResponse.AdapterSettings.Platform.Category.Adapter> adapterList)
         {
             if (adapterList == null)
             {
-                return new List<string>();
+                return new List<SelectedAdapterInfo>();
             }
 
             return adapterList
                 .OfType<SettingToolResponse.AdapterSettings.Platform.Category.Adapter>()
                 .Where(adapter => adapter.used == true)
-                .Select(adapter => adapter.fileName).ToList();
+                .Select(adapter => new SelectedAdapterInfo { name = adapter.fileName, repositories = adapter.repositories } ).ToList();
         }
     }
 }

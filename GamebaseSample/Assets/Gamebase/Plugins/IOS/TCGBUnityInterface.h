@@ -9,8 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "AppDelegateListener.h"
 
+@class TCGBUnityPluginDelegate;
+
 @interface TCGBUnityInterface : NSObject <AppDelegateListener>
 
 + (TCGBUnityInterface *)sharedUnityInterface;
+
+- (void)addUnityPluginAdapter:(NSString *)type;
 
 @end

@@ -23,7 +23,6 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
         public IEnumerator SendWebRequest(Action callback = null, Action<float> callbackProgress = null)
         {
             request.timeout = TIMEOUT;
-            //request.SetRequestHeader("Content-Type", "application/json");
             
             yield return request.SendWebRequest();
 

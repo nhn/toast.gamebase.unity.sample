@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Toast.Gamebase.LitJson;
 using UnityEngine;
@@ -26,50 +26,236 @@ namespace Toast.Gamebase
         {
             public class GamebaseEventMessage
             {
+                /// <summary>
+                /// Represents the type of an event.
+                /// The value of the GamebaseEventCategory class is assigned.
+                /// </summary>
                 public string category;
+
+                /// <summary>
+                /// JSON String data that can be converted into a VO that is appropriate for each category.
+                /// </summary>
                 public string data;
             }
 
             public class GamebaseEventServerPushData
             {
+                /// <summary>
+                /// Information of the popup to display.
+                /// </summary>
+                public ServerPushPopup popup;
+
+                /// <summary>
+                /// A reserved field for additional information.
+                /// </summary>
                 public string extras;
 
+                public class ServerPushPopup
+                {
+                    /// <summary>
+                    /// If device language does not exist in the message list, the default language is displayed.
+                    /// </summary>
+                    public string defaultLanguage;
+
+                    /// <summary>
+                    /// A list of messages by language.
+                    /// </summary>
+                    public Dictionary<string, ServerPushPopupMessage> messages;
+            
+                    public class ServerPushPopupMessage
+                    {
+                        /// <summary>
+                        /// The title of the popup.
+                        /// </summary>
+                        public string title;
+
+                        /// <summary>
+                        /// The detaile message of the popup.
+                        /// </summary>
+                        public string message;
+                    }
+                }
+
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static GamebaseEventServerPushData From(string jsonString)
                 {
-                    GamebaseEventServerPushData gamebaseEventServerPushData = JsonMapper.ToObject<GamebaseEventServerPushData>(jsonString);
-                    return gamebaseEventServerPushData;
+                    GamebaseEventServerPushData serverPushData = JsonMapper.ToObject<GamebaseEventServerPushData>(jsonString);
+                    return serverPushData;
                 }
             }
 
             public class GamebaseEventObserverData
             {
+                /// <summary>
+                /// This information represents the status value.
+                /// </summary>
                 public int code;
-                public string extras;
+
+                /// <summary>
+                /// This information shows the message about status.
+                /// </summary>
                 public string message;
 
+                /// <summary>
+                /// A reserved field for additional information.
+                /// </summary>
+                public string extras;
+
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static GamebaseEventObserverData From(string jsonString)
                 {
-                    GamebaseEventObserverData gamebaseEventObserverData = JsonMapper.ToObject<GamebaseEventObserverData>(jsonString);
-                    return gamebaseEventObserverData;
+                    GamebaseEventObserverData observerData = JsonMapper.ToObject<GamebaseEventObserverData>(jsonString);
+                    return observerData;
                 }
             }
 
+            public class GamebaseEventLoggedOutData
+            {
+                /// <summary>
+                /// This information shows the message about status.
+                /// </summary>
+                public string message;
+
+                /// <summary>
+                /// A reserved field for additional information.
+                /// </summary>
+                public string extras;
+
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
+                public static GamebaseEventLoggedOutData From(string jsonString)
+                {
+                    GamebaseEventLoggedOutData loggedOutData = JsonMapper.ToObject<GamebaseEventLoggedOutData>(jsonString);
+                    return loggedOutData;
+                }
+            }
+            
+            public class GamebaseEventIdPRevokedData
+            {
+                /// <summary>
+                /// Indicates the GamebaseIdPRevokedCode value.
+                /// <para/><see cref="GamebaseIdPRevokedCode"/>
+                /// </summary>
+                public int code;
+
+                /// <summary>
+                /// Indicates the revoked IdP type.
+                /// </summary>
+                public string idPType;
+
+                /// <summary>
+                /// Indicates the list of IdPs mapped to the current account.
+                /// </summary>
+                public List<string> authMappingList;
+
+                /// <summary>
+                /// A reserved field for additional information.
+                /// </summary>
+                public string extras;
+
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
+                public static GamebaseEventIdPRevokedData From(string jsonString)
+                {
+                    GamebaseEventIdPRevokedData idPRevokedData = JsonMapper.ToObject<GamebaseEventIdPRevokedData>(jsonString);
+                    return idPRevokedData;
+                }
+            }
+            
             public class PurchasableReceipt
             {
-                public long itemSeq;
-                public float price;           
-                public string currency;
-                public string paymentSeq;
-                public string purchaseToken;
-                public string marketItemId;
-                public string productType;
-                public string userId;
-                public string paymentId;
-                public string originalPaymentId;
-                public string payload;
-                public long purchaseTime;
-                public long expiryTime;
+                /// <summary>
+                /// gamebaseProductId registered in the TOAST console.
+                /// </summary>
+                public string gamebaseProductId;
 
+                /// <summary>
+                /// Item unique identifier.
+                /// </summary>
+                public long itemSeq;
+
+                /// <summary>
+                /// Price of an item.
+                /// </summary>
+                public float price;
+
+                /// <summary>
+                /// Type of currency.
+                /// </summary>
+                public string currency;
+
+                /// <summary>
+                /// Payment unique identifier.
+                /// </summary>
+                public string paymentSeq;
+
+                /// <summary>
+                /// You will need paymentSeq and purchaseToken when calling the Consume API.
+                /// Refer to the following document for the Consume API.
+                /// <para/><see href="https://docs.toast.com/en/Game/Gamebase/en/api-guide/#purchase-iap">Consume API</see>
+                /// </summary>
+                public string purchaseToken;
+
+                /// <summary>
+                /// Item unique identifier registered in the Market.
+                /// </summary>
+                public string marketItemId;
+
+                /// <summary>
+                /// Type of product. (e.g. consumable or auto renewable)
+                /// <para/><see cref="GamebasePurchase.ProductType"/>
+                /// </summary>
+                public string productType;
+
+                /// <summary>
+                /// User ID.
+                /// </summary>
+                public string userId;
+
+                /// <summary>
+                /// Latest store payment unique identifier.
+                /// </summary>
+                public string paymentId;
+
+                /// <summary>
+                /// Original store payment unique identifier.
+                /// </summary>
+                public string originalPaymentId;
+
+                /// <summary>
+                /// The input payload is delivered when the purchase is completed.
+                /// </summary>
+                public string payload;
+
+                /// <summary>
+                /// The time the product was purchased.
+                /// </summary>
+                public long purchaseTime;
+
+                /// <summary>
+                /// Expiry time.
+                /// </summary>
+                public long expiryTime;
+                
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static PurchasableReceipt From(string jsonString)
                 {
                     PurchasableReceipt purchasableReceipt = JsonMapper.ToObject<PurchasableReceipt>(jsonString);
@@ -79,11 +265,31 @@ namespace Toast.Gamebase
 
             public class PushMessage
             {
-                public string body;
-                public string extras;
+                /// <summary>
+                /// The unique ID of a message.
+                /// </summary>
                 public string id;
+
+                /// <summary>
+                /// The title of the push message.
+                /// </summary>
                 public string title;
 
+                /// <summary>
+                /// The body of the push message.
+                /// </summary>
+                public string body;
+
+                /// <summary>
+                /// You can check the custom information sent when sending a push in JSON format.
+                /// </summary>
+                public string extras;
+
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static PushMessage From(string jsonString)
                 {
                     PushMessage pushMessage = JsonMapper.ToObject<PushMessage>(jsonString);
@@ -93,10 +299,26 @@ namespace Toast.Gamebase
 
             public class PushAction
             {
+                /// <summary>
+                /// Button action type.
+                /// </summary>
                 public string actionType;
+
+                /// <summary>
+                /// PushMessage data.
+                /// </summary>
                 public PushMessage message;
+
+                /// <summary>
+                /// User text typed in Push console.
+                /// </summary>
                 public string userText;
 
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="jsonString">Extracts object instance from this JSON string.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static PushAction From(string jsonString)
                 {
                     PushAction pushAction = JsonMapper.ToObject<PushAction>(jsonString);
@@ -109,19 +331,30 @@ namespace Toast.Gamebase
         {
             /// <summary>
             /// When Gamebase Unity SDK is initialized by using Initialize API, LaunchingInfo object results will be delievered.
-            /// This LaunchingInfo object contains settings of the TOAST Gamebase Console and game status.
+            /// This LaunchingInfo object contains settings of the NHN Cloud Gamebase Console and game status.
             /// </summary>
             public class LaunchingInfo
             {
+                /// <summary>
+                /// Launching information of Gamebase.
+                /// </summary>
                 public GamebaseLaunching launching;
+                
+                /// <summary>
+                /// Appkey of NHN Cloud Products linked to Gamebase.
+                /// </summary>
                 public TCProductInfo tcProduct;
+                
+                /// <summary>
+                /// IAP store information registered on NHN Cloud console.
+                /// </summary>
                 public List<TCIAPInfo> tcIap;
 
                 /// <summary>
-                /// Launching Information entered by users through TOAST Launching Console.
-                /// Retrieve what user entered from TOAST Console in JSON string format.
-                /// Refer to the following guide for detail configuration of TOAST Launching.
-                /// <para/><see href="https://docs.toast.com/en/Game/Gamebase/en/oper-management/#config">Gamebase and TOAST integration</see>
+                /// Launching Information entered by users through NHN Cloud Launching Console.
+                /// Retrieve what user entered from NHN Cloud Console in JSON string format.
+                /// Refer to the following guide for detail configuration of NHN Cloud Launching.
+                /// <para/><see href="https://docs.toast.com/en/Game/Gamebase/en/oper-management/#config">Gamebase and NHN Cloud integration</see>
                 /// </summary>
                 public string tcLaunching;
 
@@ -130,24 +363,75 @@ namespace Toast.Gamebase
                 /// </summary>
                 public class GamebaseLaunching
                 {
+                    /// <summary>
+                    /// Status information of game app version set in the Gamebase Unity SDK initialization.
+                    /// </summary>
                     public LaunchingStatus status;
-                    public APP app;
-                    public Maintenance maintenance;
-                    public LaunchingNotice notice;
 
                     /// <summary>
-                    /// App information registered in the TOAST Console.
-                    /// <para/>TOAST Console > Game > Gamebase > App
+                    /// User information are registered in the Gamebase Console.
+                    /// </summary>
+                    public User user;
+
+                    /// <summary>
+                    /// App information registered in the NHN Cloud Console.
+                    /// </summary>
+                    public APP app;
+
+                    /// <summary>
+                    /// Maintenance information registered in the NHN Cloud Console is as follows.
+                    /// </summary>
+                    public Maintenance maintenance;
+
+                    /// <summary>
+                    /// Following notices are registered in the Gamebase Console.
+                    /// </summary>
+                    public LaunchingNotice notice;
+
+                    public class User
+                    {
+                        /// <summary>
+                        /// Test device.
+                        /// </summary>
+                        public TestDevice testDevice;
+
+                        public class TestDevice
+                        {
+                            /// <summary>
+                            /// Whether the test device matches.
+                            /// </summary>
+                            public bool matchingFlag;
+                            /// <summary>
+                            /// matched type. (e.g. deviceKey, ip)
+                            /// </summary>
+                            public List<string> matchingTypes;
+                        }
+                    }
+
+                    /// <summary>
+                    /// App information registered in the NHN Cloud Console.
+                    /// <para/>NHN Cloud Console > Game > Gamebase > App
                     /// </summary>
                     public class APP
                     {
+                        /// <summary>
+                        /// Information set in the console app.
+                        /// </summary>
                         public AccessInfo accessInfo;
+
+                        /// <summary>
+                        /// In-app URL to be used within the app.
+                        /// </summary>
                         public RelatedURLs relatedUrls;
+
+                        /// <summary>
+                        /// App Installation information.
+                        /// </summary>
                         public Install install;
 
                         /// <summary>
                         /// Authentication information.
-                        /// <para/>TOAST Console > Game > Gamebase > App > Authentication Information
+                        /// <para/>NHN Cloud Console > Game > Gamebase > App > Authentication Information
                         /// </summary>
                         public Dictionary<string, LaunchingIDPInfo> idP;
 
@@ -156,15 +440,21 @@ namespace Toast.Gamebase
                         /// </summary>
                         public string typeCode;
 
+                        /// <summary>
+                        /// The login URL to use within the app.
+                        /// </summary>
                         public LoginUrls loginUrls;
+
+                        /// <summary>
+                        /// Customer service information.
+                        /// </summary>
                         public CustomerService customerService;
-
-
+                        
                         public class AccessInfo
                         {
                             /// <summary>
                             /// Server URL.
-                            /// <para/>TOAST Console > Game > Gamebase > App > Server URL
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > Server URL
                             /// </summary>
                             public string serverAddress;
                         }
@@ -173,19 +463,19 @@ namespace Toast.Gamebase
                         {
                             /// <summary>
                             /// Terms of Use.
-                            /// <para/>TOAST Console > Game > Gamebase > App > InApp URL > Terms of Use
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > InApp URL > Terms of Use
                             /// </summary>
                             public string termsUrl;
 
                             /// <summary>
                             /// Punishment Provision.
-                            /// <para/>TOAST Console > Game > Gamebase > App > InApp URL > Punishment Provision
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > InApp URL > Punishment Provision
                             /// </summary>
                             public string punishRuleUrl;
 
                             /// <summary>
                             /// Personal Info Agreement.
-                            /// <para/>TOAST Console > Game > Gamebase > App > InApp URL > Personal Info Agreement
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > InApp URL > Personal Info Agreement
                             /// </summary>
                             public string personalInfoCollectionUrl;
                         }
@@ -194,7 +484,7 @@ namespace Toast.Gamebase
                         {
                             /// <summary>
                             /// Install URL.
-                            /// <para/>TOAST Console > Game > Gamebase > App > Install URL
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > Install URL
                             /// </summary>
                             public string url;
                         }
@@ -211,19 +501,19 @@ namespace Toast.Gamebase
                         {
                             /// <summary>
                             /// Client ID.
-                            /// <para/>TOAST Console > Game > Gamebase > App > Authentication Information > Client ID
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > Authentication Information > Client ID
                             /// </summary>
                             public string clientId;
 
                             /// <summary>
                             /// Secret Key.
-                            /// <para/>TOAST Console > Game > Gamebase > App > Authentication Information > Secret Key
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > Authentication Information > Secret Key
                             /// </summary>
                             public string clientSecret;
 
                             /// <summary>
                             /// Additional Info.
-                            /// <para/>TOAST Console > Game > Gamebase > App > Authentication Information > Additional Info 
+                            /// <para/>NHN Cloud Console > Game > Gamebase > App > Authentication Information > Additional Info 
                             /// </summary>
                             public string additional;
                         }
@@ -251,15 +541,15 @@ namespace Toast.Gamebase
                     }
 
                     /// <summary>
-                    /// Maintenance information registered in the TOAST Console.
-                    /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register
+                    /// Maintenance information registered in the NHN Cloud Console.
+                    /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register
                     /// </summary>
                     public class Maintenance
                     {
                         /// <summary>
                         /// Detailed maintenance URL.
                         /// Displayed when 'External link' type is selected in the Maintenance Page.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > URL
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > URL
                         /// </summary>
                         public string url;
 
@@ -272,7 +562,7 @@ namespace Toast.Gamebase
                         /// <summary>
                         /// This pageTypeCode can be one of the following types.
                         /// <para/>DEFAULT: The gamebase webview html.(bundled resource in gamebase)
-                        /// <para/>DEFAULT_HTML: The html registered in the TOAST Console.
+                        /// <para/>DEFAULT_HTML: The html registered in the NHN Cloud Console.
                         /// <para/>URL: The external url.
                         /// <para/>URL_PARAM: The external url with maintenance information parameter.
                         /// </summary>
@@ -281,31 +571,31 @@ namespace Toast.Gamebase
                         /// <summary>
                         /// Provide reasons for maintenance simply.
                         /// This message is not shown to game users.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Reason
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Reason
                         /// </summary>
                         public string reason;
 
                         /// <summary>
                         /// Maintenance message.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Message
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Message
                         /// </summary>
                         public string message;
 
                         /// <summary>
                         /// Standard timezone.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Time > Timezone
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Time > Timezone
                         /// </summary>
                         public string timezone;
 
                         /// <summary>
                         /// Start time of maintenance. (ISO 8601)
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Time > Start Date
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Time > Start Date
                         /// </summary>
                         public string beginDate;
 
                         /// <summary>
                         /// End time of maintenance. (ISO 8601)
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Time > End Date
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Maintenance > Maintenance Register > Time > End Date
                         /// </summary>
                         public string endDate;
 
@@ -318,30 +608,35 @@ namespace Toast.Gamebase
                         /// End time of maintenance. (Epoch time)
                         /// </summary>
                         public long localEndDate;
+
+                        /// <summary>
+                        /// Display Date/Time on maintenance page.
+                        /// </summary>
+                        public bool hideDate;
                     }
 
                     /// <summary>
-                    /// Notice information registered in the TOAST Console.
-                    /// <para/>TOAST Console > Game > Gamebase > Operation > Notice > Notice Register
+                    /// Notice information registered in the NHN Cloud Console.
+                    /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Notice > Notice Register
                     /// </summary>
                     public class LaunchingNotice
                     {
                         /// <summary>
                         /// Detailed message.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Notice > Notice Register > Message
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Notice > Notice Register > Message
                         /// </summary>
                         public string message;
 
                         /// <summary>
                         /// Title of notice.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Notice > Notice Register > Title
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Notice > Notice Register > Title
                         /// </summary>
                         public string title;
 
                         /// <summary>
                         /// The url of a page.
                         /// Displayed when 'Close + More' is selected in the Bottom button type.
-                        /// <para/>TOAST Console > Game > Gamebase > Operation > Notice > Notice Register > Bottom button type
+                        /// <para/>NHN Cloud Console > Game > Gamebase > Operation > Notice > Notice Register > Bottom button type
                         /// </summary>
                         public string url;
                     }                   
@@ -379,7 +674,7 @@ namespace Toast.Gamebase
                 }
 
                 /// <summary>
-                /// IAP store information registered in the TOAST Console.
+                /// IAP store information registered in the NHN Cloud Console.
                 /// </summary>
                 public class TCIAPInfo
                 {
@@ -395,11 +690,7 @@ namespace Toast.Gamebase
 
                     /// <summary>
                     /// Store Code.
-                    /// <para/>App Store    | AS        | only iOS
-                    /// <para/>Google Play  | GG        | only Android
-                    /// <para/>One Store    | ONESTORE  | only Android
-                    /// <para/>Windows      | WIN       | only Unity Standalone
-                    /// <para/>Web          | WEB       | only Unity WebGL and JavaScript
+                    /// Check the <see cref="GamebaseStoreCode"/> class for store code types.
                     /// </summary>
                     public string storeCode;
                 }                
@@ -434,8 +725,20 @@ namespace Toast.Gamebase
 
             public class UpdateInfo
             {
+                /// <summary>
+                /// Market URL to update the application.
+                /// </summary>
                 public string installUrl;
+
+                /// <summary>
+                /// This message indicates to the user that an update is needed.
+                /// </summary>
                 public string message;
+
+                /// <summary>
+                /// This url is displayed in the web view when the 'Show Details' button is clicked.
+                /// </summary>
+                public string detailUrl;
 
                 public static UpdateInfo From(GamebaseError error)
                 {
@@ -457,9 +760,19 @@ namespace Toast.Gamebase
 
         public static class Auth
         {
+            /// <summary>
+            /// The AuthToken represents an authenticated token and user information for using services.
+            /// </summary>
             public class AuthToken
             {
+                /// <summary>
+                /// Token information
+                /// </summary>
                 public Token token;
+                
+                /// <summary>
+                /// User information
+                /// </summary>
                 public Common.Member member;
 
                 public class Token
@@ -512,22 +825,27 @@ namespace Toast.Gamebase
 
                 /// <summary>
                 ///  Banning message.
-                /// <para/>TOAST Console > Game > Gamebase > Ban > Register Ban > Message
+                /// <para/>NHN Cloud Console > Game > Gamebase > Ban > Register Ban > Message
                 /// </summary>
                 public string message;
 
                 /// <summary>
                 /// Customer center information. (e.g. Customer center email or contact)
-                /// <para/>TOAST Console > Game > Gamebase > App > Customer center information
+                /// <para/>NHN Cloud Console > Game > Gamebase > App > Customer center information
                 /// </summary>
                 public string csInfo;
 
                 /// <summary>
                 /// Service center. (e.g. The URL of the customer center web page.)
-                /// <para/>TOAST Console > Game > Gamebase > App > InApp URL > Service center
+                /// <para/>NHN Cloud Console > Game > Gamebase > App > InApp URL > Service center
                 /// </summary>
                 public string csUrl;
 
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="error">Extracts object instance from this error.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static BanInfo From(GamebaseError error)
                 {
                     if (error == null || error.extras == null)
@@ -549,36 +867,97 @@ namespace Toast.Gamebase
             {
                 public class Account
                 {
+                    /// <summary>
+                    /// Issued ID.
+                    /// </summary>
                     public string id;
+
+                    /// <summary>
+                    /// Issued password.
+                    /// </summary>
                     public string password;
                 }
 
                 public class Condition
                 {
+                    /// <summary>
+                    /// Issued transfer account type.
+                    /// </summary>
                     public string transferAccountType;
+
+                    /// <summary>
+                    /// Account expiration type.
+                    /// </summary>
                     public string expirationType;
+
+                    /// <summary>
+                    /// Account expiration date.
+                    /// </summary>
                     public long expirationDate;
                 }
 
+                /// <summary>
+                /// Issued type.
+                /// </summary>
                 public string issuedType;
-                public Account account;
-                public Condition condition;
-            }
 
-            public class TransferKeyInfo
-            {
-                public string transferKey;
-                public long regDate;
-                public long expireDate;
+                /// <summary>
+                /// Issued account information.
+                /// </summary>
+                public Account account;
+
+                /// <summary>
+                /// Issued account condition.
+                /// </summary>
+                public Condition condition;
             }
 
             public class ForcingMappingTicket
             {
+                /// <summary>
+                /// User ID.
+                /// </summary>
                 public string userId;
+                
+                /// <summary>
+                /// User ID that can be cleared by force mapping.
+                /// </summary>
                 public string mappedUserId;
+
+                /// <summary>
+                /// The status of mapped user.
+                /// Use this value if you want to restrict addMapping according to user status.
+                /// 
+                /// <para/><see href="https://docs.toast.com/ko/Game/Gamebase/ko/api-guide/#member-valid-code"/>
+                /// In ForcingMappingTicket, mappedUserValid cannot be 'D' or 'M'.
+                /// 
+                /// - Y : Normal user. ('Y'es)
+                /// - D : Withdrawn user. ('D'eleted)
+                /// - B : 'B'anned user.
+                /// - T : Withdrawal-suspended user. ('T'emporaryWithdrawn)
+                /// - P : Ban-suspended user. ('P'ostpone)
+                /// - M : 'M'issing account
+                /// </summary>
+                public string mappedUserValid;
+
+                /// <summary>
+                /// IdP code passed when calling addMapping.
+                /// </summary>
                 public string idPCode;
+
+                /// <summary>
+                /// Issued forced mapping key.
+                /// </summary>
                 public string forcingMappingKey;
+
+                /// <summary>
+                /// Expiration date of issued ticket.
+                /// </summary>
                 public long expirationDate;
+
+                /// <summary>
+                /// Gamebase accessToken issued to the idP passed when calling addMapping.
+                /// </summary>
                 public string accessToken;
                 
                 [Obsolete("As of release 2.9.0, use GamebaseResponse.Auth.ForcingMappingTicket.From instead.")]
@@ -587,6 +966,11 @@ namespace Toast.Gamebase
                     return GetForcingMappingTicket(error);
                 }
 
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="error">Extracts object instance from this error.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static ForcingMappingTicket From(GamebaseError error)
                 {
                     return GetForcingMappingTicket(error);
@@ -612,12 +996,35 @@ namespace Toast.Gamebase
 
             public class TransferAccountFailInfo
             {
-                public string appId         = string.Empty;
-                public string id            = string.Empty;
-                public string status        = string.Empty;
-                public int failCount        = 0;
-                public long blockEndDate    = 0;
-                public long regDate         = 0;
+                /// <summary>
+                /// App ID.
+                /// </summary>
+                public string appId = string.Empty;
+
+                /// <summary>
+                /// Blocked user ID.
+                /// </summary>
+                public string id = string.Empty;
+
+                /// <summary>
+                /// Value provided only if blocked. (always the value is 'B')
+                /// </summary>
+                public string status = string.Empty;
+
+                /// <summary>
+                /// Number of failures.
+                /// </summary>
+                public int failCount = 0;
+
+                /// <summary>
+                /// Block end date.
+                /// </summary>
+                public long blockEndDate = 0;
+
+                /// <summary>
+                /// Block registration date.
+                /// </summary>
+                public long regDate = 0;
 
                 [Obsolete("As of release 2.9.0, use GamebaseResponse.Auth.TransferAccountFailInfo.From instead.")]
                 public static TransferAccountFailInfo MakeTransferAccountFailInfo(GamebaseError error)
@@ -625,6 +1032,11 @@ namespace Toast.Gamebase
                     return GetTransferAccountFailInfo(error);
                 }
 
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="error">Extracts object instance from this error.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static TransferAccountFailInfo From(GamebaseError error)
                 {
                     return GetTransferAccountFailInfo(error);
@@ -784,6 +1196,22 @@ namespace Toast.Gamebase
                 /// The input payload is delivered when the purchase is completed.
                 /// </summary>
                 public string payload;
+
+                /// <summary>
+                /// Store code.
+                /// Check the <see cref="GamebaseStoreCode"/> class for store code types.
+                /// </summary>
+                public string storeCode;
+                
+                /// <summary>
+                /// Whether promotion purchase
+                /// </summary>
+                public bool isPromotion;
+                
+                /// <summary>
+                /// Whether test purchase
+                /// </summary>
+                public bool isTestPurchase;
             }
 
             /// <summary>
@@ -800,7 +1228,123 @@ namespace Toast.Gamebase
                 /// This List contains results of failed receipt.
                 /// </summary>
                 public List<PurchasableReceipt> failList;
-            }            
+            }
+
+            public class PurchasableSubscriptionStatus
+            {
+                /// <summary>
+                /// The code defined internally by Gamebase for the store where the app is installed.
+                /// </summary>
+                public string storeCode;
+
+                /// <summary>
+                /// The payment identifier of a store.
+                /// </summary>
+                public string paymentId;
+
+                /// <summary>
+                /// PaymentId is changed whenever product subscription is renewed.
+                /// This field shows the paymentId that was used when a subscription product was first purchased.
+                /// This value does not guarantee to be always valid, as it can have no value depending on the store
+                /// depending on the store from which the user made a purchase and the status of the payment server.
+                /// </summary>
+                public string originalPaymentId;
+
+                /// <summary>
+                /// Payment unique identifier.
+                /// </summary>
+                public string paymentSeq;
+
+                /// <summary>
+                /// The product ID of a purchased item.
+                /// </summary>
+                public string marketItemId;
+
+                /// <summary>
+                /// Item unique identifier in IAP web console.
+                /// </summary>
+                public long itemSeq;
+
+                /// <summary>
+                /// The product type which can have the following values:
+                /// * UNKNOWN: An unknown type. Either update Gamebase SDK or contact Gamebase Customer Center.
+                /// * CONSUMABLE: A consumable product.
+                /// * AUTO_RENEWABLE: A subscription product.
+                /// </summary>
+                public string productType;
+
+                /// <summary>
+                /// This is a user ID with which a product is purchased.
+                /// If a user logs in with a user ID that is not used to purchase a product, the user cannot obtain the product they purchased.
+                /// </summary>
+                public string userId;
+
+                /// <summary>
+                /// Price of product.
+                /// </summary>
+                public float price;
+
+                /// <summary>
+                /// Currency information.
+                /// </summary>
+                public string currency;
+
+                /// <summary>
+                /// Payment identifier.
+                /// This is an important piece of information used to call 'Consume' server API with paymentSeq.
+                /// In Consume API, the parameter must be named 'accessToken' to be passed.
+                ///
+                /// Consume API : https://docs.toast.com/en/Game/Gamebase/en/api-guide/#purchase-iap
+                /// </summary>
+                public string purchaseToken;
+
+                /// <summary>
+                /// This value is used when making a purchase on Google, which can have the following values.
+                /// However, if the verification logic is temporarily disabled by Gamebase payment server due to error on Google server,
+                /// it returns only null, so please remember that it does not guarantee a valid return value at all times.
+                /// * null : Normal payment
+                /// * Test : Test payment
+                /// * Promo : Promotion payment
+                /// </summary>
+                public string purchaseType;
+
+                /// <summary>
+                /// The time when the product was purchased.(epoch time)
+                /// </summary>
+                public long purchaseTime;
+
+                /// <summary>
+                /// The time when the subscription expires.(epoch time)
+                /// </summary>
+                public long expiryTime;
+
+                /// <summary>
+                /// It is the value passed to payload when calling Gamebase.Purchase.requestPurchase API.
+                ///
+                /// This field can be used to hold a variety of additional information.
+                /// For example, this field can be used to separately handle purchase
+                /// and provision of the products purchased using the same user ID and sort them by game channel or character.
+                /// </summary>
+                public string payload;
+
+                /// <summary>
+                /// Subscription status.
+                /// Refer to the following document for the entire status code.
+                /// https://docs.nhncloud.com/en/TOAST/en/toast-sdk/iap-unity/#iapsubscriptionstatusstatus
+                /// </summary>
+                public int statusCode;
+
+                /// <summary>
+                /// Description of subscription status.
+                /// </summary>
+                public string statusDescription;
+
+                /// <summary>
+                /// The product ID that is registered with the Gamebase console.
+                /// This is used when a product is purchased using Gamebase.Purchase.requestPurchase API.
+                /// </summary>
+                public string gamebaseProductId;
+            }
         }
 
         public static class Push
@@ -837,12 +1381,29 @@ namespace Toast.Gamebase
                 /// Agree to receive push notification ads at night.
                 /// </summary>
                 public bool adAgreementNight;
-
+                
+                /// <summary>
+                /// Android only
+                /// This field automatically calls the requestPermission("android.permission.POST_NOTIFICATIONS") after a successful registerPush call on Android 13 or higher OS.
+                /// </summary>
+                public bool requestNotificationPermission = true;
+                
+                /// <summary>
+                /// iOS only
+                /// If set to `true', the token will be registered even if you don't have permission to grant notifications. The default value is `false`.
+                /// </summary>
+                public bool alwaysAllowTokenRegistration = false;
+                
                 /// <summary>
                 /// The display language on the push notification UI.
                 /// </summary>
-                public string displayLanguageCode;
+                public string displayLanguageCode = null;
 
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="dataContainer">Extracts object instance from this data container.</param>
+                /// <returns>Returns an instantiated object.</returns>
                 public static PushConfiguration From(DataContainer dataContainer)
                 {
                     if (dataContainer == null || string.IsNullOrEmpty(dataContainer.data) == true)
@@ -1305,6 +1866,41 @@ namespace Toast.Gamebase
                 /// URL where you can see details about the terms and conditions
                 /// </summary>
                 public string detailPageUrl;
+            }
+
+            public class ShowTermsViewResult
+            {
+                /// <summary>
+                /// This field indicates whether the user has agreed to the Terms and Conditions agreement popup displayed.
+                /// </summary>
+                public bool isTermsUIOpened;
+                
+                /// <summary>
+                /// This field allows you to check the PushConfiguraion settings as a result of agreeing to the terms view.
+                /// If this field is not null, call Gamebase.Push.RegisterPush(PushConfiguration, GamebaseCallback).
+                /// </summary>
+                public Push.PushConfiguration pushConfiguration;
+
+                /// <summary>
+                /// A factory method that instantiates an object.
+                /// </summary>
+                /// <param name="dataContainer">Extracts object instance from this data container.</param>
+                /// <returns>Returns an instantiated object.</returns>
+                public static ShowTermsViewResult From(DataContainer dataContainer)
+                {
+                    return (dataContainer != null) ? From(dataContainer.data) : null;
+                }
+                
+                private static ShowTermsViewResult From(string jsonString)
+                {
+                    if (string.IsNullOrEmpty(jsonString) == true)
+                    {
+                        return null;
+                    }
+ 
+                    return JsonMapper.ToObject<ShowTermsViewResult>(jsonString);
+                }
+
             }
         }
     }    

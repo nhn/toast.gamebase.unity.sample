@@ -10,7 +10,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public static WebSocketRequest.RequestVO GetIDPLoginMessage(
             string providerName, 
             string session = null,
-            string authorizationCode = null)
+            string authorizationCode = null,
+            string redirectUri = null)
         {
             var launchingInfoVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
             var idpDic = launchingInfoVO.launching.app.idP;
@@ -20,7 +21,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             
             if (providerName.Equals(GamebaseAuthProvider.GUEST, StringComparison.Ordinal) == true)
             {
-                vo.payload.idPInfo.accessToken = string.Format("GAMEBASE{0}", GamebaseUnitySDK.UUID);
+                vo.payload.idPInfo.accessToken = string.Format("GAMEBASE{0}", GamebaseSystemInfo.UUID);
             }
             else
             {
@@ -33,26 +34,28 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 {
                     vo.payload.idPInfo.subCode = "web";
                 }
-            }   
+
+                vo.payload.idPInfo.redirectUri = redirectUri;
+            }
 
             vo.payload.idPInfo.authorizationCode = authorizationCode;
             vo.payload.idPInfo.clientId = idpDic[providerName].clientId;
             vo.payload.idPInfo.clientSecret = idpDic[providerName].clientSecret;
             vo.payload.idPInfo.idPCode = providerName;
             vo.payload.member.clientVersion = GamebaseUnitySDK.AppVersion;
-            vo.payload.member.deviceCountryCode = GamebaseUnitySDK.CountryCode;
-            vo.payload.member.deviceKey = GamebaseUnitySDK.DeviceKey;
-            vo.payload.member.deviceModel = GamebaseUnitySDK.DeviceModel;
-            vo.payload.member.osVersion = GamebaseUnitySDK.OsVersion;
-            vo.payload.member.deviceLanguage = GamebaseUnitySDK.DeviceLanguageCode;
+            vo.payload.member.deviceCountryCode = GamebaseSystemInfo.CountryCode;
+            vo.payload.member.deviceKey = GamebaseSystemInfo.DeviceKey;
+            vo.payload.member.deviceModel = GamebaseSystemInfo.DeviceModel;
+            vo.payload.member.osVersion = GamebaseSystemInfo.OsVersion;
+            vo.payload.member.deviceLanguage = GamebaseSystemInfo.DeviceLanguageCode;
             vo.payload.member.displayLanguage = GamebaseUnitySDK.DisplayLanguageCode;
             vo.payload.member.network = Application.internetReachability.ToString();
-            vo.payload.member.osCode = GamebaseUnitySDK.Platform;
+            vo.payload.member.osCode = GamebaseSystemInfo.Platform;
             vo.payload.member.sdkVersion = GamebaseUnitySDK.SDKVersion;
             vo.payload.member.storeCode = launchingInfoVO.launching.app.storeCode;
             vo.payload.member.telecom = string.Empty;
             vo.payload.member.usimCountryCode = "ZZ";
-            vo.payload.member.uuid = GamebaseUnitySDK.UUID;
+            vo.payload.member.uuid = GamebaseSystemInfo.UUID;
 
             WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {

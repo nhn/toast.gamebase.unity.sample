@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace NhnCloud.GamebaseTools.SettingTool.Util
@@ -60,9 +62,18 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
             Dispose();
         }
 
+        class CustomCertificateHandler : CertificateHandler
+        {
+            protected override bool ValidateCertificate(byte[] certificateData)
+            {
+                return true;
+            }
+        }
+
         private static void DownloadFile(string remoteFilename, Action<StateCode, string, byte[]> callback, Action<float> callbackProgress = null)
         {
             UnityWebRequest request = UnityWebRequest.Get(remoteFilename);
+            request.certificateHandler = new CustomCertificateHandler();
             var helper = new UnityWebRequestHelper(request);
 
             EditorCoroutine.Start(helper.SendWebRequest(() =>

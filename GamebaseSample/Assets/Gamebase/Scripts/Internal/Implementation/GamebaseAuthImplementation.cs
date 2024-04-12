@@ -101,6 +101,22 @@ namespace Toast.Gamebase.Internal
             auth.LoginForLastLoggedInProvider(handle);
         }
 
+        public void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("LoginForLastLoggedInProviderWithAdditionalInfo");
+            GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> loginCallback = (authToken, error) =>
+            {
+                if (Gamebase.IsSuccess(error) == true)
+                {
+                    SetUserIdOfIndicatorReport();
+                }
+                callback(authToken, error);
+            };
+
+            int handle = GamebaseCallbackHandler.RegisterCallback(loginCallback);
+            auth.LoginForLastLoggedInProvider(additionalInfo, handle);
+        }
+        
         public void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName("ChangeLogin");

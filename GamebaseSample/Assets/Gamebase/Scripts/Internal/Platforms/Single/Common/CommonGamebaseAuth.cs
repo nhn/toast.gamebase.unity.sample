@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
+using GamePlatform.Logger;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -241,6 +242,11 @@ namespace Toast.Gamebase.Internal.Single
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
             GamebaseErrorNotifier.FireNotSupportedAPI(this, callback);
             GamebaseCallbackHandler.UnregisterCallback(handle);
+        }
+
+        public void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, int handle)
+        {
+            LoginForLastLoggedInProvider(handle);
         }
 
         public void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, int handle)
@@ -787,14 +793,12 @@ namespace Toast.Gamebase.Internal.Single
 
         private void LoginWithCredentialInfo(Dictionary<string, object> credentialInfo, int handle)
         {
-            if (false == CanLogin(handle))
+            if (CanLogin(handle) == false)
             {
                 return;
             }
 
-            if (null == credentialInfo ||
-                false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.PROVIDER_NAME) ||
-                (false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.ACCESS_TOKEN) && false == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.AUTHORIZATION_CODE)))
+            if (IsValidCredential(credentialInfo) == false)
             {
                 var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken>>(handle);
                 callback(null, new GamebaseError(GamebaseErrorCode.AUTH_IDP_LOGIN_INVALID_IDP_INFO, Domain));
@@ -802,22 +806,64 @@ namespace Toast.Gamebase.Internal.Single
                 return;
             }
 
-            var providerName = (string)credentialInfo[GamebaseAuthProviderCredential.PROVIDER_NAME];
-            var accessToken = string.Empty;
-            var authCode = string.Empty;
+            var providerName = GetValueInDict<string>(GamebaseAuthProviderCredential.PROVIDER_NAME, credentialInfo);
+            var accessToken = GetValueInDict<string>(GamebaseAuthProviderCredential.ACCESS_TOKEN, credentialInfo);
+            var authCode = GetValueInDict<string>(GamebaseAuthProviderCredential.AUTHORIZATION_CODE, credentialInfo);
+            var redirectUri = string.Empty;
 
-            if (true == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.ACCESS_TOKEN))
+            if (providerName.Equals(GamebaseAuthProvider.GOOGLE) == true)
             {
-                accessToken = (string)credentialInfo[GamebaseAuthProviderCredential.ACCESS_TOKEN];
+                redirectUri = GetGoogleRedirectUri(GetValueInDict<string>(GamebaseAuthProviderCredential.REDIRECT_URI, credentialInfo));
             }
 
-            if (true == credentialInfo.ContainsKey(GamebaseAuthProviderCredential.AUTHORIZATION_CODE))
-            {
-                authCode = (string)credentialInfo[GamebaseAuthProviderCredential.AUTHORIZATION_CODE];
-            }
-
-            var requestVO = AuthMessage.GetIDPLoginMessage(providerName, accessToken, authCode);
+            var requestVO = AuthMessage.GetIDPLoginMessage(providerName, accessToken, authCode, redirectUri);
             RequestGamebaseLogin(requestVO, handle);
+        }
+
+        private bool IsValidCredential(Dictionary<string, object> credentialInfo)
+        {
+            if (credentialInfo == null)
+            {
+                return false;
+            }
+
+            if (credentialInfo.ContainsKey(GamebaseAuthProviderCredential.PROVIDER_NAME) == false)
+            {
+                return false;
+            }
+
+            if (credentialInfo.ContainsKey(GamebaseAuthProviderCredential.ACCESS_TOKEN) == false &&
+                credentialInfo.ContainsKey(GamebaseAuthProviderCredential.AUTHORIZATION_CODE) == false)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private T GetValueInDict<T>(string key, Dictionary<string, object> dict)
+        {
+            if (dict.ContainsKey(key) == true)
+            {
+                return (T)dict[key];
+            }
+
+            return default(T);
+        }
+
+        private string GetGoogleRedirectUri(string redirectUri)
+        {
+            if (string.IsNullOrEmpty(redirectUri) == false)
+            {
+                return redirectUri;
+            }
+
+#if UNITY_WEBGL
+            redirectUri = "http://localhost/";
+#elif UNITY_STANDALONE
+            redirectUri = "http://localhost:8080/";
+#endif
+            return redirectUri;
         }
 
         protected bool CanLogin(int handle)
@@ -936,6 +982,7 @@ namespace Toast.Gamebase.Internal.Single
                     if (true == vo.header.isSuccessful)
                     {
                         DataContainer.SetData(VOKey.Auth.LOGIN_INFO, vo);
+                        GpLogger.UserId = vo.member.userId;
                         Heartbeat.Instance.StartHeartbeat();
                         Introspect.Instance.StartIntrospect();
                     }
@@ -966,8 +1013,7 @@ namespace Toast.Gamebase.Internal.Single
                 if (error == null)
                 {
                     GamebaseLog.Debug("ToastSdk UserId", this);
-                    GamebaseResponse.Auth.AuthToken authToken = JsonMapper.ToObject<GamebaseResponse.Auth.AuthToken>(response);                    
-                    ToastSdk.UserId = authToken.member.userId;
+                    GamebaseResponse.Auth.AuthToken authToken = JsonMapper.ToObject<GamebaseResponse.Auth.AuthToken>(response);
                     AuthRequest.LoginVO.Payload payload = JsonMapper.ToObject<AuthRequest.LoginVO.Payload>(requestVO.payload);
                     SetIapExtraData(payload.idPInfo.idPCode);
                     GamebaseLog.Debug("GamebaseIapManager Initialize", this);
@@ -1020,7 +1066,6 @@ namespace Toast.Gamebase.Internal.Single
         private void SetIapExtraData(string providerName)
         {
             GamebaseLog.Debug("SetIapExtraData", this);
-            ToastSdk.UserId = Gamebase.GetUserID();
 
             var userId = Gamebase.GetAuthProviderUserID(providerName);
             

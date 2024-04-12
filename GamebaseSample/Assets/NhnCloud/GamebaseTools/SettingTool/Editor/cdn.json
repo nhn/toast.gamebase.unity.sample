@@ -1,3 +1,4 @@
 {
-    "url": "http://static.toastoven.net/toastcloud/sdk_download/gamebase"
+    "url": "https://raw.githubusercontent.com/nhn/toast.gamebase.unity.tools.setting-tool/master",
+    "toastovenUrl": "https://static.toastoven.net/toastcloud/sdk_download/gamebase"
 }

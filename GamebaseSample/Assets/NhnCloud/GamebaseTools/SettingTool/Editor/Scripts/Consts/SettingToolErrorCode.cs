@@ -23,7 +23,8 @@
         public const int FAILED_TO_LOAD_LAUNCHING_DATA = 305;
         public const int FAILED_TO_LOAD_VERSION_FILE = 306;
         public const int FAILED_TO_LOAD_LOCALIZED_STRING_FILE = 307;
-        public const int FAILED_TO_LOAD_ADAPTER_SETTINGS_FILE = 308;
+        public const int FAILED_TO_LOAD_INSTALLED_VERSION_FILE = 308;
+        public const int FAILED_TO_LOAD_ADAPTER_SETTINGS_FILE = 309;
 
 
         public const int UNKNOWN_ERROR = 999;

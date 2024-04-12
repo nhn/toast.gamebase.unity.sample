@@ -50,10 +50,6 @@ namespace Toast.Gamebase.Internal.Mobile.Android
             GamebaseLog.Debug(string.Format("className : {0}", className), this);
             jc.CallStatic("initialize", className);
         }
-
-		public void InitializeUnityInterface()
-		{
-		}
     }
 }
 #endif

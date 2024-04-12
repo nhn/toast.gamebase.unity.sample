@@ -42,7 +42,6 @@ namespace Toast.Gamebase.Internal.Mobile
         virtual protected void Init()
         {
             messageSender.Initialize(CLASS_NAME);
-            messageSender.InitializeUnityInterface();
 
             DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_INITIALIZE,               DelegateManager.SendGamebaseDelegateOnce<LaunchingResponse.LaunchingInfo>, OnInitialize);
             DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_ADD_SERVER_PUSH_EVENT,    DelegateManager.SendDataDelegate<GamebaseResponse.SDK.ServerPushMessage>);

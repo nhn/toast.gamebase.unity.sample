@@ -46,6 +46,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
         public static readonly GUIStyle DefaultLabel;
         public static readonly GUIStyle DefaultLabelGreen;
         public static readonly GUIStyle DefaultLabelRed;
+        public static readonly GUIStyle SmallLabel;
         public static readonly GUIStyle LinkButton;
         public static readonly GUIStyle AdapterCategory;
         public static readonly GUIStyle CheckBox;
@@ -134,6 +135,18 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
                  alignment = TextAnchor.MiddleLeft,
                  fontSize = 12,
                  normal = RedDefaultLabelStyleState
+            };
+
+            GUIStyleState GrayDefaultLabelStyleState = new GUIStyleState
+            {
+                textColor = Color.gray
+            };
+
+            SmallLabel = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleLeft,
+                fontSize = 11,
+                normal = GrayDefaultLabelStyleState
             };
 
             GUIStyleState LinkButtonStyleState = new GUIStyleState

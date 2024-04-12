@@ -8,11 +8,27 @@ using UnityEngine;
 namespace Toast.Gamebase.Internal.Single.Communicator
 {
     public class WebSocketImplementation : IWebSocket
-    {   
+    {
+        private string domain;
+
+        private string Domain
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(domain) == true)
+                {
+                    return domain = typeof(WebSocketImplementation).Name;
+                }
+
+                return domain;
+            }
+        }
+
         private WebSocketSharp.WebSocket socket;
         private Queue<string> messages = new Queue<string>();
         private string errorMessage;
         private string socketAdress;
+        private GamebaseError disconnectError;
 
         private GamebaseCallback.DataDelegate<string> recvCallback;
         private WebSocket.PollingIntervalType pollingSpeedType = WebSocket.PollingIntervalType.LONG_INTERVAL;
@@ -44,17 +60,22 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             socket = new WebSocketSharp.WebSocket(socketAdress);
             AddEvents();
         }
-        
+
+        private bool changeDomain = false;
+
         public IEnumerator Connect(GamebaseCallback.ErrorDelegate callback)
         {
             CreateSocket();
-
             socket.ConnectAsync();
 
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
 
-            while (IsConnected() == false && string.IsNullOrEmpty(GetErrorMessage()) == true && watch.Elapsed.Seconds < CommunicatorConfiguration.connectionTimeout)
+            while (
+                disconnectError == null &&
+                IsConnected() == false &&
+                string.IsNullOrEmpty(GetErrorMessage()) == true &&
+                watch.Elapsed.Seconds < CommunicatorConfiguration.connectionTimeout)
             {
                 yield return null;
             }
@@ -65,18 +86,75 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             if (string.IsNullOrEmpty(GetErrorMessage()) == false)
             {
-                error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, message:string.Format("{0}. {1}", GamebaseStrings.SOCKET_CONNECTION_FAILED, GetErrorMessage()));
+                error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, Domain, string.Format("{0}. {1}", GamebaseStrings.SOCKET_CONNECTION_FAILED, GetErrorMessage()));
             }
             else
             {
                 if (watch.Elapsed.Seconds >= CommunicatorConfiguration.connectionTimeout)
                 {
-                    error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, message:GamebaseStrings.SOCKET_CONNECTION_TIMEOUT);
+                    error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, Domain, GamebaseStrings.SOCKET_CONNECTION_TIMEOUT);
                 }
             }
 
-            StartRecvPolling();
+            if (disconnectError != null)
+            {
+                // 잘못된 도메인의 경우 서브 도메인으로 변경한다.
+                // ex)
+                //  1. 잘못된 포트 번호
+                //  2. 404
+                //  3. 메인 도메인 장애
+                if (disconnectError.code == 1006)
+                {
+                    error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, Domain, error: disconnectError);
+                    disconnectError = null;
 
+                    var prevDomain = Lighthouse.GetAddress();
+                    socketAdress = Lighthouse.GetNextAddress();
+
+                    GamebaseLog.Warn(string.Format("Change domain. prev domain:{0}, next domain:{1}", prevDomain, socketAdress), this);
+                    
+                    if (string.IsNullOrEmpty(socketAdress) == true)
+                    {
+                        // 마지막 서브 도메인. (도메인 변경 안됨)
+                        // 오류 코드를 전달하고 지표를 전송한다.
+                        GamebaseIndicatorReport.AddIndicatorItem(new GamebaseIndicatorReport.IndicatorItem
+                        {
+                            logType = GamebaseIndicatorReportType.LogType.NETWORK,
+                            stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_NETWORK_DOMAIN_CONNECTION_FAILED,
+                            logLevel = GamebaseIndicatorReportType.LogLevel.ERROR,
+                            error = error
+                        });
+                    }
+                    else
+                    {
+                        // 서브 도메인 변경 후 재연결을 시도한다.
+                        Close();
+                        changeDomain = true;
+
+                        yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, Connect(callback));
+                        yield break;
+                    }
+                }
+            }
+
+            if (error == null && changeDomain == true)
+            {
+                GamebaseIndicatorReport.AddIndicatorItem(new GamebaseIndicatorReport.IndicatorItem
+                {
+                    logType = GamebaseIndicatorReportType.LogType.NETWORK,
+                    stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_NETWORK_CHANGE_DOMAIN_SUCCESS,
+                    logLevel = GamebaseIndicatorReportType.LogLevel.INFO,
+                    customFields = new Dictionary<string, string>()
+                    {
+                        { GamebaseIndicatorReportType.AdditionalKey.GB_DOMAIN, Lighthouse.GetAddress() }
+                    }
+                });
+
+                changeDomain = false;
+            }
+
+            Lighthouse.ResetAddress();
+            StartRecvPolling();
             callback(error);
         }
 
@@ -281,7 +359,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         private void OnClose(object sender, CloseEventArgs e)
         {
-            GamebaseLog.Debug("socket disconnected.", this);
+            GamebaseLog.Debug(string.Format("socket disconnected. Code:{0}, Reason:{1}", e.Code, e.Reason), this);
+            disconnectError = new GamebaseError(e.Code, Domain, e.Reason);
         }
         #endregion
     }

@@ -5,6 +5,9 @@
     "localizedString": {
         "path": "NhnCloud/GamebaseTools/SettingTool/Editor/localizedstring.json"
     },
+    "installedVersion": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/installedVersion.json"
+    },
     "adapterSettings": {
         "path": "NhnCloud/GamebaseTools/SettingTool/Editor/adapterSettings.json"
     },

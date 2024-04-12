@@ -12,7 +12,7 @@ namespace NhnCloud.GamebaseTools.SettingTool
 {
     public class SettingTool : IDisposable
     {
-        public const string VERSION = "2.0.0";
+        public const string VERSION = "2.7.0";
         private const string DOMAIN = "SettingTool";
 
         private DataLoader loader;
@@ -63,6 +63,9 @@ namespace NhnCloud.GamebaseTools.SettingTool
                 gamebaseDependencies = null;
             }
 
+            onDeleteGamebaseSdk = null;
+            showProgressBar = null;
+
             FileManager.Dispose();
         }
 
@@ -95,6 +98,11 @@ namespace NhnCloud.GamebaseTools.SettingTool
 
                     version = new Version();
 
+                    if (gamebaseInfo.HasGamebaseSdk == false)
+                    {
+                        gamebaseInfo.ClearCurrentVersion();
+                    }
+
                     callback(null);
                 }
                 else
@@ -106,7 +114,8 @@ namespace NhnCloud.GamebaseTools.SettingTool
 
         public void OnDeleteGamebaseSdk()
         {
-            version.CheckGamebaseSdkStatus();
+            gamebaseInfo.ClearCurrentVersion();
+            version.CheckSettingToolAndGamebaseSDKVersionStatus();
         }
 
         #region Download Gamebase SDK
@@ -114,7 +123,7 @@ namespace NhnCloud.GamebaseTools.SettingTool
         {
             DownloadFile(
                 gamebaseSdkPath,
-                Path.Combine(DataManager.GetData<string>(DataKey.CDN_URL), "GamebaseSDK-Unity.zip"),
+                Path.Combine(DataManager.GetData<SettingToolResponse.Cdn>(DataKey.CDN).toastovenUrl, "GamebaseSDK-Unity.zip"),
                 Path.Combine(gamebaseSdkPath, "GamebaseSDK.zip"),
                 (error) =>
                 {
@@ -124,10 +133,8 @@ namespace NhnCloud.GamebaseTools.SettingTool
                         {
                             if (IsSuccess(extractError) == true)
                             {
-                                gamebaseInfo.ClearCurrentVersion();
                                 gamebaseInfo.SetCurrentVersion();
-
-                                version.CheckGamebaseSdkStatus();
+                                version.CheckSettingToolAndGamebaseSDKVersionStatus();
 
                                 callback(null);
                             }
@@ -473,8 +480,6 @@ namespace NhnCloud.GamebaseTools.SettingTool
                 callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message));
                 return;
             }
-
-            gamebaseInfo.HasGamebaseSdk = false;
 
             callback(null);
         }

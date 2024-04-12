@@ -1,110 +1,132 @@
-﻿using System.Collections.Generic;
-using Toast.Logger;
+﻿using GamePlatform.Logger;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Toast.Gamebase.Internal
 { 
-    public class UnityLoggerControlle
+    public class UnityLoggerController
     {
-        private static readonly UnityLoggerControlle instance = new UnityLoggerControlle();
+        private static readonly UnityLoggerController instance = new UnityLoggerController();
 
-        public static UnityLoggerControlle Instance
+        public static UnityLoggerController Instance
         {
             get { return instance; }
         }
 
-        private Dictionary<GamebaseCallback.Logger.CrashFilter, ToastLogger.CrashFilter> crashFilterDictionary = new Dictionary<GamebaseCallback.Logger.CrashFilter, ToastLogger.CrashFilter>();
+        private readonly Dictionary<GamebaseCallback.Logger.CrashFilter, GpLogger.CrashFilter> crashFilterDictionary;
+        private string appKey;
 
-        public void Initialize(GamebaseRequest.Logger.Configuration loggerConfiguration)
+        public UnityLoggerController()
+        {
+            crashFilterDictionary = new Dictionary<GamebaseCallback.Logger.CrashFilter, GpLogger.CrashFilter>();
+        }
+
+        public void Initialize(GamebaseRequest.Logger.Configuration config)
         {
             GamebaseLog.Debug("Initialize", this);
 
-            ToastLoggerConfiguration configuration = new ToastLoggerConfiguration();
-            configuration.AppKey = loggerConfiguration.appKey;
-            configuration.EnableCrashErrorLog = loggerConfiguration.enableCrashErrorLog;
-            configuration.EnableCrashReporter = loggerConfiguration.enableCrashReporter;
+            appKey = config.appKey;
 
-            switch (loggerConfiguration.serviceZone.ToLower())
+            var param = new GpLoggerParams.Initialization(config.appKey)
+            {
+                enableCrashErrorLog = config.enableCrashErrorLog,
+                enableCrashReporter = config.enableCrashReporter
+            };
+
+            switch (config.serviceZone.ToLower())
             {
                 case "alpha":
                     {
-                        configuration.ServiceZone = ToastServiceZone.ALPHA;
+                        param.serviceZone = GamePlatform.Logger.ServiceZone.ALPHA;
                         break;
                     }
                 case "beta":
                     {
-                        configuration.ServiceZone = ToastServiceZone.BETA;
+                        param.serviceZone = GamePlatform.Logger.ServiceZone.ALPHA;
                         break;
                     }
                 case "real":
                 default:
                     {
-                        configuration.ServiceZone = ToastServiceZone.REAL;
+                        param.serviceZone = GamePlatform.Logger.ServiceZone.REAL;
                         break;
                     }
             }
 
-            GamebaseLog.Debug(GamebaseJsonUtil.ToPrettyJsonString(configuration), typeof(UnityLoggerControlle));
+            GamebaseLog.Debug(GamebaseJsonUtil.ToPrettyJsonString(param), typeof(UnityLoggerController));
 
-            ToastLogger.Initialize(configuration);
+            GpLogger.Initialize(param, true);
+        }
+
+        public void SetUserId(string userId)
+        {
+            GamebaseLog.Debug(string.Format("userId:{0}", userId), this);
+            GpLogger.UserId = userId;
         }
 
         public void Debug(string message, Dictionary<string, string> userFields = null)
         {
             GamebaseLog.Debug("Debug", this);
-            ToastLogger.Debug(message, userFields);
+            GpLogger.Debug(appKey, message, userFields);
         }
 
         public void Info(string message, Dictionary<string, string> userFields = null)
         {
             GamebaseLog.Debug("Info", this);
-            ToastLogger.Info(message, userFields);
+            GpLogger.Info(appKey, message, userFields);
         }
 
         public void Warn(string message, Dictionary<string, string> userFields = null)
         {
             GamebaseLog.Debug("Warn", this);
-            ToastLogger.Warn(message, userFields);
+            GpLogger.Warn(appKey, message, userFields);
         }
 
         public void Error(string message, Dictionary<string, string> userFields = null)
         {
             GamebaseLog.Debug("Error", this);
-            ToastLogger.Error(message, userFields);
+            GpLogger.Error(appKey, message, userFields);
         }
 
         public void Fatal(string message, Dictionary<string, string> userFields = null)
         {
             GamebaseLog.Debug("Fatal", this);
-            ToastLogger.Fatal(message, userFields);
+            GpLogger.Fatal(appKey, message, userFields);
+        }
+
+        public void Report(GamebaseLoggerConst.LogLevel logLevel, string message, string logString, string stackTrace)
+        {
+            GamebaseLog.Debug("Report", this);
+            GpLogger.Report(appKey, (GpLogLevel)logLevel, message, logString, stackTrace);
         }
 
         public void SetUserField(string key, string value)
         {
             GamebaseLog.Debug("SetUserField", this);
-            ToastLogger.SetUserField(key, value);
+            GpLogger.SetUserField(appKey, key, value);
         }
 
         public void SetLoggerListener(GamebaseCallback.Logger.ILoggerListener listener)
         {
             GamebaseLog.Debug("SetLoggerListener", this);
-            ToastLogger.SetLoggerListener(new GamebaseLoggerListener(listener));
+
+            GpLogger.SetLoggerListener(appKey, new GamebaseLoggerListener(listener));
         }
 
         public void SetCrashListener(GamebaseCallback.Logger.CrashListener listener)
         {
             GamebaseLog.Debug("SetCrashListener", this);
-            ToastLogger.SetCrashListener(
-                (isSuccess, logEntry) =>
-                {
-                    GamebaseLog.Debug("OnCrashListener", this);
-                    listener(isSuccess, ConvertGamebaseLogEntry(logEntry));
-                });
+            GpLogger.SetCrashListener(appKey, (isSuccess, logEntry) =>
+            {
+                GamebaseLog.Debug("OnCrashListener", this);
+                listener(isSuccess, ConvertGamebaseLogEntry(logEntry));
+            });
         }
 
         public void AddCrashFilter(GamebaseCallback.Logger.CrashFilter filter)
         {
             GamebaseLog.Debug("AddCrashFilter", this);
-            ToastLogger.CrashFilter crashFilter =
+            GpLogger.CrashFilter crashFilter =
                 (logData) =>
                 {
                     GamebaseLog.Debug("OnCrashFilter", this);
@@ -117,8 +139,8 @@ namespace Toast.Gamebase.Internal
 
                     return filter(crashLogData);
                 };
-                
-            ToastLogger.AddCrashFilter(crashFilter);
+
+            GpLogger.AddCrashFilter(appKey, crashFilter);
 
             crashFilterDictionary.Add(filter, crashFilter);
         }
@@ -126,14 +148,14 @@ namespace Toast.Gamebase.Internal
         public void RemoveCrashFilter(GamebaseCallback.Logger.CrashFilter filter)
         {
             GamebaseLog.Debug("RemoveCrashFilter", this);
-            ToastLogger.CrashFilter crashFilter = crashFilterDictionary[filter];
 
-            ToastLogger.RemoveCrashFilter(crashFilter);
+            GpLogger.CrashFilter crashFilter = crashFilterDictionary[filter];
+            GpLogger.RemoveCrashFilter(appKey, crashFilter);
 
             crashFilterDictionary.Remove(filter);
         }
 
-        private class GamebaseLoggerListener : IToastLoggerListener
+        private class GamebaseLoggerListener : IGpLoggerListener
         {
             private GamebaseCallback.Logger.ILoggerListener listene;
 
@@ -172,13 +194,19 @@ namespace Toast.Gamebase.Internal
 
         private static GamebaseResponse.Logger.LogEntry ConvertGamebaseLogEntry(LogEntry log)
         {
-            GamebaseResponse.Logger.LogEntry logEntry = new GamebaseResponse.Logger.LogEntry();
-            logEntry.logType = log.LogType;
-            logEntry.createTime = log.CreateTime;
-            logEntry.logLevel = (GamebaseLoggerConst.LogLevel)log.LogLevel;
-            logEntry.message = log.Message;
-            logEntry.transactionId = log.TransactionId;
-            logEntry.userFields = log.UserFields;
+            GamebaseResponse.Logger.LogEntry logEntry = new GamebaseResponse.Logger.LogEntry
+            {
+                logType = log.LogType,
+                createTime = log.CreateTime,
+                logLevel = (GamebaseLoggerConst.LogLevel)log.LogLevel,
+                message = log.Message,
+                transactionId = log.TransactionId
+            };
+
+            if (log.UserFields != null)
+            {
+                logEntry.userFields = log.UserFields.ToDictionary(kvp => kvp.Key, pair => (object)pair.Value);
+            }
 
             return logEntry;
         }

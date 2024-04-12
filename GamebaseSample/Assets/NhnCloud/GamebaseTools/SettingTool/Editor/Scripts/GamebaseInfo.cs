@@ -1,8 +1,10 @@
 ﻿using NhnCloud.GamebaseTools.SettingTool.Data;
+using NhnCloud.GamebaseTools.SettingTool.ThirdParty;
 using NhnCloud.GamebaseTools.SettingTool.Util;
 using System;
 using System.Collections;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,14 +34,8 @@ namespace NhnCloud.GamebaseTools.SettingTool
 
         public static string GetCurrentVersion(string platform)
         {
-            if (EditorPrefs.HasKey(platform) == true)
-            {
-                return EditorPrefs.GetString(platform);
-            }
-            else
-            {
-                return string.Empty;
-            }
+            var data = DataManager.GetData<SettingToolResponse.InstalledVersion>(DataKey.INSTALLED_VERSION);
+            return FindInstanceValueFromObject<string>(platform, data);
         }
 
         public void Dispose()
@@ -57,7 +53,14 @@ namespace NhnCloud.GamebaseTools.SettingTool
 
         public bool CheckHasGamebaseSdk()
         {
-            var gamebaseSdkPath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).gamebaseSdk.path;
+            var data = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO);
+            if (data == null)
+            {
+                return false;
+            }
+
+            var gamebaseSdkPath = data.gamebaseSdk.path;
+
             if (string.IsNullOrEmpty(gamebaseSdkPath) == true)
             {
                 throw new Exception("FileInfo data of Gamebase SDK is null.");
@@ -69,15 +72,12 @@ namespace NhnCloud.GamebaseTools.SettingTool
         }
 
         /// <summary>
-        /// 1. User deleted GamebaseSDK directory when SettingTool is opened.
-        /// 2. User deleted GamebaseSDK directory when SettingTool is closed.
-        /// 3. Click RemoveButton.
+        /// 1. When the setting tool is initialized.
+        /// 2. User deleted GamebaseSDK directory when SettingTool is opened.
         /// </summary>
         public void ClearCurrentVersion()
         {
-            ClearDataInEditorPrefs(EditorPrefsKey.UNITY_CURRENT_VERSION);
-            ClearDataInEditorPrefs(EditorPrefsKey.ANDROID_CURRENT_VERSION);
-            ClearDataInEditorPrefs(EditorPrefsKey.IOS_CURRENT_VERSION);
+            UpdateCurrentVersion(string.Empty, string.Empty, string.Empty);
         }
 
         /// <summary>
@@ -92,16 +92,28 @@ namespace NhnCloud.GamebaseTools.SettingTool
                 return;
             }
 
-            AddDataInEditorPrefs(EditorPrefsKey.UNITY_CURRENT_VERSION, data.unity.newest);            
-            AddDataInEditorPrefs(EditorPrefsKey.ANDROID_CURRENT_VERSION, data.android.newest);
-            AddDataInEditorPrefs(EditorPrefsKey.IOS_CURRENT_VERSION, data.ios.newest);
+            UpdateCurrentVersion(data.unity.newest, data.android.newest, data.ios.newest);
+        }
+
+        private void UpdateCurrentVersion(string unityVersion, string androidVersion, string iosVersion)
+        {
+            var data = DataManager.GetData<SettingToolResponse.InstalledVersion>(DataKey.INSTALLED_VERSION);
+
+            data.unity = unityVersion;
+            data.android = androidVersion;
+            data.ios = iosVersion;
+
+            DataManager.SetData(DataKey.INSTALLED_VERSION, data);
+
+            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).installedVersion.path;
+            File.WriteAllText(filePath, JsonMapper.ToJson(data));
         }
 
         private IEnumerator CheckGamebaseSdkExists()
         {
             if (HasGamebaseSdk != CheckHasGamebaseSdk())
             {
-                HasGamebaseSdk = CheckHasGamebaseSdk();
+                HasGamebaseSdk = !HasGamebaseSdk;
                 changeGamebaseSdkDownloadStatus(HasGamebaseSdk);
             }
 
@@ -110,20 +122,11 @@ namespace NhnCloud.GamebaseTools.SettingTool
             EditorCoroutines.StartCoroutine(CheckGamebaseSdkExists(), this);
         }
 
-        private void AddDataInEditorPrefs(string key, string data)
+        private static T FindInstanceValueFromObject<T>(string name, object obj)
         {
-            if (EditorPrefs.HasKey(key) == false)
-            {
-                EditorPrefs.SetString(key, data);
-            }
-        }
-
-        private void ClearDataInEditorPrefs(string key)
-        {
-            if (EditorPrefs.HasKey(key) == true)
-            {
-                EditorPrefs.DeleteKey(key);
-            }
+            var memberInfo = obj.GetType().GetMember(name.ToLower(), BindingFlags.Instance | BindingFlags.Public)[0];
+            var fieldInfo = (FieldInfo)memberInfo;
+            return (T)fieldInfo.GetValue(obj);
         }
     }
 }

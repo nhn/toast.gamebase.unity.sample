@@ -19,6 +19,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public string accessToken;
                     public string accessTokenSecret;
                     public string authorizationCode;
+                    /// <summary>
+                    /// Only Unity Standalone
+                    /// Google
+                    /// </summary>
+                    public string redirectUri;
                     public string clientId;
                     public string clientSecret;
                     public Dictionary<string, string> extraParams;

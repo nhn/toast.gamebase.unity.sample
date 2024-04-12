@@ -55,7 +55,7 @@ namespace Toast.Gamebase.Internal.Single
         
         public void RequestContactURL(int handle)
         {
-            GamebaseContact.Instance.RequestContactURL(handle);
+            RequestContactURL(null, handle);
         }
 
         public void RequestContactURL(GamebaseRequest.Contact.Configuration configuration, int handle)

@@ -10,6 +10,7 @@
         "common_show_detail_message": "View details?",
         "common_error_label": "Error",
         "common_notice_title": "Notice",
+        "common_unknown_error_message": "An unknown error occurred.",
         "ban_title": "Game Bans",
         "ban_detailpage_title": "Restriction of Game Use",
         "ban_detailpage_cs_guide_message": "* For more information, contact Customer Center.",
@@ -34,7 +35,12 @@
         "server_push_kickout_message": "Server access has been closed.",
         "android_launching_market_app_not_exist_message": "Store application does not exist.",
         "ssl_error_popup_title": "Certificate Error",
-        "ssl_error_popup_message": "The certificate is not issued by a trusted certificate authority.\nContinue?"
+        "ssl_error_popup_message": "The certificate is not issued by a trusted certificate authority.\nContinue?",
+        "gamebase_base_webview_cs_camera_upload_no_authorization": "Camera use is not allowed. Please check your settings.",
+        "gamebase_base_webview_cs_photo_upload_no_authorization": "The use of photo album is not allowed. Please check your settings.",
+        "gamebase_base_webview_no_general_permission": "Permission is not allowed. Please check your settings.",
+        "gamebase_base_webview_no_camera": "Unable to shoot because the camera is not found on your device.",
+        "auth_gamecenter_request_login_message": "Game Center login is required. Please log in with your Apple ID in the Settings App > Game Center."
     },
     "ko": {
         "common_ok_button": "확인",
@@ -47,6 +53,7 @@
         "common_show_detail_message": "자세히 보시겠습니까?",
         "common_error_label": "오류",
         "common_notice_title": "공지 사항",
+        "common_unknown_error_message": "알 수 없는 오류가 발생했습니다.",
         "ban_title": "이용 정지",
         "ban_detailpage_title": "게임 이용 제재",
         "ban_detailpage_cs_guide_message": "* 자세한 내용은 고객 센터로 문의해 주시기 바랍니다.",
@@ -71,7 +78,12 @@
         "server_push_kickout_message": "서버와의 접속이 종료 되었습니다.",
         "android_launching_market_app_not_exist_message": "스토어앱이 없습니다.",
         "ssl_error_popup_title": "보안 경고",
-        "ssl_error_popup_message": "이 웹 사이트의 보안 인증서가 신뢰할 수 있는 인증 기관에서 발급한 것이 아닙니다.\n계속하시겠습니까?"
+        "ssl_error_popup_message": "이 웹 사이트의 보안 인증서가 신뢰할 수 있는 인증 기관에서 발급한 것이 아닙니다.\n계속하시겠습니까?",
+        "gamebase_base_webview_cs_camera_upload_no_authorization": "카메라 사용이 허용되지 않았습니다. 설정을 확인해 주십시오.",
+        "gamebase_base_webview_cs_photo_upload_no_authorization": "사진첩 사용이 허용되지 않았습니다. 설정을 확인해 주십시오.",
+        "gamebase_base_webview_no_general_permission": "권한이 허용되지 않았습니다. 설정을 확인해 주십시오.",
+        "gamebase_base_webview_no_camera": "장치에서 카메라를 찾을 수 없어 촬영이 불가능합니다.",
+        "auth_gamecenter_request_login_message": "Game Center 로그인이 필요합니다. 설정 앱 > Game Center에서 Apple ID로 로그인해 주세요."
     },
     "ja": {
         "common_ok_button": "確認",
@@ -84,6 +96,7 @@
         "common_show_detail_message": "詳細を見ますか？",
         "common_error_label": "エラー",
         "common_notice_title": "お知らせ",
+        "common_unknown_error_message": "不明なエラーが発生しました",
         "ban_title": "利用制限",
         "ban_detailpage_title": "ゲーム利用制限",
         "ban_detailpage_cs_guide_message": "* 詳細についてはカスタマーセンターにお問い合わせください。",
@@ -108,7 +121,12 @@
         "server_push_kickout_message": "サーバーとの接続が切れました。",
         "android_launching_market_app_not_exist_message": "ストアアプリが存在しません。",
         "ssl_error_popup_title": "セキュリティの警告",
-        "ssl_error_popup_message": "このサイトのセキュリティ証明書の取り消し情報は、使用できません。\n続行しますか？"
+        "ssl_error_popup_message": "このサイトのセキュリティ証明書の取り消し情報は、使用できません。\n続行しますか？",
+        "gamebase_base_webview_cs_camera_upload_no_authorization": "カメラの使用が許可されていません。 設定を確認してください。",
+        "gamebase_base_webview_cs_photo_upload_no_authorization": "アルバムの使用が許可されていません。 設定を確認してください。",
+        "gamebase_base_webview_no_general_permission": "権限が許可されていません。 設定を確認してください。",
+        "gamebase_base_webview_no_camera": "デバイスにカメラがないため、撮影ができません。",
+        "auth_gamecenter_request_login_message": "Game Centerログインが必要です。設定アプリ> Game CenterでApple IDを使い、ログインしてください。"
     },
     "zh-CN": {
         "common_ok_button": "确定",
@@ -121,6 +139,7 @@
         "common_show_detail_message": "需要查看细节吗？",
         "common_error_label": "错误",
         "common_notice_title": "公告",
+        "common_unknown_error_message": "出现未知错误",
         "ban_title": "禁止使用",
         "ban_detailpage_title": "禁玩游戏",
         "ban_detailpage_cs_guide_message": "* 若要了解更多信息，请联系客户服务。",
@@ -145,7 +164,12 @@
         "server_push_kickout_message": "与服务器断开连接。",
         "android_launching_market_app_not_exist_message": "没有商店应用程序。",
         "ssl_error_popup_title": "安全警告",
-        "ssl_error_popup_message": "此网站的安全证书不是由受信任的证书颁发机构颁发的。\n您还要继续吗?"
+        "ssl_error_popup_message": "此网站的安全证书不是由受信任的证书颁发机构颁发的。\n您还要继续吗?",
+        "gamebase_base_webview_cs_camera_upload_no_authorization": "不允许使用相机。请检查设置。",
+        "gamebase_base_webview_cs_photo_upload_no_authorization": "不允许使用相册。请检查设置。",
+        "gamebase_base_webview_no_general_permission": "不允许使用权限。请检查设置。",
+        "gamebase_base_webview_no_camera": "因为设备找不到相机，无法拍照。",
+        "auth_gamecenter_request_login_message": "需要登录游戏中心。请在“设置”应用 >“游戏中心”中使用您的 Apple ID 登录。"
     },
     "zh-TW": {
         "common_ok_button": "好",
@@ -158,6 +182,7 @@
         "common_show_detail_message": "顯示詳細資料？",
         "common_error_label": "錯誤",
         "common_notice_title": "注意",
+        "common_unknown_error_message": "出現未知錯誤。",
         "ban_title": "懲罰帳戶",
         "ban_detailpage_title": "遊戲禁",
         "ban_detailpage_cs_guide_message": "* 欲了解更多信息，請聯繫客戶中心。",
@@ -182,7 +207,12 @@
         "server_push_kickout_message": "與伺服器連接中止 。",
         "android_launching_market_app_not_exist_message": "沒有商店APP。",
         "ssl_error_popup_title": "安全警告",
-        "ssl_error_popup_message": "該網站的安全證書不是由可靠的認證機構簽發的 。\n 確定要繼續嗎 ？"
+        "ssl_error_popup_message": "該網站的安全證書不是由可靠的認證機構簽發的 。\n 確定要繼續嗎 ？",
+        "gamebase_base_webview_cs_camera_upload_no_authorization": "不允許使用相機。請檢查設置。",
+        "gamebase_base_webview_cs_photo_upload_no_authorization": "不允許使用相冊。請檢查設置。",
+        "gamebase_base_webview_no_general_permission": "不允許使用權限。請檢查設置。",
+        "gamebase_base_webview_no_camera": "因為設備找不到相機，無法拍照。",
+        "auth_gamecenter_request_login_message": "需要登錄遊戲中心。請在“設置”應用 >“遊戲中心”中使用您的 Apple ID 登錄。"
     },
     "th": {
         "common_ok_button": "ยืนยัน",

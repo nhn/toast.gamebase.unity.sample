@@ -1,6 +1,4 @@
-﻿using Toast.Gamebase.Internal.Single.Communicator;
-
-namespace Toast.Gamebase.Internal
+﻿namespace Toast.Gamebase.Internal
 {
     public interface IGamebaseLaunching
     {

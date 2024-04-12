@@ -1,6 +1,0 @@
-framework module ToastUnityLogger {
-  umbrella header "ToastUnityLogger.h"
-
-  export *
-  module * { export * }
-}

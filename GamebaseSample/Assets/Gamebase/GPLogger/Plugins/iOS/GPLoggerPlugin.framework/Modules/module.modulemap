@@ -1,0 +1,6 @@
+framework module GPLoggerPlugin {
+  umbrella header "GPLoggerPlugin.h"
+  export *
+
+  module * { export * }
+}

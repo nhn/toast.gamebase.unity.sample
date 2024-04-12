@@ -3,6 +3,7 @@ using NhnCloud.GamebaseTools.SettingTool.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -32,22 +33,25 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
         /// 2. <see cref="LoadCdnUrl"/> (Local)
         /// VO:<see cref="SettingToolResponse.Cdn"/>
         /// 
-        /// 3. <see cref="LoadLocalizedString"/>  (Local)
+        /// 3. <see cref="LoadLocalizedString"/> (Local)
         /// VO:<see cref="LocalizedStringVo"/>
         /// 
-        /// 4. <see cref="LoadAdapterSettings"/> (Local)
+        /// 4. <see cref="LoadInstalledVersion"/> (Local)
+        /// VO:<see cref="SettingToolResponse.InstalledVersion"/>
+        /// 
+        /// 5. <see cref="LoadAdapterSettings"/> (Local)
         /// VO:<see cref="SettingToolResponse.AdapterSettings"/>
         /// 
-        /// 5.<see cref="LoadGamebaseAllDependencies"/> (Local)
+        /// 6.<see cref="LoadGamebaseAllDependencies"/> (Local)
         /// XML:<see cref="Assets/NhnCloud/GamebaseTools/SettingTool/Editor/gamebaseAllDependencies.xml"/>
         /// 
-        /// 6. <see cref="LoadMasterData"/> (CDN)
+        /// 7. <see cref="LoadMasterData"/> (CDN)
         /// VO:<see cref="SettingToolResponse.Master"/>
         /// 
-        /// 7. <see cref="LoadLaunchingData"/> (CDN)
+        /// 8. <see cref="LoadLaunchingData"/> (CDN)
         /// VO:<see cref="SettingToolResponse.LaunchingData"/>
         /// 
-        /// 8. <see cref="LoadVersionData"/> (CDN)
+        /// 9. <see cref="LoadVersionData"/> (CDN)
         /// VO:<see cref="SettingToolResponse.Version"/>
         /// </summary>
         /// <param name="callback"></param>
@@ -77,6 +81,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
 
                     localfileInfo.cdn.path = Path.Combine(Application.dataPath, localfileInfo.cdn.path);
                     localfileInfo.localizedString.path = Path.Combine(Application.dataPath, localfileInfo.localizedString.path);
+                    localfileInfo.installedVersion.path = Path.Combine(Application.dataPath, localfileInfo.installedVersion.path);
                     localfileInfo.adapterSettings.path = Path.Combine(Application.dataPath, localfileInfo.adapterSettings.path);
                     localfileInfo.gamebaseAllDependencies.path = Path.Combine(Application.dataPath, localfileInfo.gamebaseAllDependencies.path);
                     localfileInfo.gamebaseSdk.path = Application.dataPath.Replace("Assets", "GamebaseSDK");
@@ -111,7 +116,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                         return;
                     }
 
-                    DataManager.SetData(DataKey.CDN_URL, data.url);
+                    DataManager.SetData(DataKey.CDN, data);
 
                     LoadLocalizedString(callback);
                 }
@@ -142,11 +147,40 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
 
                     DataManager.SetData(DataKey.LOCALIZED_STRING, data);
 
-                    LoadAdapterSettings(callback);
+                    LoadInstalledVersion(callback);
                 }
                 else
                 {
                     callback(new SettingToolError(SettingToolErrorCode.FAILED_TO_LOAD_LOCALIZED_STRING_FILE, DOMAIN, string.Empty, error));
+                }
+            });
+        }
+
+        private void LoadInstalledVersion(SettingToolCallback.ErrorDelegate callback)
+        {
+            LoadFile(localfileInfo.installedVersion.path, (jsonString, error) =>
+            {
+                if (SettingTool.IsSuccess(error) == true)
+                {
+                    SettingToolResponse.InstalledVersion data;
+
+                    try
+                    {
+                        data = JsonMapper.ToObject<SettingToolResponse.InstalledVersion>(jsonString);
+                    }
+                    catch (Exception e)
+                    {
+                        callback(new SettingToolError(SettingToolErrorCode.LIT_JSON_EXCEPTION, DOMAIN, e.Message));
+                        return;
+                    }
+
+                    DataManager.SetData(DataKey.INSTALLED_VERSION, data);
+
+                    LoadAdapterSettings(callback);
+                }
+                else
+                {
+                    callback(new SettingToolError(SettingToolErrorCode.FAILED_TO_LOAD_INSTALLED_VERSION_FILE, DOMAIN, string.Empty, error));
                 }
             });
         }
@@ -217,6 +251,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
             {
                 if (SettingTool.IsSuccess(error) == true)
                 {
+                    DecodingAppKey();
                     LoadLaunchingData(callback);
                 }
                 else
@@ -224,6 +259,29 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                     callback(new SettingToolError(SettingToolErrorCode.FAILED_TO_LOAD_MASTER_FILE, DOMAIN, string.Empty, error));
                 }
             });
+        }
+
+        private void DecodingAppKey()
+        {
+            var masterData = DataManager.GetData<SettingToolResponse.Master>(DataKey.MASTER);
+            if (masterData.launching.isEncoding == false)
+            {
+                return;
+            }
+
+            masterData.launching.appKey = DecodingString(masterData.launching.appKey);
+            DataManager.SetData(DataKey.MASTER, masterData);
+        }
+
+        private string DecodingString(string str)
+        {
+            if (string.IsNullOrEmpty(str) == true)
+            {
+                return string.Empty;
+            }
+
+            var bytes = Convert.FromBase64String(str);
+            return Encoding.UTF8.GetString(bytes);
         }
 
         private void LoadLaunchingData(SettingToolCallback.ErrorDelegate callback)
@@ -335,7 +393,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                     }
                 default:
                     {
-                        return UnityWebRequest.Get(string.Format("{0}/{1}", DataManager.GetData<string>(DataKey.CDN_URL), GetFileName(key)));
+                        return UnityWebRequest.Get(string.Format("{0}/{1}", DataManager.GetData<SettingToolResponse.Cdn>(DataKey.CDN).url, GetFileName(key)));
                     }
             }
         }

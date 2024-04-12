@@ -23,6 +23,7 @@
         public const string FAILED_TO_LOAD_LAUNCHING_DATA = "Failed to load Launching data.";
         public const string FAILED_TO_LOAD_VERSION_FILE = "Failed to load Version file.";
         public const string FAILED_TO_LOAD_LOCALIZED_STRING_FILE = "Failed to load LocalizedString file.";
+        public const string FAILED_TO_LOAD_INSTALLED_VERSION_FILE = "Failed to load InstalledVersion file.";
         public const string FAILED_TO_LOAD_ADAPTER_SETTINGS_FILE = "Failed to load AdapterSettings file.";
 
 

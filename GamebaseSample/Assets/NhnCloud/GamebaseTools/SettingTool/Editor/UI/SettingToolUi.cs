@@ -32,7 +32,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
             //------------------------------
             // header
             //------------------------------
-            headerArea = new Rect(0, 0, 1024, 200);
+            headerArea = new Rect(0, 0, 1024, 230);
 
             //------------------------------
             // copyright
@@ -107,13 +107,17 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
         {
             this.downloadFileName = downloadFileName;
             this.progress = progress;
+
+            if (string.IsNullOrEmpty(downloadFileName) == true || progress == 0)
+            {
+                EditorUtility.ClearProgressBar();
+            }
         }
 
         private void DrawProgress()
         {
             if (string.IsNullOrEmpty(downloadFileName) == true || progress == 0)
             {
-                EditorUtility.ClearProgressBar();
                 return;
             }
 

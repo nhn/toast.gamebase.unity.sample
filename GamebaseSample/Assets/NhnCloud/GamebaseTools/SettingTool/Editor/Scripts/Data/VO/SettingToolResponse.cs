@@ -26,6 +26,11 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                 public string path;
             }
 
+            public class InstalledVersion
+            {
+                public string path;
+            }
+
             public class GamebaseSdk
             {
                 public string path;
@@ -40,6 +45,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
             public LocalizedString localizedString;
             public AdapterSettings adapterSettings;
             public GamebaseAllDependencies gamebaseAllDependencies;
+            public InstalledVersion installedVersion;
             public GamebaseSdk gamebaseSdk;
             public Ad ad;
         }
@@ -47,6 +53,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
         public class Cdn
         {
             public string url;
+            public string toastovenUrl;
         }
 
         public class Master
@@ -66,6 +73,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                 public string url;
                 public string version;
                 public string appKey;
+                public bool isEncoding;
             }
 
             public Version version;
@@ -203,9 +211,18 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                         public bool used;
                         public bool canOnlyChooseEitherUnityOrNative;
                         public string fileName;
+                        public string moreInfo;
+                        public List<string> repositories;
                     }
                 }
             }
+        }
+
+        public class InstalledVersion
+        {
+            public string unity;
+            public string android;
+            public string ios;
         }
     }
 }

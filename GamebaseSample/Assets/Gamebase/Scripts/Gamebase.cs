@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Toast.Gamebase.Internal;
 
@@ -236,7 +236,10 @@ namespace Toast.Gamebase
         /// <summary>
         /// Add a Gamebase event handler to be called when every events are arrived.
         /// You have to convert the message data to VO below according to the category value.
+        ///  - GamebaseEventCategory.LOGGED_OUT : GamebaseEventLoggedOutData
+        ///  - GamebaseEventCategory.IDP_REVOKED : GamebaseEventIdPRevokedData
         ///  - GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT : GamebaseEventServerPushData
+        ///  - GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT_MESSAGE_RECEIVED : GamebaseEventServerPushData
         ///  - GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT : GamebaseEventServerPushData
         ///  - GamebaseEventCategory.OBSERVER_LAUNCHING : GamebaseEventObserverData
         ///  - GamebaseEventCategory.OBSERVER_HEARTBEAT : GamebaseEventObserverData
@@ -248,17 +251,13 @@ namespace Toast.Gamebase
         ///  - GamebaseEventCategory.PUSH_CLICK_MESSAGE : PushMessage
         ///  - GamebaseEventCategory.PUSH_CLICK_ACTION : PushAction
         ///  
-        /// SERVER_PUSH : Receive messages from the Gamebase server.
-        /// 
-        /// OBSERVER : This is an event that fires when the launch, login account(hearbeat), or network connection 'status changes', webview event, introspect fail event.
-        /// 
-        /// PURCHASE_UPDATED : Promotion payment events can be received.
-        /// 
-        /// PUSH_RECEIVED_MESSAGE : This event operates when a Push message is received. It has a 'isForeground' boolean value in the extras field.
-        /// 
-        /// PUSH_CLICK_MESSAGE : This event is executed when the Push message is clicked. Note that there is no 'isForeground' boolean value.
-        /// 
+        /// SERVER_PUSH : Receive messages from the Gamebase server. 
+        /// OBSERVER : This is an event that fires when the launch, login account(hearbeat), or network connection 'status changes', webview event, introspect fail event. 
+        /// PURCHASE_UPDATED : Promotion payment events can be received. 
+        /// PUSH_RECEIVED_MESSAGE : This event operates when a Push message is received.
+        /// PUSH_CLICK_MESSAGE : This event is executed when the Push message is clicked.
         /// PUSH_CLICK_ACTION : This is an event that is triggered when the action button added through the rich message function is clicked.
+        /// 
         /// @since Added 2.10.0
         /// </summary>
         /// <param name="eventHandler">The callback that will run.</param>
@@ -267,14 +266,34 @@ namespace Toast.Gamebase
         /// <code>
         /// public void AddEventHandlerSample()
         /// {
-        ///     Gamebase.AddEventHandler(GamebaseObserverHandler);
+        ///     Gamebase.AddEventHandler(GamebaseEventHandler);
         /// }
         /// 
-        /// private void GamebaseObserverHandler(GamebaseResponse.Event.GamebaseEventMessage message)
+        /// private void GamebaseEventHandler(GamebaseResponse.Event.GamebaseEventMessage message)
         /// {
         ///     switch (message.category)
         ///     {
+        ///         case GamebaseEventCategory.LOGGED_OUT:
+        ///             {
+        ///                 GamebaseResponse.Event.GamebaseEventLoggedOutData loggedData = GamebaseResponse.Event.GamebaseEventLoggedOutData.From(message.data);
+        ///                 if (loggedData != null)
+        ///                 {
+        ///                     // There was a problem with the access token.
+        ///                     // Call login again.
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseEventCategory.IDP_REVOKED:
+        ///             {
+        ///                 GamebaseResponse.Event.GamebaseEventIdPRevokedData idPRevokedData = GamebaseResponse.Event.GamebaseEventIdPRevokedData.From(message.data);
+        ///                 if (idPRevokedData != null)
+        ///                 {
+        ///                     CheckIdpRevoked(idPRevokedData);
+        ///                 }
+        ///                 break;
+        ///             }
         ///         case GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT:
+        ///         case GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT_MESSAGE_RECEIVED:
         ///         case GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT:
         ///             {
         ///                 GamebaseResponse.Event.GamebaseEventServerPushData serverPushData = GamebaseResponse.Event.GamebaseEventServerPushData.From(message.data);
@@ -372,12 +391,55 @@ namespace Toast.Gamebase
         ///     }
         /// }
         /// 
+        /// private void CheckIdpRevoked(GamebaseResponse.Event.GamebaseEventIdPRevokedData idPRevokedData)
+        /// {
+        ///     switch (idPRevokedData.code)
+        ///     {
+        ///         case GamebaseIdPRevokedCode.WITHDRAW:
+        ///             {
+        ///                 // Call Withdraw API.
+        ///                 Gamebase.Withdraw((error) => { });
+        ///                 break;
+        ///             }
+        ///         case GamebaseIdPRevokedCode.OVERWRITE_LOGIN_AND_REMOVE_MAPPING:
+        ///             {
+        ///                 // You must call RemoveMapping after calling overwrite login.
+        ///                 foreach (var idp in idPRevokedData.authMappingList)
+        ///                 {
+        ///                     var additional = new Dictionary<string, object>();
+        ///                     additional.Add(GamebaseAuthProviderCredential.IGNORE_ALREADY_LOGGED_IN, true);
+        ///    
+        ///                     Gamebase.Login(idp, additional, (authToken, loginError) =>
+        ///                     {
+        ///                         if (Gamebase.IsSuccess(loginError) == true)
+        ///                         {
+        ///                             Gamebase.RemoveMapping(idPRevokedData.idPType, (mappingError) => { });
+        ///                         }
+        ///                     });
+        ///                 }
+        ///                 break;
+        ///             }
+        ///         case GamebaseIdPRevokedCode.REMOVE_MAPPING:
+        ///             {
+        ///                 // Call RemoveMapping API.
+        ///                 Gamebase.RemoveMapping(idPRevokedData.idPType, (error) => { });
+        ///                 break;
+        ///             }
+        ///     }
+        /// }
+        /// 
         /// private void CheckServerPush(string category, GamebaseResponse.Event.GamebaseEventServerPushData data)
         /// {
         ///     if (category.Equals(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT) == true)
         ///     {
         ///         // Kicked out from Gamebase server.(Maintenance, banned or etc.)
+        ///         // And the game user closes the kickout pop-up.
         ///         // Return to title and initialize Gamebase again.
+        ///     }
+        ///     else if (category.Equals(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT_MESSAGE_RECEIVED) == true)
+        ///     {
+        ///         // Currently, the kickout pop-up is displayed.
+        ///         // If your game is running, stop it.
         ///     }
         ///     else if (category.Equals(GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT) == true)
         ///     {
@@ -732,6 +794,78 @@ namespace Toast.Gamebase
         {
             GamebaseAuthImplementation.Instance.LoginForLastLoggedInProvider(callback);
         }
+        
+        /// <summary>
+        /// Try login with the most recently logged-in IdP.
+        /// If a token is expired or its authentication fails, return failure.
+        /// Note that a login for the IdP should be implemented.
+        /// @since Added 2.54.0.
+        /// </summary>
+        /// <param name="additionalInfo">The additionalInfo which is additional information using for login.</param>
+        /// <param name="callback">Login result callback, returns the authentication token as a result of login.</param>
+        /// <example> 
+        /// Example Usage : 
+        /// <code>
+        /// public void LoginForLastLoggedInProviderSample()
+        /// {
+        ///     var additionalInfo = new Dictionary<string, object>
+        ///     {
+        ///         { GamebaseAuthProviderCredential.SHOW_LOADING_ANIMATION, true }         // Android only
+        ///     };
+        ///
+        ///     Gamebase.LoginForLastLoggedInProvider(additionalInfo, (authToken, error) =>
+        ///     {
+        ///         if (Gamebase.IsSuccess(error) == true)
+        ///         {
+        ///             if(authToken.member.temporaryWithdrawal != null)
+        ///             {
+        ///                 long gracePeriodDate = authToken.member.temporaryWithdrawal.gracePeriodDate;
+        ///                 Debug.Log(string.Format("User is under temporary withdrawa. GracePeriodDate : {0}", error));
+        ///             }            
+        ///             else
+        ///             {
+        ///                 string userId = authToken.member.userId;
+        ///                 Debug.Log(string.Format("LoginForLastLoggedInProvider succeeded. Gamebase userId is {0}", userId));
+        ///             }
+        ///         }
+        ///         else
+        ///         {
+        ///             if (error.code == GamebaseErrorCode.SOCKET_ERROR || error.code == GamebaseErrorCode.SOCKET_RESPONSE_TIMEOUT)
+        ///             {
+        ///                 Debug.Log(string.Format("Retry LoginForLastLoggedInProvider or notify an error message to the user. : {0}", error.message));
+        ///             }
+        ///             else
+        ///             {
+        ///                 if (string.IsNullOrEmpty(Gamebase.GetLastLoggedInProvider()) == true)
+        ///                 {
+        ///                     // Display the IdP select menu to user.
+        ///                 }
+        ///                 else
+        ///                 {
+        ///                     Gamebase.Login(Gamebase.GetLastLoggedInProvider(), (innerAuthToken, innerError) =>
+        ///                     {
+        ///                         if (Gamebase.IsSuccess(innerError) == true)
+        ///                         {
+        ///                             string userId = innerAuthToken.member.userId;
+        ///                             Debug.Log(string.Format("LoginForLastLoggedInProvider succeeded. Gamebase userId is {0}", userId));
+        ///                         }
+        ///                         else
+        ///                         {
+        ///                             // Check the error code and handle the error appropriately.
+        ///                             Debug.Log(string.Format("LoginForLastLoggedInProvider failed. error is {0}", innerError));
+        ///                         }
+        ///                     });
+        ///                 }
+        ///             }
+        ///         }
+        ///     });
+        /// }
+        /// </code>
+        /// </example>
+        public static void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
+            GamebaseAuthImplementation.Instance.LoginForLastLoggedInProvider(additionalInfo, callback);
+        }
 
         /// <summary>
         /// Change logged in account with ForcingMappingTicket.
@@ -939,7 +1073,6 @@ namespace Toast.Gamebase
         ///         }
         ///         else
         ///         {
-        ///             
         ///             // If you got this error code(AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) that means this user already has another account of the AuthProvider.XXX),
         ///             // You can call this method, Gamebase.addMappingForcibly() which can try to map forcibly with the AuthProvider.XXX.
         ///             if (error.code.Equals(GamebaseErrorCode.AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER) == true)
@@ -2032,15 +2165,21 @@ namespace Toast.Gamebase
             /// <summary>
             /// Request for a list of non-consumed items, which have not been normally consumed (delivered, or provided) after purchase.
             /// In case of non-purchased items, ask the game server (item server) to proceed with item delivery (supply).
-            /// @since Added 1.4.0.
+            /// @since Added 2.45.0.
             /// </summary>
+            /// <param name="configuration">Set query conditions.</param>
             /// <param name="callback">Callback pass to API result.</param>
             /// <example>
             /// Example Usage : 
             /// <code>
-            /// public void RequestItemListOfNotConsumedSample()
+            /// public void RequestItemListOfNotConsumedSample(bool allStores)
             /// {
-            ///     Gamebase.Purchase.RequestItemListOfNotConsumed((purchasableReceiptList, error) =>
+            ///     var configuration = new GamebaseRequest.Purchase.PurchasableConfiguration
+            ///     {
+            ///         allStores = allStores
+            ///     };
+            /// 
+            ///     Gamebase.Purchase.RequestItemListOfNotConsumed(configuration, (purchasableReceiptList, error) =>
             ///     {
             ///         if (Gamebase.IsSuccess(error) == true)
             ///         {
@@ -2073,9 +2212,22 @@ namespace Toast.Gamebase
             /// }
             /// </code>
             /// </example>
+            public static void RequestItemListOfNotConsumed(GamebaseRequest.Purchase.PurchasableConfiguration configuration, GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
+            {
+                GamebasePurchaseImplementation.Instance.RequestItemListOfNotConsumed(configuration, callback);
+            }
+            
+            /// <summary>
+            /// Request for a list of non-consumed items, which have not been normally consumed (delivered, or provided) after purchase.
+            /// In case of non-purchased items, ask the game server (item server) to proceed with item delivery (supply).
+            /// @since Added 1.4.0.
+            /// @deprecated As of release 2.45.0.
+            /// </summary>
+            /// <param name="callback">Callback pass to API result.</param>
+            [Obsolete]
             public static void RequestItemListOfNotConsumed(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
             {
-                GamebasePurchaseImplementation.Instance.RequestItemListOfNotConsumed(callback);
+                GamebasePurchaseImplementation.Instance.RequestItemListOfNotConsumed(new GamebaseRequest.Purchase.PurchasableConfiguration(), callback);
             }
 
             /// <summary>
@@ -2229,15 +2381,21 @@ namespace Toast.Gamebase
             /// <summary>
             /// Request a list of payment products that are currently subscribed.
             /// If there is a subscription purchased from another platform (such as iOS)
-            /// @since Added 2.6.0.            
+            /// @since Added 2.45.0.            
             /// </summary> 
-            /// <returns>List of payment products that are currently subscribed.</returns>
+            /// <param name="configuration">Set query conditions.</param>
+            /// <param name="callback">Callback pass to API result.</param>
             /// <example> 
             /// Example Usage : 
             /// <code>
-            /// public void RequestActivatedPurchasesSample()
+            /// public void RequestActivatedPurchasesSample(bool allStores)
             /// {
-            ///     Gamebase.Purchase.RequestActivatedPurchases((purchasableReceiptList, error) =>
+            ///     var configuration = new GamebaseRequest.Purchase.PurchasableConfiguration
+            ///     {
+            ///         allStores = allStores
+            ///     };
+            /// 
+            ///     Gamebase.Purchase.RequestActivatedPurchases(configuration, (purchasableReceiptList, error) =>
             ///     {
             ///         if (Gamebase.IsSuccess(error) == true)
             ///         {
@@ -2268,9 +2426,84 @@ namespace Toast.Gamebase
             /// }
             /// </code>
             /// </example>
+            public static void RequestActivatedPurchases(GamebaseRequest.Purchase.PurchasableConfiguration configuration,
+                GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
+            {
+                GamebasePurchaseImplementation.Instance.RequestActivatedPurchases(configuration, callback);
+            }
+
+            /// <summary>
+            /// Request a list of purchased subscription status.
+            /// This API will work with Google store. (Android Only)
+            /// @since Added 2.46.0.            
+            /// </summary> 
+            /// <param name="configuration">Sets additional conditions for retrieving results.</param>
+            /// <param name="callback">Callback pass to API result.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void RequestSubscriptionsStatusSample(bool includeExpiredSubscriptions)
+            /// {
+            ///    var configuration = new GamebaseRequest.Purchase.PurchasableConfiguration
+            ///    {
+            ///        includeExpiredSubscriptions = includeExpiredSubscriptions
+            ///     };
+            /// 
+            ///     Gamebase.Purchase.RequestSubscriptionsStatus(configuration, (subscriptionStatusList, error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("RequestSubscriptionsStatus succeeded");
+            /// 
+            ///             foreach (GamebaseResponse.Purchase.PurchasableSubscriptionStatus subscriptionStatus in subscriptionStatusList)
+            ///             {
+            ///                 var message = new StringBuilder();
+            ///                 message.AppendLine(string.Format("storeCode:{0}", subscriptionStatus.storeCode));
+            ///                 message.AppendLine(string.Format("paymentId:{0}", subscriptionStatus.paymentId));
+            ///                 message.AppendLine(string.Format("originalPaymentId:{0}", subscriptionStatus.originalPaymentId));
+            ///                 message.AppendLine(string.Format("paymentSeq:{0}", subscriptionStatus.paymentSeq));
+            ///                 message.AppendLine(string.Format("marketItemId:{0}", subscriptionStatus.marketItemId));
+            ///                 message.AppendLine(string.Format("itemSeq:{0}", subscriptionStatus.itemSeq));
+            ///                 message.AppendLine(string.Format("price:{0}", subscriptionStatus.price));
+            ///                 message.AppendLine(string.Format("currency:{0}", subscriptionStatus.currency));
+            ///                 message.AppendLine(string.Format("purchaseTime:{0}", subscriptionStatus.purchaseTime));
+            ///                 message.AppendLine(string.Format("expiryTime:{0}", subscriptionStatus.expiryTime));
+            /// 
+            ///                 // Subscription status
+            ///                 // Refer to the following document for the entire status code.
+            ///                 // https://docs.nhncloud.com/en/TOAST/en/toast-sdk/iap-unity/#iapsubscriptionstatusstatus
+            ///                 message.AppendLine(string.Format("statusCode:{0}", subscriptionStatus.statusCode));
+            ///                 message.AppendLine(string.Format("statusDescription:{0}", subscriptionStatus.statusDescription));
+            ///                 message.AppendLine(string.Format("gamebaseProductId:{0}", subscriptionStatus.gamebaseProductId));
+            ///                 Debug.Log(message);
+            ///             }
+            ///         }
+            ///         else
+            ///         {
+            ///             // Check the error code and handle the error appropriately.
+            ///             Debug.Log(string.Format("RequestSubscriptionsStatus failed. error is {0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestSubscriptionsStatus(GamebaseRequest.Purchase.PurchasableConfiguration configuration,
+                GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableSubscriptionStatus>> callback)
+            {
+                GamebasePurchaseImplementation.Instance.RequestSubscriptionsStatus(configuration, callback);
+            }
+
+            /// <summary>
+            /// Request a list of payment products that are currently subscribed.
+            /// If there is a subscription purchased from another platform (such as iOS)
+            /// @since Added 2.6.0.
+            /// @deprecated As of release 2.45.0.
+            /// </summary> 
+            /// <returns>List of payment products that are currently subscribed.</returns>
+            [Obsolete]
             public static void RequestActivatedPurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
             {
-                GamebasePurchaseImplementation.Instance.RequestActivatedPurchases(callback);
+                GamebasePurchaseImplementation.Instance.RequestActivatedPurchases(new GamebaseRequest.Purchase.PurchasableConfiguration(), callback);
             }
 
             /// <summary>
@@ -2512,6 +2745,42 @@ namespace Toast.Gamebase
             public static GamebaseResponse.Push.NotificationOptions GetNotificationOptions()
             {
                 return GamebasePushImplementation.Instance.GetNotificationOptions();
+            }
+            
+            /// <summary>
+            /// This API tells that the user has allowed the device to display notification.
+            /// @since Added 2.34.1.
+            /// </summary>
+            /// <param name="callback">Callback pass to API result.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void QueryNotificationAllowedSample()
+            /// {
+            ///     Gamebase.Push.QueryNotificationAllowed((isAllowed, error)=> 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true) 
+            ///         {
+            ///             if (isAllowed == true)
+            ///             {
+            ///                 // The user allowed notification.
+            ///             }
+            ///             else
+            ///             {
+            ///                 // The user blocked notification.
+            ///             }
+            ///         }
+            ///         else 
+            ///         {
+            ///             // Failed to check device setting.
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void QueryNotificationAllowed(GamebaseCallback.GamebaseDelegate<bool> callback)
+            {
+                GamebasePushImplementation.Instance.QueryNotificationAllowed(callback);
             }
         }
 
@@ -2839,7 +3108,7 @@ namespace Toast.Gamebase
             /// {
             ///     var configuration = new GamebaseRequest.Logger.Configuration("USER_LOGGER_APP_KEY");
             ///     // configuration.enableCrashReporter = true;    // Whether to send crash logs.
-            ///     // configuration.enableCrashErrorLog =  true;   // Errro log is excluded by default. Use it if you want to collect error logs.
+            ///     // configuration.enableCrashErrorLog =  true;   // Error log is excluded by default. Use it if you want to collect error logs.
             ///     Gamebase.Logger.Initialize(configuration);
             /// }
             /// </code>
@@ -2977,6 +3246,28 @@ namespace Toast.Gamebase
             public static void Fatal(string message, Dictionary<string, string> userFields = null)
             {
                 GamebaseLoggerImplementation.Instance.Fatal(message, userFields);
+            }
+
+            /// <summary>
+            /// Exceptions from a try/catch sentence, as well as general/crash logs, can be sent by using Report API.
+            /// @since Added 2.57.0.
+            /// </summary>
+            /// <param name="logLevel">logLevel</param>
+            /// <param name="message">Message to send to the log</param>
+            /// <param name="logString">logString</param>
+            /// <param name="stackTrace">stackTrace</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void ReportSample(Exception e)
+            /// {
+            ///     Gamebase.Logger.Report(GamebaseLoggerConst.LogLevel.ERROR, "message", e.Message, e.StackTrace);
+            /// }
+            /// </code>
+            /// </example>
+            public static void Report(GamebaseLoggerConst.LogLevel logLevel, string message, string logString, string stackTrace)
+            {
+                GamebaseLoggerImplementation.Instance.Report(logLevel, message, logString, stackTrace);
             }
 
             /// <summary>
@@ -3438,10 +3729,10 @@ namespace Toast.Gamebase
             /// <summary>
             /// Displays the terms and conditions window on the screen.
             /// If the user agrees to the terms and conditions, it registers the consent or not on the server.
-            /// If you agree to the terms and conditions calling showTermsView again does not display the terms and conditions and immediately returns a success callback.
+            /// If you agree to the terms and conditions calling ShowTermsView again does not display the terms and conditions and immediately returns a success callback.
             /// @since Added 2.20.0.
             /// </summary>
-            /// <param name="callback">After agreeing to the terms and conditions, when the terms and conditions window is closed, the user is notified by a callback. The GamebaseDataContainer object that comes as a callback can be converted to PushConfiguration and used in Gamebase.Push.registerPush API after logging in.</param>
+            /// <param name="callback">After agreeing to the terms and conditions, when the terms and conditions window is closed, the user is notified by a callback.</param>
             /// <example> 
             /// Example Usage : 
             /// <code>
@@ -3452,7 +3743,7 @@ namespace Toast.Gamebase
             ///         if (Gamebase.IsSuccess(error) == true)
             ///         {
             ///             Debug.Log("ShowTermsView succeeded.");
-            ///             GamebaseResponse.Push.PushConfiguration pushConfiguration = GamebaseResponse.Push.PushConfiguration.From(data);
+            ///             GamebaseResponse.Terms.ShowTermsViewResult result = GamebaseResponse.Terms.ShowTermsViewResult.From(data);
             ///         }
             ///         else
             ///         {
@@ -3464,12 +3755,49 @@ namespace Toast.Gamebase
             /// </example>
             public static void ShowTermsView(GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer> callback)
             {
-                GamebaseTermsImplementation.Instance.ShowTermsView(callback);
+                ShowTermsView(null, callback);
+            }
+            
+            /// <summary>
+            /// Displays the terms and conditions window on the screen.
+            /// If the user agrees to the terms and conditions, it registers the consent or not on the server.
+            /// @since Added 2.33.0.
+            /// </summary>
+            /// <param name="configuration">The initial settings of terms view.</param>
+            /// <param name="callback">After agreeing to the terms and conditions, when the terms and conditions window is closed, the user is notified by a callback.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleShowTermsView(bool forceShow)
+            /// {
+            ///     var configuration = new GamebaseRequest.Terms.GamebaseTermsConfiguration
+            ///     {
+            ///         forceShow = forceShow
+            ///     };
+            /// 
+            ///     Gamebase.Terms.ShowTermsView(configuration, (data, error) => 
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             Debug.Log("ShowTermsView succeeded.");
+            ///             GamebaseResponse.Terms.ShowTermsViewResult result = GamebaseResponse.Terms.ShowTermsViewResult.From(data);
+            ///         }
+            ///         else
+            ///         {
+            ///             Debug.Log(string.Format("ShowTermsView failed. error:{0}", error));
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void ShowTermsView(GamebaseRequest.Terms.GamebaseTermsConfiguration configuration, GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer> callback)
+            {
+                GamebaseTermsImplementation.Instance.ShowTermsView(configuration, callback);
             }
 
             /// <summary>
-            /// If you have created your own UI with the terms and conditions information downloaded through the queryTerms API,
-            /// Please send the game user's agreement to the terms and conditions to the Gamebase server through the updateTerms API.
+            /// If you have created your own UI with the terms and conditions information downloaded through the QueryTerms API,
+            /// Please send the game user's agreement to the terms and conditions to the Gamebase server through the UpdateTerms API.
             /// You can also use it for the purpose of changing the details of your agreement to the terms, such as canceling the agreement to the optional terms and conditions.
             /// @since Added 2.20.0.
             /// </summary>            
@@ -3479,7 +3807,7 @@ namespace Toast.Gamebase
             /// Example Usage : 
             /// <code>
             /// public void SampleUpdateTerms()
-            /// {            
+            /// {
             ///     List<GamebaseRequest.Terms.Content> list = new List<GamebaseRequest.Terms.Content>();
             ///     list.Add(new GamebaseRequest.Terms.Content()
             ///     {
@@ -3518,7 +3846,7 @@ namespace Toast.Gamebase
             /// If you call the API after logging in, you can also check whether the game user has agreed to the terms and conditions.
             /// @since Added 2.20.0.
             /// </summary>
-            /// <param name="callback">The result of the API call is notified to the user as a callback. You can get the terms and conditions set in the console with GamebaseQueryTermsResult that comes as a callback.</param>
+            /// <param name="callback">The result of the API call is notified to the user as a callback. You can get the terms and conditions set in the console with QueryTermsResult that comes as a callback.</param>
             /// <example> 
             /// Example Usage : 
             /// <code>
@@ -3541,6 +3869,26 @@ namespace Toast.Gamebase
             public static void QueryTerms(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Terms.QueryTermsResult> callback)
             {
                 GamebaseTermsImplementation.Instance.QueryTerms(callback);
+            }
+            
+            /// <summary>
+            /// This is the method to check if terms view is being shown.
+            /// @since Added 2.35.0.
+            /// </summary>
+            /// <returns>Whether the terms view is currently show.</returns>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void IsShowingTermsView()
+            /// {
+            ///     bool isShowingTermsView = Gamebase.Terms.IsShowingTermsView();
+            ///     Debug.Log(string.Format("isShowingTermsView:{0}", isShowingTermsView));
+            /// }
+            /// </code>
+            /// </example>
+            public static bool IsShowingTermsView()
+            {
+                return GamebaseTermsImplementation.Instance.IsShowingTermsView();
             }
         }
 

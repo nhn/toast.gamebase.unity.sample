@@ -20,14 +20,14 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             vo.parameter.clientVersion = GamebaseUnitySDK.AppVersion;
             vo.parameter.sdkVersion = GamebaseUnitySDK.SDKVersion;
-            vo.parameter.uuid = GamebaseUnitySDK.UUID;
-            vo.parameter.deviceKey = GamebaseUnitySDK.DeviceKey;
-            vo.parameter.osCode = GamebaseUnitySDK.Platform;
-            vo.parameter.osVersion = GamebaseUnitySDK.OsVersion;
-            vo.parameter.deviceModel = GamebaseUnitySDK.DeviceModel;
-            vo.parameter.deviceLanguage = GamebaseUnitySDK.DeviceLanguageCode;
+            vo.parameter.uuid = GamebaseSystemInfo.UUID;
+            vo.parameter.deviceKey = GamebaseSystemInfo.DeviceKey;
+            vo.parameter.osCode = GamebaseSystemInfo.Platform;
+            vo.parameter.osVersion = GamebaseSystemInfo.OsVersion;
+            vo.parameter.deviceModel = GamebaseSystemInfo.DeviceModel;
+            vo.parameter.deviceLanguage = GamebaseSystemInfo.DeviceLanguageCode;
             vo.parameter.displayLanguage = GamebaseUnitySDK.DisplayLanguageCode;
-            vo.parameter.deviceCountryCode = GamebaseUnitySDK.CountryCode;
+            vo.parameter.deviceCountryCode = GamebaseSystemInfo.CountryCode;
             vo.parameter.usimCountryCode = "ZZ";
             vo.parameter.lcnt = 0;
             vo.parameter.storeCode = GamebaseUnitySDK.StoreCode;

@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
-#import "UnityMessage.h"
+#import "TCGBUnityMessage.h"
 
-@implementation UnityMessage
+@implementation TCGBUnityMessage
 
 @synthesize gameObjectName = _gameObjectName;
 @synthesize responseMethodName = _responseMethodName;

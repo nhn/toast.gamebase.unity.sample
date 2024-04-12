@@ -3,6 +3,7 @@ using System.Collections;
 using ICSharpCode.SharpZipLib.Zip;
 using System;
 using UnityEditor;
+using System.Text;
 
 namespace NhnCloud.GamebaseTools.SettingTool.Util
 {
@@ -19,18 +20,34 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
 
         public static IEnumerator Extract(string zipFilePath, string unZipTargetFolderPath, Action<StateCode, string> callback, Action<FileStream> callbackFileStream = null, Action<float> progressCallback = null, string password = null, bool isDeleteZipFile = false)
         {
-#if UNITY_EDITOR_WIN
             string separatorPath = ReplaceDirectorySeparator(unZipTargetFolderPath);
-            string[] directorys = separatorPath.Split(Path.DirectorySeparatorChar);
-            string newPath = null;
-            string newPathRoot = null;
-            if (null != directorys && 0 < directorys.Length)
+            string[] directories = separatorPath.Split(Path.DirectorySeparatorChar);
+            string tempPath = null;
+            string tempPathRoot = null;
+            
+#if UNITY_EDITOR_WIN
+            if (null != directories && 0 < directories.Length)
             {
-                newPathRoot = directorys[0] + Path.DirectorySeparatorChar + "GamebaseSettingsToolTemp";
-                newPath = newPathRoot + Path.DirectorySeparatorChar + directorys[directorys.Length - 1];
+                tempPathRoot = directories[0] + Path.DirectorySeparatorChar + "GamebaseSettingsToolTemp";
+                tempPath = tempPathRoot + Path.DirectorySeparatorChar + directories[directories.Length - 1];
             }
 #elif UNITY_EDITOR_OSX
-		string newPath = unZipTargetFolderPath;
+            var sb = new StringBuilder();
+            if (null != directories && 0 < directories.Length)
+            {
+                for (int pathIndex = 0; pathIndex < directories.Length - 1; pathIndex++)
+                { 
+                    sb.Append(directories[pathIndex]);
+                    sb.Append(Path.DirectorySeparatorChar);
+                }
+
+                sb.Append("GamebaseSettingsToolTemp");
+                tempPathRoot = sb.ToString();
+
+                sb.Append(Path.DirectorySeparatorChar);
+                sb.Append(directories[directories.Length - 1]);
+                tempPath = sb.ToString();
+            }
 #endif
 
             if (true == string.IsNullOrEmpty(zipFilePath))
@@ -39,7 +56,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
                 yield break;
             }
 
-            if (true == string.IsNullOrEmpty(newPath))
+            if (true == string.IsNullOrEmpty(tempPath))
             {
                 callback(StateCode.FOLDER_PATH_NULL, unZipTargetFolderPath);
                 yield break;
@@ -89,22 +106,20 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
                 string directoryName = Path.GetDirectoryName(theEntry.Name);
                 string fileName = Path.GetFileName(theEntry.Name);
 
-                Directory.CreateDirectory(newPath + "/" + directoryName);
+                Directory.CreateDirectory(tempPath + "/" + directoryName);
 
                 if (false == string.IsNullOrEmpty(fileName))
                 {
                     FileStream streamWriter = null;
                     try
                     {
-                        string filePath = Path.Combine(newPath, theEntry.Name);
+                        string filePath = Path.Combine(tempPath, theEntry.Name);
                         streamWriter = File.Create(filePath);
                     }
                     catch (Exception e)
                     {
                         zipInputStream.Close();
-#if UNITY_EDITOR_WIN
-                        FileUtil.DeleteFileOrDirectory(newPathRoot);
-#endif
+                        FileUtil.DeleteFileOrDirectory(tempPathRoot);
                         callback(StateCode.UNKNOWN_ERROR, e.Message);
                         yield break;
                     }
@@ -162,21 +177,19 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
                     callback(StateCode.UNKNOWN_ERROR, e.Message);
                 }
             }
-#if UNITY_EDITOR_WIN
             try
             {
                 if (true == Directory.Exists(unZipTargetFolderPath))
                 {
                     FileUtil.DeleteFileOrDirectory(unZipTargetFolderPath);
                 }
-                FileUtil.MoveFileOrDirectory(newPath, unZipTargetFolderPath);
-                FileUtil.DeleteFileOrDirectory(newPathRoot);
+                FileUtil.MoveFileOrDirectory(tempPath, unZipTargetFolderPath);
+                FileUtil.DeleteFileOrDirectory(tempPathRoot);
             }
             catch (Exception e)
             {
                 callback(StateCode.UNKNOWN_ERROR, e.Message);
             }
-#endif
             callback(StateCode.SUCCESS, null);
 
         }

@@ -1,8 +1,12 @@
+using System;
 using Toast.Gamebase.Internal;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Toast.Gamebase
 {
+    [Obsolete("Inspector settings are no longer supported, check out our initialization guide. " +
+              "(https://docs.nhncloud.com/en/Game/Gamebase/en/unity-initialization)")]
     public class GamebaseUnitySDKSettings : MonoBehaviour
     {
         public string   appID                       = string.Empty;
@@ -15,12 +19,13 @@ namespace Toast.Gamebase
         public bool     enablePopup                 = false;
         public bool     enableLaunchingStatusPopup  = true;
         public bool     enableBanPopup              = true;
-        public bool     enableKickoutPopup          = true;
 
         public string   storeCodeIOS                = string.Empty;        
         public string   storeCodeAndroid            = string.Empty;
         public string   storeCodeWebGL              = string.Empty;
-        public string   storeCodeStandalone         = string.Empty;
+        [FormerlySerializedAs("storeCodeStandalone")]
+        public string   storeCodeStandaloneWindows  = string.Empty;
+        public string   storeCodeStandaloneMacOS    = string.Empty;
 
         public string   fcmSenderId                 = string.Empty;
         
@@ -35,7 +40,6 @@ namespace Toast.Gamebase
             GamebaseUnitySDK.EnablePopup = enablePopup;
             GamebaseUnitySDK.EnableLaunchingStatusPopup = enableLaunchingStatusPopup;
             GamebaseUnitySDK.EnableBanPopup = enableBanPopup;
-            GamebaseUnitySDK.EnableKickoutPopup = enableKickoutPopup;
             GamebaseUnitySDK.FcmSenderId = fcmSenderId;
 
 #if UNITY_ANDROID
@@ -44,8 +48,10 @@ namespace Toast.Gamebase
             GamebaseUnitySDK.StoreCode = storeCodeIOS;
 #elif UNITY_WEBGL
             GamebaseUnitySDK.StoreCode = storeCodeWebGL;
-#elif UNITY_STANDALONE
-            GamebaseUnitySDK.StoreCode = storeCodeStandalone;
+#elif UNITY_STANDALONE_WIN
+            GamebaseUnitySDK.StoreCode = storeCodeStandaloneWindows;
+#elif UNITY_STANDALONE_OSX
+            GamebaseUnitySDK.StoreCode = storeCodeStandaloneMacOS;
 #else
             GamebaseUnitySDK.StoreCode = storeCodeStandalone;
 #endif
@@ -54,6 +60,7 @@ namespace Toast.Gamebase
 
             GamebaseUnitySDK.UseWebViewLogin = useWebViewLogin;
         }
+
         private void Start()
         {
             GamebaseImplementation.Instance.SetDebugMode(isDebugMode);

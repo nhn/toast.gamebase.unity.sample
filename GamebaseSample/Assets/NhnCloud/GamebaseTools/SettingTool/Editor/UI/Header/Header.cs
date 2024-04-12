@@ -14,6 +14,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
         private const float HEIGHT_VERSION_LABEL = 35;
 
         private const int CONTENT_WIDTH = 210;
+        private const int LINK_BUTTON_WIDTH = 190;
 
         private const string TEXT_TITLE_SETTING_TOOL = "Gamebase Setting Tool";
         private const string TEXT_TITLE_STATUS = "Setting Tool Status";
@@ -30,7 +31,6 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
         private SettingToolCallback.VoidDelegate onClickNaverCefePlugDownload;
 
         private string settingToolUpdateStatus;
-        private string gamebaseDownloadMessage;
 
         private Texture2D settingToolUpdateIcon;
         private Texture2D downloadIcon;
@@ -49,8 +49,6 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
 
             downloadIcon = EditorGUIUtility.FindTexture(ToolStyles.BUILT_IN_RESOURCE_COLLAB_PULL);
             linkIcon = EditorGUIUtility.FindTexture(ToolStyles.BUILT_IN_RESOURCE_D_FAVORITE);
-
-            CreateGamebaseDownloadMessage();
         }
 
         private void SetSettingToolUpdateStatusInfo()
@@ -77,7 +75,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
             }            
         }
 
-        private void CreateGamebaseDownloadMessage()
+        private string GetGamebaseDownloadMessage()
         {
             var data = DataManager.GetData<SettingToolResponse.Version>(DataKey.VERSION);
             var message = new StringBuilder();
@@ -85,18 +83,18 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
             message.AppendLine(string.Format("Download path:{0}", "{PROJECT_PATH}/GamebaseSDK"));
             message.AppendLine();
             message.AppendLine("Gamebase SDK for Unity");
-            message.AppendLine(string.Format("  - Current version:{0}", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.UNITY_CURRENT_VERSION)));
+            message.AppendLine(string.Format("  - Current version:{0}", GamebaseInfo.GetCurrentVersion(SupportPlatform.UNITY)));
             message.AppendLine(string.Format("  - Newest version:{0}", data.unity.newest));
             message.AppendLine();
             message.AppendLine("Gamebase SDK for Android");
-            message.AppendLine(string.Format("  - Current version:{0}", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.ANDROID_CURRENT_VERSION)));
+            message.AppendLine(string.Format("  - Current version:{0}", GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID)));
             message.AppendLine(string.Format("  - Newest version:{0}", data.android.newest));
             message.AppendLine();
             message.AppendLine("Gamebase SDK for iOS");
-            message.AppendLine(string.Format("  - Current version:{0}", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.IOS_CURRENT_VERSION)));
+            message.AppendLine(string.Format("  - Current version:{0}", GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS)));
             message.AppendLine(string.Format("  - Newest version:{0}", data.ios.newest));
 
-            gamebaseDownloadMessage = message.ToString();
+            return message.ToString();
         }
 
         private string GetNaverCafeDownloadMessage()
@@ -236,43 +234,58 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
 
                     if (GUILayout.Button("Gamebase SDK", GUILayout.Width(120), GUILayout.Height(30)) == true)
                     {
-                        if (EditorUtility.DisplayDialog(
-                            Multilanguage.GetString("POPUP_DOWNLOAD_SDK_TITLE"),
-                            gamebaseDownloadMessage,
-                            Multilanguage.GetString("POPUP_OK"),
-                            Multilanguage.GetString("POPUP_CANCEL")) == true)
+                        EditorApplication.delayCall += () =>
                         {
                             if (EditorUtility.DisplayDialog(
                                 Multilanguage.GetString("POPUP_DOWNLOAD_SDK_TITLE"),
-                                Multilanguage.GetString("POPUP_006_MESSAGE"),
+                                GetGamebaseDownloadMessage(),
                                 Multilanguage.GetString("POPUP_OK"),
                                 Multilanguage.GetString("POPUP_CANCEL")) == true)
                             {
-                                if (onClickGamebaseSdkDownload != null)
+                                if (EditorUtility.DisplayDialog(
+                                    Multilanguage.GetString("POPUP_DOWNLOAD_SDK_TITLE"),
+                                    Multilanguage.GetString("POPUP_006_MESSAGE"),
+                                    Multilanguage.GetString("POPUP_OK"),
+                                    Multilanguage.GetString("POPUP_CANCEL")) == true)
                                 {
-                                    onClickGamebaseSdkDownload();
+                                    if (onClickGamebaseSdkDownload != null)
+                                    {
+                                        onClickGamebaseSdkDownload();
+                                    }
                                 }
                             }
-                        }
+                        };
                     }
                     GUI.enabled = true;
+
+                    var versionTxt = new StringBuilder();
+                    versionTxt.AppendFormat(
+                        "{0}\n - Unity:{1}\n - Android:{2}\n - iOS:{3}",
+                        Multilanguage.GetString("UI_TEXT_DOWNLOADED_VERSION"),
+                        (string.IsNullOrEmpty(GamebaseInfo.GetCurrentVersion(SupportPlatform.UNITY)) == true)? "-" : GamebaseInfo.GetCurrentVersion(SupportPlatform.UNITY),
+                        (string.IsNullOrEmpty(GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID)) == true)? "-" : GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID),
+                        (string.IsNullOrEmpty(GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS)) == true)? "-" : GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS));
+                    GUILayout.Label(versionTxt.ToString(), ToolStyles.SmallLabel);
 
                     GUILayout.Space(5);
 
                     if (GUILayout.Button(Multilanguage.GetString("PLUG_SDK_SETTING_BUTTON"), GUILayout.Width(120), GUILayout.Height(30)) == true)
                     {
-                        if (onClickNaverCefePlugDownload != null)
+                        EditorApplication.delayCall += () =>
                         {
-                            if (EditorUtility.DisplayDialog(
-                                Multilanguage.GetString("PLUG_SDK_SETTING_INFOMATION_TITLE"),
-                                GetNaverCafeDownloadMessage(),
-                                Multilanguage.GetString("POPUP_OK"),
-                                Multilanguage.GetString("POPUP_CANCEL")) == true)
+                            if (onClickNaverCefePlugDownload != null)
                             {
-                                onClickNaverCefePlugDownload();
-                            }
+                                if (EditorUtility.DisplayDialog(
+                                    Multilanguage.GetString("PLUG_SDK_SETTING_INFOMATION_TITLE"),
+                                    GetNaverCafeDownloadMessage(),
+                                    Multilanguage.GetString("POPUP_OK"),
+                                    Multilanguage.GetString("POPUP_CANCEL")) == true)
+                                {
+                                    onClickNaverCefePlugDownload();
+                                }
 
-                        }
+                            }
+                        };
                     }
 
                     EditorGUILayout.EndVertical();
@@ -303,22 +316,22 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
 
         private void DrawSampleAppLink()
         {
-            if (GUILayout.Button(TEXT_LINK_SETTING_TOOL_GUIDE, ToolStyles.LinkButton, GUILayout.Width(180)) == true)
+            if (GUILayout.Button(TEXT_LINK_SETTING_TOOL_GUIDE, ToolStyles.LinkButton, GUILayout.Width(LINK_BUTTON_WIDTH)) == true)
             {
                 Application.OpenURL("https://docs.toast.com/en/Game/Gamebase/en/unity-started/#using-the-setting-tool");
             }
 
-            if (GUILayout.Button(TEXT_LINK_GAMEBASE_GUIDE, ToolStyles.LinkButton, GUILayout.Width(180)) == true)
+            if (GUILayout.Button(TEXT_LINK_GAMEBASE_GUIDE, ToolStyles.LinkButton, GUILayout.Width(LINK_BUTTON_WIDTH)) == true)
             {
                 Application.OpenURL("https://docs.toast.com/en/Game/Gamebase/en/unity-started/");
             }
 
-            if (GUILayout.Button(TEXT_LINK_GAMEBASE_SAMPLE_APP_GITHUB, ToolStyles.LinkButton, GUILayout.Width(180)) == true)
+            if (GUILayout.Button(TEXT_LINK_GAMEBASE_SAMPLE_APP_GITHUB, ToolStyles.LinkButton, GUILayout.Width(LINK_BUTTON_WIDTH)) == true)
             {
                 Application.OpenURL("https://github.com/nhn/toast.gamebase.unity.sample");
             }
 
-            if (GUILayout.Button(TEXT_LINK_EDM4U_GITHUB, ToolStyles.LinkButton, GUILayout.Width(180)) == true)
+            if (GUILayout.Button(TEXT_LINK_EDM4U_GITHUB, ToolStyles.LinkButton, GUILayout.Width(LINK_BUTTON_WIDTH)) == true)
             {
                 Application.OpenURL("https://github.com/googlesamples/unity-jar-resolver");
             }

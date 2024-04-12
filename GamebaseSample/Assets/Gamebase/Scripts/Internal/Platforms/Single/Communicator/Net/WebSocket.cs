@@ -86,16 +86,27 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         
         public void Initialize()
         {
-            if (string.IsNullOrEmpty(Lighthouse.URI) == true)
-            {
-                Lighthouse.URI = Lighthouse.ZoneType.REAL.GetEnumMemberValue();
-            }
-            socket.Initialize(Lighthouse.URI);
+            socket.Initialize(Lighthouse.GetAddress());
         }
 
         public IEnumerator Connect(GamebaseCallback.ErrorDelegate callback)
         {
-            yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Connect(callback));            
+            yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, InternetReachability((reachable) =>
+            {
+                if (reachable == true)
+                {
+                    GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Connect(callback));
+                }
+                else
+                {
+                    if (callback == null)
+                    {
+                        return;
+                    }
+
+                    callback(new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, Domain, GamebaseStrings.SOCKET_NO_INTERNET_CONNECTION));
+                }
+            }));
         }
 
         public void Disconnect()
@@ -279,13 +290,18 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             ProtocolResponse protocol = JsonMapper.ToObject<ProtocolResponse>(response);
 
-            if (null != protocol.header.serverPush)
+            if (protocol.header.serverPush != null)
             {
                 ServerPush.Instance.OnServerPush(response);
                 return;
             }
-            
-            if(protocol.header.transactionId == requestQueueItem.requestVO.transactionId)
+
+            if (requestQueueItem == null || requestQueueItem.requestVO == null)
+            {
+                return;
+            }
+
+            if (protocol.header.transactionId == requestQueueItem.requestVO.transactionId)
             {                
                 if (requestQueueItem.callback != null)
                 {

@@ -55,12 +55,12 @@ namespace Toast.Gamebase.Internal
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             purchase.RequestPurchase(gamebaseProductId, payload, handle);
         }
-
-        public void RequestItemListOfNotConsumed(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
+        
+        public void RequestItemListOfNotConsumed(GamebaseRequest.Purchase.PurchasableConfiguration configuration, GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
-            purchase.RequestItemListOfNotConsumed(handle);
+            purchase.RequestItemListOfNotConsumed(configuration, handle);
         }
 
         public void RequestRetryTransaction(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableRetryTransactionResult> callback)
@@ -103,11 +103,18 @@ namespace Toast.Gamebase.Internal
             return purchase.GetStoreCode();
         }
 
-        public void RequestActivatedPurchases(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
+        public void RequestActivatedPurchases(GamebaseRequest.Purchase.PurchasableConfiguration configuration, GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableReceipt>> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
-            purchase.RequestActivatedPurchases(handle);         
+            purchase.RequestActivatedPurchases(configuration, handle);
+        }
+
+        public void RequestSubscriptionsStatus(GamebaseRequest.Purchase.PurchasableConfiguration configuration, GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableSubscriptionStatus>> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            purchase.RequestSubscriptionsStatus(configuration, handle);
         }
     }
 }

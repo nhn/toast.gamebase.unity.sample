@@ -2,11 +2,11 @@
 
 @class NativeMessage;
 
-@interface UnityMessageSender: NSObject {
+@interface TCGBUnityMessageSender: NSObject {
     
 }
 
-+(UnityMessageSender*)sharedUnityMessageSender;
++(TCGBUnityMessageSender*)sharedUnityMessageSender;
 
 -(void)sendMessage:(NativeMessage*)message gameObjectName:(NSString*)gameObjectName responseMethodName :(NSString*)responseMethodName;
 

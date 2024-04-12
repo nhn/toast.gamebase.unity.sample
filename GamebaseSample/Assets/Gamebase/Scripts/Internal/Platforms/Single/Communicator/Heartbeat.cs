@@ -14,8 +14,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         
         private enum HeartbeatStatus
         {
-            Start   = 0,
-            Stop    = 1
+            START   = 0,
+            STOP    = 1
         }
 
         public static Heartbeat Instance
@@ -25,42 +25,42 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         private HeartbeatStatus status;
         private DateTime lastSentTime;
-        private const float waitTime = 0.5f;
+        private const float WAIT_TIME = 0.5f;
 
         public Heartbeat()
         {
-            status          = HeartbeatStatus.Stop;
+            status          = HeartbeatStatus.STOP;
             lastSentTime    = DateTime.Now;
         }
 
         public void StartHeartbeat()
         {
-            if (false == IsSendable())
+            if (IsSendable() == false)
             {
                 return;
             }
 
             GamebaseLog.Debug("Start Heartbeat", this);
 
-            status = HeartbeatStatus.Start;
+            status = HeartbeatStatus.START;
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.HEARTBEAT_TYPE, ExecuteHeartbeat());
         }
 
         public void StopHeartbeat()
         {
-            if (HeartbeatStatus.Stop == status)
+            if (HeartbeatStatus.STOP == status)
             {
                 return;
             }
 
             GamebaseLog.Debug("Stop Heartbeat", this);
 
-            status = HeartbeatStatus.Stop;
+            status = HeartbeatStatus.STOP;
         }
 
         private IEnumerator ExecuteHeartbeat()
         {
-            if (HeartbeatStatus.Stop == status)
+            if (HeartbeatStatus.STOP == status)
             {
                 yield break;
             }
@@ -77,21 +77,25 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 SendHeartbeat();
             }
             
-            yield return new WaitForSecondsRealtime(waitTime);
+            yield return new WaitForSecondsRealtime(WAIT_TIME);
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.HEARTBEAT_TYPE, ExecuteHeartbeat());
         }
 
         private void SendHeartbeat()
         {
+            // WebSocket Request 후 Response의 응답 속도가 0.5초를 넘길 경우, SendHeartbeat 메소드가 한번 더 호출된다.
+            // 이에 대한 예외 처리로 Request 호출 즉시 lastSentTime을 초기화한다.
+            lastSentTime = DateTime.Now;
+
             var requestVO = HeartbeatMessage.GetHeartbeatMessage();
             WebSocket.Instance.Request(requestVO, (response, error) =>
             {
                 GamebaseError heartbeatError = error;
 
-                if (null == heartbeatError)
+                if (heartbeatError == null)
                 {
                     var vo = JsonMapper.ToObject<LaunchingResponse.HeartbeatInfo>(response);
-                    if (true == vo.header.isSuccessful)
+                    if (vo.header.isSuccessful == true)
                     {
                         GamebaseLog.Debug("Send heartbeat succeeded", this);
                     }
@@ -101,43 +105,70 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     }
                 }
 
-                if(null != heartbeatError)
+                if (heartbeatError != null)
                 {
-                    if (GamebaseErrorCode.BANNED_MEMBER == heartbeatError.code || GamebaseErrorCode.INVALID_MEMBER == heartbeatError.code)
+                    if (heartbeatError.code == GamebaseErrorCode.BANNED_MEMBER ||
+                        heartbeatError.code == GamebaseErrorCode.INVALID_MEMBER)
                     {
-                        var vo = new GamebaseResponse.SDK.ObserverMessage();
-                        vo.type = GamebaseObserverType.HEARTBEAT;
-                        vo.data = new System.Collections.Generic.Dictionary<string, object>();
-                        vo.data.Add("code", heartbeatError.code);
+                        SendObserverEvent(heartbeatError.code);
 
-                        if (GamebaseErrorCode.BANNED_MEMBER == heartbeatError.code)
+                        var observerData = new GamebaseResponse.Event.GamebaseEventObserverData()
+                        {
+                            code = heartbeatError.code,
+                            message = heartbeatError.message,
+                            extras = JsonMapper.ToJson(heartbeatError)
+                        };
+
+                        SendEventMessage(GamebaseEventCategory.OBSERVER_HEARTBEAT, JsonMapper.ToJson(observerData));
+
+                        if (heartbeatError.code == GamebaseErrorCode.BANNED_MEMBER)
                         {
                             GamebaseIndicatorReport.SendIndicatorData(
-                            GamebaseIndicatorReportType.LogType.EVENT,
-                            GamebaseIndicatorReportType.StabilityCode.GB_EVENT_OBSERVER_BANNED_MEMBER,
-                            GamebaseIndicatorReportType.LogLevel.INFO,
-                            new Dictionary<string, string>()
-                            {
-                                { GamebaseIndicatorReportType.AdditionalKey.GB_OBSERVER_DATA, JsonMapper.ToJson(vo) }
-                            });
+                                GamebaseIndicatorReportType.LogType.EVENT,
+                                GamebaseIndicatorReportType.StabilityCode.GB_EVENT_OBSERVER_BANNED_MEMBER,
+                                GamebaseIndicatorReportType.LogLevel.INFO,
+                                new Dictionary<string, string>()
+                                {
+                                        { GamebaseIndicatorReportType.AdditionalKey.GB_OBSERVER_DATA, JsonMapper.ToJson(observerData) }
+                                });
                         }
-                        else
+                        else if (heartbeatError.code == GamebaseErrorCode.INVALID_MEMBER)
                         {
                             GamebaseIndicatorReport.SendIndicatorData(
-                            GamebaseIndicatorReportType.LogType.EVENT,
-                            GamebaseIndicatorReportType.StabilityCode.GB_EVENT_OBSERVER_INVALID_MEMBER,
-                            GamebaseIndicatorReportType.LogLevel.INFO,
-                            new Dictionary<string, string>()
-                            {
-                                { GamebaseIndicatorReportType.AdditionalKey.GB_OBSERVER_DATA, JsonMapper.ToJson(vo) }
-                            });
+                                GamebaseIndicatorReportType.LogType.EVENT,
+                                GamebaseIndicatorReportType.StabilityCode.GB_EVENT_OBSERVER_INVALID_MEMBER,
+                                GamebaseIndicatorReportType.LogLevel.INFO,
+                                new Dictionary<string, string>()
+                                {
+                                        { GamebaseIndicatorReportType.AdditionalKey.GB_OBSERVER_DATA, JsonMapper.ToJson(observerData) }
+                                });
                         }
 
-                        GamebaseSystemPopup.Instance.ShowHeartbeatErrorPopup(heartbeatError);
-
-                        GamebaseObserverManager.Instance.OnObserverEvent(vo);
-                        SendEventMessage(vo);
+                        if (GamebaseUnitySDK.EnablePopup == true)
+                        {
+                            GamebaseSystemPopup.Instance.ShowHeartbeatErrorPopup(heartbeatError);
+                        }
                     }
+                    else if (heartbeatError.code == GamebaseErrorCode.AUTH_INVALID_GAMEBASE_TOKEN)
+                    {
+                        var loggedOutData = new GamebaseResponse.Event.GamebaseEventLoggedOutData()
+                        {
+                            message = heartbeatError.message,
+                            extras = JsonMapper.ToJson(heartbeatError)
+                        };
+
+                        SendEventMessage(GamebaseEventCategory.LOGGED_OUT, JsonMapper.ToJson(loggedOutData));
+
+                        GamebaseIndicatorReport.SendIndicatorData(
+                            GamebaseIndicatorReportType.LogType.EVENT,
+                            GamebaseIndicatorReportType.StabilityCode.GB_EVENT_LOGGED_OUT,
+                            GamebaseIndicatorReportType.LogLevel.WARN,
+                            new Dictionary<string, string>()
+                            {
+                                { GamebaseIndicatorReportType.AdditionalKey.GB_EVENT_LOGGED_OUT_DATA, loggedOutData.extras }
+                            });
+                    }
+
                     GamebaseLog.Debug(string.Format("Send heartbeat failed. error:{0}", GamebaseJsonUtil.ToPrettyJsonString(heartbeatError)), this);
                 }
 
@@ -145,31 +176,37 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             });
         }
 
-        private void SendEventMessage(GamebaseResponse.SDK.ObserverMessage message)
+        private void SendObserverEvent(int heartbeatErrorCode)
         {
-            GamebaseResponse.Event.GamebaseEventObserverData observerData = new GamebaseResponse.Event.GamebaseEventObserverData();
-
-            object codeData = null;
-            if (message.data.TryGetValue("code", out codeData) == true)
+            var message = new GamebaseResponse.SDK.ObserverMessage
             {
-                observerData.code = (int)codeData;
-            }
+                data = new Dictionary<string, object>(),
+                type = GamebaseObserverType.HEARTBEAT
+            };
 
-            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
-            eventMessage.category = string.Format("observer{0}", GamebaseStringUtil.Capitalize(message.type));
-            eventMessage.data = JsonMapper.ToJson(observerData);
+            message.data.Add("code", heartbeatErrorCode);
+            GamebaseObserverManager.Instance.OnObserverEvent(message);
+        }
 
-            GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
+        private void SendEventMessage(string category, string data)
+        {
+            var message = new GamebaseResponse.Event.GamebaseEventMessage()
+            {
+                category = category,
+                data = data
+            };
+
+            GamebaseEventHandlerManager.Instance.OnEventHandler(message);
         }
 
         private bool IsSendable()
         {
-            if (HeartbeatStatus.Start == status)
+            if (HeartbeatStatus.START == status)
             {
                 return false;
             }
 
-            if (false == IsLoggedin())
+            if (IsLoggedin() == false)
             {
                 return false;
             }
@@ -179,7 +216,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         private bool IsLoggedin()
         {
-            if (true == string.IsNullOrEmpty(Gamebase.GetUserID()))
+            if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
             {
                 return false;
             }

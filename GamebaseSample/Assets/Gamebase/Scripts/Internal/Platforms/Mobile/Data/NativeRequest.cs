@@ -32,6 +32,11 @@ namespace Toast.Gamebase.Internal.Mobile
                 public Dictionary<string, object> additionalInfo;
             }            
             
+            public class LoginForLastLoggedInProviderWithAdditionalInfo
+            {
+                public Dictionary<string, object> additionalInfo;
+            }
+            
             public class AddMapping
             {
                 public string providerName;
@@ -66,17 +71,7 @@ namespace Toast.Gamebase.Internal.Mobile
             {
                 public string providerName;
             }
-
-            public class IssueTransferKey
-            {
-                public long expiresIn;
-            }
-
-            public class RequestTransfer
-            {
-                public string transferKey;
-            }
-
+            
             public class TransferAccount
             {
                 public string accountId;

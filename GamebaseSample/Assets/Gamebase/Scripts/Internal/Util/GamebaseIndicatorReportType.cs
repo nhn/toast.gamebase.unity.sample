@@ -12,6 +12,7 @@
             public const string COMMON = "Common";
             public const string TAA = "TAA";
             public const string WEBVIEW = "WebView";
+            public const string NETWORK = "Network";
         }
 
         public static class LogLevel
@@ -40,9 +41,11 @@
             public const string GB_AUTH_CANCEL_TEMPORARY_WITHDRAWAL_FAILED = "GB_AUTH_CANCEL_TEMPORARY_WITHDRAWAL_FAILED";
             public const string GB_EVENT_OBSERVER_BANNED_MEMBER = "GB_EVENT_OBSERVER_BANNED_MEMBER";
             public const string GB_EVENT_OBSERVER_INVALID_MEMBER = "GB_EVENT_OBSERVER_INVALID_MEMBER";
+            public const string GB_EVENT_LOGGED_OUT = "GB_EVENT_LOGGED_OUT";
             public const string GB_IAP_PURCHASE_SUCCESS = "GB_IAP_PURCHASE_SUCCESS";
             public const string GB_IAP_PURCHASE_FAILED = "GB_IAP_PURCHASE_FAILED";
             public const string GB_IAP_PURCHASE_CANCELED = "GB_IAP_PURCHASE_CANCELED";
+            public const string GB_IAP_PURCHASE_INVALID_RECEIPT = "GB_IAP_PURCHASE_INVALID_RECEIPT";
             public const string GB_COMMON_WRONG_USAGE = "GB_COMMON_WRONG_USAGE";
             public const string GB_TAA_SET_GAME_USER_DATA_SUCCESS = "GB_TAA_SET_GAME_USER_DATA_SUCCESS";
             public const string GB_TAA_SET_GAME_USER_DATA_FAILED = "GB_TAA_SET_GAME_USER_DATA_FAILED";
@@ -52,6 +55,8 @@
             public const string GB_TAA_PURCHASE_COMPLETE_FAILED = "GB_TAA_PURCHASE_COMPLETE_FAILED";
             public const string GB_TAA_RESET_USER_LEVEL = "GB_TAA_RESET_USER_LEVEL";
             public const string GB_WEBVIEW_OPEN_FAILED = "GB_WEBVIEW_OPEN_FAILED";
+            public const string GB_NETWORK_CHANGE_DOMAIN_SUCCESS = "GB_NETWORK_CHANGE_DOMAIN_SUCCESS";
+            public const string GB_NETWORK_DOMAIN_CONNECTION_FAILED = "GB_NETWORK_DOMAIN_CONNECTION_FAILED";
         }
 
         public static class AdditionalKey
@@ -62,6 +67,7 @@
             public const string GB_TCIAP_APP_KEY = "GBTCIapAppKey";
             public const string GB_ITEM_SEQ = "GBItemSeq";
             public const string GB_OBSERVER_DATA = "txtGBObserverData";
+            public const string GB_EVENT_LOGGED_OUT_DATA = "txtGBEventLoggedOutData";
             public const string GB_SUB_CATEGORY1 = "GBSubCategory1";
             public const string GB_TAA_USER_LEVEL = "GBTAAUserLevel";
             public const string GB_PAYMENT_SEQ = "GBPaymentSeq";
@@ -71,8 +77,11 @@
             public const string GB_FUNCTION_NAME = "GBFunctionName";
             public const string GB_ERROR_LOG = "GBErrorLog";
             public const string GB_EXCEPTION = "GBException";
-            public const string GB_WEBVIEW_CONFIGURATION = "txtGBWebViewConfiguration ";
-            public const string GB_URL = "GBURL  ";
+            public const string GB_WEBVIEW_CONFIGURATION = "txtGBWebViewConfiguration";
+            public const string GB_URL = "GBURL";
+            public const string GB_DOMAIN = "GBDomain";
+            public const string GB_PURCHASABLE_RECEIPT = "txtGBPurchasableReceipt";
+            public const string GB_PRICE = "GBPrice";
         }
 
         public static class SubCategory

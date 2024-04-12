@@ -150,6 +150,8 @@ namespace Toast.Gamebase.Internal
                 {
                     { GB_USER_ID, userId }
                 });
+
+            UnityLoggerController.Instance.SetUserId(userId);
         }
         
         public void SendPluginLog(Dictionary<string, string> data)
@@ -384,12 +386,14 @@ namespace Toast.Gamebase.Internal
             var jsonString      = JsonMapper.ToJson(data);
             var encoding        = new UTF8Encoding().GetBytes(jsonString);
 
-            UnityWebRequest www = UnityWebRequest.Put(URL, encoding);
-            www.timeout         = 10;
-            www.method          = "POST";
-            www.SetRequestHeader("Content-Type", "application/json");            
+            using (UnityWebRequest www = UnityWebRequest.Put(URL, encoding))
+            {
+                www.timeout         = 10;
+                www.method          = "POST";
+                www.SetRequestHeader("Content-Type", "application/json");            
 
-            yield return UnityCompatibility.WebRequest.Send(www);
+                yield return UnityCompatibility.WebRequest.Send(www);
+            }
         }
 
         private void CreateBasicData()
@@ -398,7 +402,7 @@ namespace Toast.Gamebase.Internal
             {                
                 { GB_APP_ID,       GamebaseUnitySDK.AppID },
                 { GB_APP_VERSION,  GamebaseUnitySDK.AppVersion },
-                { GB_UUID,         GamebaseUnitySDK.UUID },
+                { GB_UUID,         GamebaseSystemInfo.UUID },
                 { LOG_AND_CRASH_PLATFORM,    SystemInfo.operatingSystem },
                 { LOG_AND_CRASH_PROJECT_VERSION,    PROJECT_VERSION },
                 { LOG_AND_CRASH_LOG_VERSION,        LOG_VERSION }

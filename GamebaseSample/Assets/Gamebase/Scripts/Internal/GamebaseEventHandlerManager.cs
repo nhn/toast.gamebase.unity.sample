@@ -64,11 +64,7 @@ namespace Toast.Gamebase.Internal
 
         public void OnEventHandler(GamebaseResponse.Event.GamebaseEventMessage message)
         {
-            GamebaseLog.Debug(
-                string.Format(
-                    "OnEventHandler message : {0}",
-                    LitJson.JsonMapper.ToJson(message)), 
-                this);
+            GamebaseLog.Debug(string.Format("message:{0}", LitJson.JsonMapper.ToJson(message)), this);
 
             if (eventHandlerSet != null && eventHandlerSet.Count > 0)
             {

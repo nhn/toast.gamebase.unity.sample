@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System;
 using Toast.Gamebase.LitJson;
 using System.Text;
+using GamePlatform.Logger;
 
 namespace Toast.Gamebase.Internal
 {
@@ -48,6 +49,7 @@ namespace Toast.Gamebase.Internal
         {
             GamebaseGameInformationReport.Instance.AddApiName();
             sdk.SetDebugMode(isDebugMode);
+            GpLogger.DebugMode = isDebugMode;
         }
 
         public void Initialize(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> callback)
@@ -219,7 +221,6 @@ namespace Toast.Gamebase.Internal
             configuration.enablePopup                       = GamebaseUnitySDK.EnablePopup;
             configuration.enableLaunchingStatusPopup        = GamebaseUnitySDK.EnableLaunchingStatusPopup;
             configuration.enableBanPopup                    = GamebaseUnitySDK.EnableBanPopup;
-            configuration.enableKickoutPopup                = GamebaseUnitySDK.EnableKickoutPopup;
 #pragma warning disable 0618
             configuration.fcmSenderId                       = GamebaseUnitySDK.FcmSenderId;
 #pragma warning restore 0618
@@ -239,7 +240,6 @@ namespace Toast.Gamebase.Internal
             GamebaseUnitySDK.EnablePopup                    = configuration.enablePopup;
             GamebaseUnitySDK.EnableLaunchingStatusPopup     = configuration.enableLaunchingStatusPopup;
             GamebaseUnitySDK.EnableBanPopup                 = configuration.enableBanPopup;
-            GamebaseUnitySDK.EnableKickoutPopup             = configuration.enableKickoutPopup;
 #pragma warning disable 0618
             GamebaseUnitySDK.FcmSenderId                    = configuration.fcmSenderId;
 #pragma warning restore 0618

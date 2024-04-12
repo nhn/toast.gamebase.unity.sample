@@ -1,15 +1,15 @@
-#import "UnityMessageSender.h"
+#import "TCGBUnityMessageSender.h"
 #import <Gamebase/Gamebase.h>
 #import <GamebasePlugin/NativeMessage.h>
 #import <GamebasePlugin/TCGBJsonUtil.h>
 
-@implementation UnityMessageSender
+@implementation TCGBUnityMessageSender
 
-+(UnityMessageSender*)sharedUnityMessageSender {
++(TCGBUnityMessageSender*)sharedUnityMessageSender {
     static dispatch_once_t onceToken;
-    static UnityMessageSender* instance = nil;
+    static TCGBUnityMessageSender* instance = nil;
     dispatch_once(&onceToken, ^{
-        instance = [[UnityMessageSender alloc] init];
+        instance = [[TCGBUnityMessageSender alloc] init];
     });
     return instance;
 }

@@ -13,8 +13,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.parameter.appId = GamebaseUnitySDK.AppID;
             vo.payload.appId = GamebaseUnitySDK.AppID;
             vo.payload.clientVersion = GamebaseUnitySDK.AppVersion;
-            vo.payload.deviceCountryCode = GamebaseUnitySDK.CountryCode;
-            vo.payload.osCode = GamebaseUnitySDK.Platform;
+            vo.payload.deviceCountryCode = GamebaseSystemInfo.CountryCode;
+            vo.payload.osCode = GamebaseSystemInfo.Platform;
 
             if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
             {
@@ -28,7 +28,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.payload.usimCountryCode = "ZZ";
             vo.payload.storeCode = GamebaseUnitySDK.StoreCode;
             vo.payload.idpCode = GamebaseAnalytics.Instance.IdPCode;
-            vo.payload.deviceModel = GamebaseUnitySDK.DeviceModel;
+            vo.payload.deviceModel = GamebaseSystemInfo.DeviceModel;
 
 
             var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Presence.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)

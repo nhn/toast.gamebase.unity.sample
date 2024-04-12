@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <Gamebase/Gamebase.h>
 
-@interface UnityMessage : NSObject {
+@interface TCGBUnityMessage : NSObject {
     NSString* _gameObjectName;
     NSString* _responseMethodName;
 }
@@ -10,4 +10,3 @@
 @property (nonatomic, strong) NSString* responseMethodName;
 
 @end
-

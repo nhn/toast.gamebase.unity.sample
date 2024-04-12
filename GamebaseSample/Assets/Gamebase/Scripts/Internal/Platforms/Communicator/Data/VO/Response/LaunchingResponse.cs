@@ -109,6 +109,7 @@ namespace Toast.Gamebase.Internal
                     public string endDate;
                     public long localBeginDate;
                     public long localEndDate;
+                    public bool hideDate;
                 }
 
                 public class Notice
@@ -116,6 +117,17 @@ namespace Toast.Gamebase.Internal
                     public string message;
                     public string title;
                     public string url;
+                }
+
+                public class User
+                {
+                    public TestDevice testDevice;
+
+                    public class TestDevice
+                    {
+                        public bool matchingFlag;
+                        public List<string> matchingTypes;
+                    }
                 }
 
                 public class TCGBClient
@@ -164,6 +176,7 @@ namespace Toast.Gamebase.Internal
                 public Maintenance maintenance;
                 public Notice notice;
                 public Status status;
+                public User user;
                 public TCGBClient tcgbClient;
                 public Standalone standalone;
             }
@@ -178,12 +191,12 @@ namespace Toast.Gamebase.Internal
 
             public class TCProduct
             {
-                public TCProductAppKeyInfo gamebase;
-                public TCProductAppKeyInfo tcLaunching;
-                public TCProductAppKeyInfo iap;
-                public TCProductAppKeyInfo push;
+                public AppKeyInfo gamebase;
+                public AppKeyInfo tcLaunching;
+                public AppKeyInfo iap;
+                public AppKeyInfo push;
 
-                public class TCProductAppKeyInfo
+                public class AppKeyInfo
                 {
                     public string appKey;
                 }

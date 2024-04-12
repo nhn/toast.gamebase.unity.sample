@@ -213,7 +213,7 @@ namespace NhnCloud.GamebaseTools.SettingTool
         private void AdInitialize()
         {
             var imageDownloadPath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).ad.downloadPath;
-            var remoteUrl = Path.Combine(DataManager.GetData<string>(DataKey.CDN_URL), "GamebaseSettingTool/Ad/");
+            var remoteUrl = Path.Combine(DataManager.GetData<SettingToolResponse.Cdn>(DataKey.CDN).url, "GamebaseSettingTool/Ad/");
 
             Advertisement.Initialize(
                 window, 

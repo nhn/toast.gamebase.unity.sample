@@ -10,16 +10,16 @@
 @end
 
 @interface NSDictionary (JSON)
-- (NSString *)JSONString;
-- (NSString *)PrettyJSONString;
+- (NSString *)toJSONString;
+- (NSString *)toJSONPrettyString;
 @end
 
 @interface NSArray (JSON)
-- (NSString *)JSONString;
-- (NSString *)JSONStringFromArray;
+- (NSString *)toJSONString;
+- (NSString *)toJSONStringOfObject;
 @end
 
 @interface NSString (JSON)
-- (NSDictionary *)JSONDictionary;
-- (NSArray *)JSONArray;
+- (NSDictionary *)toJSONDictionary;
+- (NSArray *)toJSONArray;
 @end

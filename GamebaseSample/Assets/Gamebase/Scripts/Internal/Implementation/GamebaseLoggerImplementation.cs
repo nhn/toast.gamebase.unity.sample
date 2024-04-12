@@ -77,6 +77,12 @@ namespace Toast.Gamebase.Internal
             logger.Fatal(message, userFields);
         }
 
+        public void Report(GamebaseLoggerConst.LogLevel logLevel, string message, string logString, string stackTrace)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            logger.Report(logLevel, message, logString, stackTrace);
+        }
+
         public void SetUserField(string key, string value)
         {
             GamebaseGameInformationReport.Instance.AddApiName();

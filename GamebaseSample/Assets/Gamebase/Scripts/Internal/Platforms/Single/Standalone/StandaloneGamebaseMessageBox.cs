@@ -4,9 +4,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Toast.Gamebase.Internal.Single.Standalone
+namespace Toast.Gamebase.Internal
 {
-    public class StandaloneGamebaseMessageBox
+    public class GamebaseWindowsMessageBox
     {
         // https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms645505(v=vs.85).aspx
 
@@ -23,26 +23,26 @@ namespace Toast.Gamebase.Internal.Single.Standalone
 
         #region message box
 
-        public const uint MB_OK                 = 0x00000000;
-        public const uint MB_OKCANCEL           = 0x00000001;
+        private const uint MB_OK                 = 0x00000000;
+        private const uint MB_OKCANCEL           = 0x00000001;
 
-        public const uint MB_ICONEXCLAMATION    = 0x00000030;
-        public const uint MB_ICONWARNING        = 0x00000030;
-        public const uint MB_ICONINFORMATION    = 0x00000040;
-        public const uint MB_ICONASTERISK       = 0x00000040;
-        public const uint MB_ICONQUESTION       = 0x00000020;
-        public const uint MB_ICONSTOP           = 0x00000010;
-        public const uint MB_ICONERROR          = 0x00000010;
-        public const uint MB_ICONHAND           = 0x00000010;
+        private const uint MB_ICONEXCLAMATION    = 0x00000030;
+        private const uint MB_ICONWARNING        = 0x00000030;
+        private const uint MB_ICONINFORMATION    = 0x00000040;
+        private const uint MB_ICONASTERISK       = 0x00000040;
+        private const uint MB_ICONQUESTION       = 0x00000020;
+        private const uint MB_ICONSTOP           = 0x00000010;
+        private const uint MB_ICONERROR          = 0x00000010;
+        private const uint MB_ICONHAND           = 0x00000010;
 
-        public const uint MB_DEFBUTTON1         = 0x00000000;
-        public const uint MB_DEFBUTTON2         = 0x00000100;
+        private const uint MB_DEFBUTTON1         = 0x00000000;
+        private const uint MB_DEFBUTTON2         = 0x00000100;
 
-        public const int IDOK                   = 1;
-        public const int IDCANCEL               = 2;
-        
-        public static string OK                 = "&OK";
-        public static string Cancel             = "&Cancel";
+        private const int IDOK                   = 1;
+        private const int IDCANCEL               = 2;
+
+        private static string OK                 = "&OK";
+        private static string Cancel             = "&Cancel";
 
         #endregion
         
@@ -87,7 +87,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
         #endregion
         
         [StructLayout(LayoutKind.Sequential)]
-        public struct CWPRETSTRUCT
+        private struct CWPRETSTRUCT
         {
             public IntPtr   lResult;
             public IntPtr   lParam;
@@ -109,16 +109,55 @@ namespace Toast.Gamebase.Internal.Single.Standalone
         [ThreadStatic]
         private static int              buttonCount = 0;
         
-        static StandaloneGamebaseMessageBox()
+        static GamebaseWindowsMessageBox()
         {
-            hookProc    = new HookProc(MessageBoxHookProc);
-            enumProc    = new EnumChildProc(MessageBoxEnumProc);
-            hHook       = IntPtr.Zero;
+            hookProc = MessageBoxHookProc;
+            enumProc = MessageBoxEnumProc;
+            hHook = IntPtr.Zero;
 
             ResetButtonText();
         }
+        
+        public static int ShowMessageBox(GamebasePopupInfo info)
+        {
+            Register();
 
-        public static void Register()
+            uint messageBoxType = info.Buttons.Count == 2 ? MB_OKCANCEL : MB_OK;
+            if (info.Buttons.Count == 0 || info.Buttons.Count > 2)
+            {
+                GamebaseLog.Warn(GamebaseStrings.UI_SYSTEM_POPUP_BUTTON_SETTING_ERROR, typeof(GamebaseWindowsMessageBox));
+            }
+
+            int result = MessageBox(GetActiveWindow(), info.Message, info.Title, messageBoxType);
+
+            Unregister();
+
+            ResetButtonText();
+
+            return result;
+        }
+
+
+        public static int ShowMessageBox(string title, string message, uint type)
+        {
+            Register();
+
+            int result = MessageBox(GetActiveWindow(), message, title, type);
+
+            Unregister();
+
+            ResetButtonText();
+
+            return result;
+        }
+
+        private static void ResetButtonText()
+        {
+            OK      = "&OK";
+            Cancel  = "&Cancel";
+        }
+        
+        private static void Register()
         {
             if (IntPtr.Zero != hHook)
             {
@@ -128,13 +167,15 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             hHook = SetWindowsHookEx(WH_CALLWNDPROCRET, hookProc, IntPtr.Zero, (int)GetCurrentThreadId());
         }
 
-        public static void Unregister()
+        private static void Unregister()
         {
-            if (hHook != IntPtr.Zero)
+            if (hHook == IntPtr.Zero)
             {
-                UnhookWindowsHookEx(hHook);
-                hHook = IntPtr.Zero;
+                return;
             }
+            
+            UnhookWindowsHookEx(hHook);
+            hHook = IntPtr.Zero;
         }
 
         private static IntPtr MessageBoxHookProc(int nCode, IntPtr wParam, IntPtr lParam)
@@ -194,25 +235,6 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             }
 
             return true;
-        }
-
-        public static int ShowMessageBox(string title, string message, uint type)
-        {
-            Register();
-
-            int result = MessageBox(GetActiveWindow(), message, title, type);
-
-            Unregister();
-
-            ResetButtonText();
-
-            return result;
-        }
-
-        private static void ResetButtonText()
-        {
-            OK      = DisplayLanguage.Instance.GetString("common_ok_button");
-            Cancel  = DisplayLanguage.Instance.GetString("common_cancel_button");
         }
     }
 }

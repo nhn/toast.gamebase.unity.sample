@@ -215,11 +215,11 @@ MonoBehaviour:
   enablePopup: 1
   enableLaunchingStatusPopup: 1
   enableBanPopup: 1
-  enableKickoutPopup: 1
   storeCodeIOS: AS
   storeCodeAndroid: GG
   storeCodeWebGL: 
-  storeCodeStandalone: WIN
+  storeCodeStandaloneWindows: WIN
+  storeCodeStandaloneMacOS: MAC
   fcmSenderId: 283619115829
   useWebViewLogin: 0
 --- !u!4 &610442007
