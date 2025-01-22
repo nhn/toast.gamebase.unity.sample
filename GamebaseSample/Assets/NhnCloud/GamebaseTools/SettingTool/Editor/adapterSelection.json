@@ -44,6 +44,10 @@
         {
             "platform" : "iOS",
             "adapter"  : "APNs"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "Gamecenter"
         }
     ]
 }

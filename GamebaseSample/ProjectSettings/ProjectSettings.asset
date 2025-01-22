@@ -149,7 +149,7 @@ PlayerSettings:
     Android: com.nhn.gamebasesample
     Standalone: unity.toast.GamebaseUnitySample
     Tizen: com.Company.ProductName
-    iPhone: com.Company.ProductName
+    iPhone: com.nhn.gamebasesample
     tvOS: com.Company.ProductName
   buildNumber:
     Standalone: 0

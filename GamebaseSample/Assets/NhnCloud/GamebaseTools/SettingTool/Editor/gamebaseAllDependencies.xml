@@ -13,6 +13,7 @@
     <iosPod name="GamebaseAuthFacebookAdapter" version="2.69.0" />
     <iosPod name="GamebaseAuthGoogleAdapter" version="2.69.0" />
     <iosPod name="GamebaseAuthPaycoAdapter" version="2.69.0" />
+    <iosPod name="GamebaseAuthGamecenterAdapter" version="2.69.0" />
     <iosPod name="GamebasePurchaseIAPAdapter" version="2.69.0" />
     <iosPod name="GamebasePushAdapter" version="2.69.0" />
   </iosPods>
