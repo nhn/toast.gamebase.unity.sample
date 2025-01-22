@@ -20,9 +20,42 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
         {
         }
 
-        public static void DownloadFileToLocal(string remoteFilename, string localFilename, Action<StateCode, string> callback, Action<float> callbackProgress = null)
+        public static void CopyDirectory(string sourceDirName, string destDirName, bool copySubDirs)
         {
-            DownloadFile(remoteFilename, (stateCode, message, data) =>
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+            if (dir.Exists == false)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            if (Directory.Exists(destDirName) == false)
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(temppath, true);
+            }
+
+            if (copySubDirs == true)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    CopyDirectory(subdir.FullName, temppath, copySubDirs);
+                }
+            }
+        }
+
+        public static EditorCoroutines.EditorCoroutine DownloadFileToLocal(string remoteFilename, string localFilename, Action<StateCode, string> callback, Action<float> callbackProgress = null)
+        {
+            return DownloadFile(remoteFilename, (stateCode, message, data) =>
             {
                 if (StateCode.SUCCESS == stateCode)
                 {
@@ -43,9 +76,9 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
             }, callbackProgress);
         }
 
-        public static void DownloadFileToString(string remoteFilename, Action<StateCode, string, string> callback, Action<float> callbackProgress = null)
+        public static EditorCoroutines.EditorCoroutine DownloadFileToString(string remoteFilename, Action<StateCode, string, string> callback, Action<float> callbackProgress = null)
         {
-            DownloadFile(remoteFilename, (stateCode, message, data) =>
+            return DownloadFile(remoteFilename, (stateCode, message, data) =>
             {
                 string encoding = null;
                 if (data != null)
@@ -70,23 +103,43 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
             }
         }
 
-        private static void DownloadFile(string remoteFilename, Action<StateCode, string, byte[]> callback, Action<float> callbackProgress = null)
+        private static EditorCoroutines.EditorCoroutine DownloadFile(string remoteFilename, Action<StateCode, string, byte[]> callback, Action<float> callbackProgress = null)
         {
             UnityWebRequest request = UnityWebRequest.Get(remoteFilename);
             request.certificateHandler = new CustomCertificateHandler();
             var helper = new UnityWebRequestHelper(request);
 
-            EditorCoroutine.Start(helper.SendWebRequest(() =>
+            return EditorCoroutines.StartCoroutine(helper.SendWebRequest(() =>
             {
-                if (request.downloadHandler.data != null)
+                if (request.result == UnityWebRequest.Result.Success)
                 {
-                    callback(StateCode.SUCCESS, null, request.downloadHandler.data);
+                    if (request.downloadHandler.data != null)
+                    {
+                        callback(StateCode.SUCCESS, null, request.downloadHandler.data);
+                    }
+                    else
+                    {
+                        callback(StateCode.WEB_REQUEST_ERROR, "downloadHandler.data == null", null);
+                    }
                 }
-                else
+                else if (request.result == UnityWebRequest.Result.ConnectionError)
                 {
                     callback(StateCode.WEB_REQUEST_ERROR, request.error, null);
                 }
-            }, callbackProgress));
+                else if (request.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    if (request.responseCode == 404)
+                    {
+                        string message = string.Format("Not Found Error\n{0}", remoteFilename);
+                        callback(StateCode.FILE_NOT_FOUND_ERROR, message, null);
+                    }
+                    else
+                    {
+                        callback(StateCode.WEB_REQUEST_ERROR, request.error, null);
+                    }
+                    
+                }
+            }, callbackProgress), helper);
         }
     }
 }

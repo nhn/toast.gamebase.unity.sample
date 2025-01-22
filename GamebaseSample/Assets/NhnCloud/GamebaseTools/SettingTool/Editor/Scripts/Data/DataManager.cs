@@ -42,6 +42,14 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
 
             data.Add(key, obj);
         }
+        
+        public static void RemoveKey(string key)
+        {
+            if (data.ContainsKey(key) == true)
+            {
+                data.Remove(key);
+            }
+        }
 
         public static void Destroy()
         {

@@ -1,5 +1,6 @@
 ﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
 using System;
+using System.Collections.Generic;
 using Toast.Gamebase.LitJson;
 using UnityEngine;
 
@@ -7,9 +8,62 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 {
     public static class AuthMessage
     {
+        private const string SUB_CODE_SIGN_IN_WITH_APPLE_JS = "sign_in_with_apple_js";
+        private const string SUB_CODE_WEB = "web";
+        private const string AUTHORIZATION_PROTOCOL_X_OAUTH2 = "oauth2";
+
+        public static WebSocketRequest.RequestVO GetWebViewLoginMessage(
+            string providerName,
+            string session = null,
+            string authorizationCode = null,
+            string redirectUri = null,
+            string region = null)
+        {
+            var vo = GetIDPLoginMessage(providerName, string.Empty, authorizationCode, redirectUri);
+            var payload = JsonMapper.ToObject<AuthRequest.LoginVO.Payload>(vo.payload);
+
+            payload.idPInfo.session = session;
+
+            switch (providerName)
+            {
+                case GamebaseAuthProvider.APPLEID:
+                    {
+                        payload.idPInfo.subCode = SUB_CODE_SIGN_IN_WITH_APPLE_JS;
+                        break;
+                    }
+                case GamebaseAuthProvider.HANGAME:
+                    {
+                        payload.idPInfo.subCode = SUB_CODE_WEB;
+                        break;
+                    }
+                case GamebaseAuthProvider.LINE:
+                    {
+                        if (string.IsNullOrEmpty(region))
+                        {
+                            break;
+                        }
+
+                        payload.idPInfo.subCode = region;
+                        payload.idPInfo.clientId = LaunchingInfoHelper.GetClientIdForLineRegion(region);
+                        payload.idPInfo.extraParams = new Dictionary<string, string>() { { GamebaseAuthProviderCredential.CLIENT_ID, LaunchingInfoHelper.GetClientIdForLineRegion(region) } };
+
+                        break;
+                    }
+                case GamebaseAuthProvider.TWITTER:
+                    {
+                        payload.idPInfo.authorizationProtocol = AUTHORIZATION_PROTOCOL_X_OAUTH2;
+                        break;
+                    }
+            }
+
+
+            vo.payload = JsonMapper.ToJson(payload);
+            return vo;
+        }
+
         public static WebSocketRequest.RequestVO GetIDPLoginMessage(
             string providerName, 
-            string session = null,
+            string accessToken = null,
             string authorizationCode = null,
             string redirectUri = null)
         {
@@ -25,22 +79,17 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             }
             else
             {
-                vo.payload.idPInfo.session = session;
-                if (providerName.Equals(GamebaseAuthProvider.APPLEID) == true)
-                {
-                    vo.payload.idPInfo.subCode = "sign_in_with_apple_js";
-                }
-                else if (providerName.Equals(GamebaseAuthProvider.HANGAME) == true)
-                {
-                    vo.payload.idPInfo.subCode = "web";
-                }
-
-                vo.payload.idPInfo.redirectUri = redirectUri;
+                vo.payload.idPInfo.accessToken = accessToken;
             }
 
+            vo.payload.idPInfo.redirectUri = redirectUri;
             vo.payload.idPInfo.authorizationCode = authorizationCode;
-            vo.payload.idPInfo.clientId = idpDic[providerName].clientId;
-            vo.payload.idPInfo.clientSecret = idpDic[providerName].clientSecret;
+
+            if (idpDic.ContainsKey(providerName))
+            {
+                vo.payload.idPInfo.clientId = idpDic[providerName].clientId;
+            }
+
             vo.payload.idPInfo.idPCode = providerName;
             vo.payload.member.clientVersion = GamebaseUnitySDK.AppVersion;
             vo.payload.member.deviceCountryCode = GamebaseSystemInfo.CountryCode;
@@ -57,7 +106,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.payload.member.usimCountryCode = "ZZ";
             vo.payload.member.uuid = GamebaseSystemInfo.UUID;
 
-            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {
                 apiId = Lighthouse.API.Gateway.ID.IDP_LOGIN,
                 parameters = vo.parameter,

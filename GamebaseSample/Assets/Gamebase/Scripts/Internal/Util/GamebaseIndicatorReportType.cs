@@ -31,6 +31,8 @@
             public const string GB_AUTH_LOGIN_SUCCESS = "GB_AUTH_LOGIN_SUCCESS";
             public const string GB_AUTH_LOGIN_FAILED = "GB_AUTH_LOGIN_FAILED";
             public const string GB_AUTH_LOGIN_CANCELED = "GB_AUTH_LOGIN_CANCELED";
+            public const string GB_AUTH_CREDENTIAL_LOGIN_SUCCESS = "GB_AUTH_CREDENTIAL_LOGIN_SUCCESS";
+            public const string GB_AUTH_CREDENTIAL_LOGIN_FAILED = "GB_AUTH_CREDENTIAL_LOGIN_FAILED";
             public const string GB_AUTH_LOGOUT_SUCCESS = "GB_AUTH_LOGOUT_SUCCESS";
             public const string GB_AUTH_LOGOUT_FAILED = "GB_AUTH_LOGOUT_FAILED";
             public const string GB_AUTH_WITHDRAW_SUCCESS = "GB_AUTH_WITHDRAW_SUCCESS";

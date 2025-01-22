@@ -47,10 +47,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             GamebaseNativeUtils.Instance.ShowPopup(new GamebasePopupInfo(title, message, DefaultOkButtonList));
             
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.VoidDelegate>(handle);
-            if (callback != null)
-            {
-                callback();
-            }
+            callback?.Invoke();
         }
         
         public override void ShowAlert(Dictionary<string, string> parameters, GamebaseUtilAlertType alertType, int handle)
@@ -80,10 +77,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             var buttonID = resultIndex == BUTTON_OK ? GamebaseUtilAlertButtonID.BUTTON_ONE : GamebaseUtilAlertButtonID.BUTTON_TWO;
             
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<GamebaseUtilAlertButtonID>>(handle);
-            if (callback != null)
-            {
-                callback(buttonID);
-            }
+            callback?.Invoke(buttonID);
         }
     }
 }

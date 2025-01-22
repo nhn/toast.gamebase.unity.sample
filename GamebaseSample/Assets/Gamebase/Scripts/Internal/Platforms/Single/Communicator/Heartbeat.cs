@@ -169,7 +169,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                             });
                     }
 
-                    GamebaseLog.Debug(string.Format("Send heartbeat failed. error:{0}", GamebaseJsonUtil.ToPrettyJsonString(heartbeatError)), this);
+                    GamebaseLog.Debug(string.Format("Send heartbeat failed. error:{0}", GamebaseJsonUtil.ToPretty(heartbeatError)), this);
                 }
 
                 lastSentTime = DateTime.Now;

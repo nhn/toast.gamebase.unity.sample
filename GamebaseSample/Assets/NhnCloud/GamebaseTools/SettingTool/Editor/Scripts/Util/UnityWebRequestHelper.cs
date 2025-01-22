@@ -24,13 +24,12 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
         {
             request.timeout = TIMEOUT;
             
-            yield return request.SendWebRequest();
-
-            while (request.isDone == false)
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            while (operation.isDone == false)
             {
                 if (callbackProgress != null)
                 {
-                    callbackProgress(request.downloadProgress);
+                    callbackProgress(operation.progress);
                 }
 
                 yield return null;

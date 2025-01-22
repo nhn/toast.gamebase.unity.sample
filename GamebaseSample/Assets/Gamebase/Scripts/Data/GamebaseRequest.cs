@@ -323,9 +323,9 @@ namespace Toast.Gamebase
         public static class Webview
         {
             /// <summary>
-            /// Changes WebView layout by using GamebaseWebViewConfiguration.
+            /// Changes WebView layout by using Configuration.
             /// </summary>
-            public class GamebaseWebViewConfiguration
+            public class Configuration
             {
                 /// <summary>
                 /// Title of WebView
@@ -334,28 +334,12 @@ namespace Toast.Gamebase
 
                 /// <summary>
                 /// Orientation is defined in <see cref="GamebaseScreenOrientation"/>.
+                /// Only supported on Android.
                 /// </summary>
                 public int orientation = GamebaseScreenOrientation.UNSPECIFIED;
 
-                /// <summary>
-                /// Color of Navigation Bar: Red
-                /// </summary>
-                public int colorR = 18;
-
-                /// <summary>
-                /// Color of Navigation Bar: Green
-                /// </summary>
-                public int colorG = 93;
-
-                /// <summary>
-                /// Color of Navigation Bar: Blue
-                /// </summary>
-                public int colorB = 230;
-
-                /// <summary>
-                /// Color of Navigation Bar: Alpha
-                /// </summary>
-                public int colorA = 255;
+                /// Color of Navigation Bar
+                public GamebaseColor navigationColor = GamebaseColor.RGB255(18, 93, 230);
 
                 /// <summary>
                 /// Height of Navigation Bar
@@ -403,6 +387,55 @@ namespace Toast.Gamebase
                 /// <para/>Default: false
                 /// </summary>
                 public bool renderOutsideSafeArea = false;
+                
+                /// <summary>
+                /// Android only
+                /// Enable this option to allow rendering webview using all available screen space, including the display cutout (notch) area.
+                /// <para/>Default: null, extend to background color if null
+                /// </summary>
+                public GamebaseColor cutoutColor = null;
+            }
+           
+            /// <summary>
+            /// Changes WebView layout by using GamebaseWebViewConfiguration.
+            /// </summary>
+            public class GamebaseWebViewConfiguration : Configuration
+            {
+                /// <summary>
+                /// Color of Navigation Bar: Red
+                /// </summary>
+                public int colorR
+                {
+                    get => (int)(navigationColor.r * 255);
+                    set => navigationColor.r = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Navigation Bar: Green
+                /// </summary>
+                public int colorG
+                {
+                    get => (int)(navigationColor.g * 255);
+                    set => navigationColor.g = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Navigation Bar: Blue
+                /// </summary>
+                public int colorB
+                {
+                    get => (int)(navigationColor.b * 255);
+                    set => navigationColor.b = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Navigation Bar: Alpha
+                /// </summary>
+                public int colorA
+                {
+                    get => (int)(navigationColor.a * 255);
+                    set => navigationColor.a = value / 255.0f;
+                }
             }
         }
 
@@ -503,32 +536,52 @@ namespace Toast.Gamebase
         {
             public class Configuration
             {
-                /// <summary>
-                /// Color of Navigation Bar: Red
+                /// Color of Background Bar
+                /// <para/>Default: GamebaseColor.RGB255(0, 0, 0, 128)
                 /// </summary>
-                public int colorR;
-
-                /// <summary>
-                /// Color of Navigation Bar: Green
-                /// </summary>
-                public int colorG;
-
-                /// <summary>
-                /// Color of Navigation Bar: Blue
-                /// </summary>
-                public int colorB;
-
-                /// <summary>
-                /// Color of Navigation Bar: Alpha
-                /// <para/>Default: 128
-                /// </summary>
-                public int colorA = 128;
-
+                public GamebaseColor backgroundColor = GamebaseColor.RGB255(0, 0, 0, 128);
+                
                 /// <summary>
                 /// Timeout.
                 /// <para/>Default: 5000
                 /// </summary>
                 public long timeout = 5000;
+                
+                /// <summary>
+                /// Color of Background Bar: Red
+                /// </summary>
+                public int colorR
+                {
+                    get => (int)(backgroundColor.r * 255);
+                    set => backgroundColor.r = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Background Bar: Green
+                /// </summary>
+                public int colorG
+                {
+                    get => (int)(backgroundColor.g * 255);
+                    set => backgroundColor.g = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Background Bar: Blue
+                /// </summary>
+                public int colorB
+                {
+                    get => (int)(backgroundColor.b * 255);
+                    set => backgroundColor.b = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Background Bar: Alpha
+                /// </summary>
+                public int colorA
+                {
+                    get => (int)(backgroundColor.a * 255);
+                    set => backgroundColor.a = value / 255.0f;
+                }
             }
         }
 
@@ -607,6 +660,64 @@ namespace Toast.Gamebase
                 /// Information that the user agrees to the terms of choice
                 /// </summary>
                 public List<Content> contents;
+            }
+        }
+
+        public static class Community
+        {
+            public class Configuration
+            {
+                /// <summary>
+                /// Url of community
+                /// </summary>
+                public string forcedURL;
+                
+                /// <summary>
+                /// Color of Background
+                /// Only Supported (Android, IOS)
+                /// <para/>Default: GamebaseColor.RGB255(0, 0, 0, 204)
+                /// </summary>
+                public GamebaseColor backgroundColor = GamebaseColor.RGB255(0, 0, 0, 204);
+                
+                /// <summary>
+                /// Color of Background: Red
+                /// Only Supported (Android, IOS)
+                /// </summary>
+                public int backgroundColorR
+                {
+                    get => (int)(backgroundColor.r * 255);
+                    set => backgroundColor.r = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Background: Green
+                /// Only Supported (Android, IOS)
+                /// </summary>
+                public int backgroundColorG
+                {
+                    get => (int)(backgroundColor.g * 255);
+                    set => backgroundColor.g = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Background: Blue
+                /// Only Supported (Android, IOS)
+                /// </summary>
+                public int backgroundColorB
+                {
+                    get => (int)(backgroundColor.b * 255);
+                    set => backgroundColor.b = value / 255.0f;
+                }
+
+                /// <summary>
+                /// Color of Background: Alpha
+                /// Only Supported (Android, IOS)
+                /// </summary>
+                public int backgroundColorA
+                {
+                    get => (int)(backgroundColor.a * 255);
+                    set => backgroundColor.a = value / 255.0f;
+                }
             }
         }
     }

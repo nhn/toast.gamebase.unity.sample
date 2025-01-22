@@ -4,6 +4,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System;
 using UnityEditor;
 using System.Text;
+using UnityEngine;
 
 namespace NhnCloud.GamebaseTools.SettingTool.Util
 {
@@ -18,7 +19,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
             UNKNOWN_ERROR,
         }
 
-        public static IEnumerator Extract(string zipFilePath, string unZipTargetFolderPath, Action<StateCode, string> callback, Action<FileStream> callbackFileStream = null, Action<float> progressCallback = null, string password = null, bool isDeleteZipFile = false)
+        public static IEnumerator Extract(string zipFilePath, string unZipTargetFolderPath, Action<StateCode, string> callback, Action<FileStream> callbackFileStream = null, Action<float> progressCallback = null, string password = null, bool isDeleteZipFile = false, bool isOverwrite = false)
         {
             string separatorPath = ReplaceDirectorySeparator(unZipTargetFolderPath);
             string[] directories = separatorPath.Split(Path.DirectorySeparatorChar);
@@ -72,14 +73,17 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
             FileStream fs;
             ZipInputStream zipInputStream;
             ZipEntry theEntry;
-            long nowCount = 0;
-            long totalCount = 0;
+            
+            long nowSize = 0;
+            long totalSize = 0;
             try
             {
                 zipInputStreamCount = new ZipInputStream(File.OpenRead(zipFilePath));
-                while (null != zipInputStreamCount.GetNextEntry())
+                
+                ZipEntry countEntry;
+                while ((countEntry = zipInputStreamCount.GetNextEntry()) != null)
                 {
-                    totalCount++;
+                    totalSize += countEntry.Size;
                 }
                 zipInputStreamCount.Close();
 
@@ -132,12 +136,13 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
                     int size = 2048;
                     byte[] data = new byte[2048];
 
+                    DateTime time = DateTime.Now;
                     while (true)
                     {
                         try
                         {
                             size = zipInputStream.Read(data, 0, data.Length);
-
+                            nowSize += size;
                             if (0 < size)
                             {
                                 streamWriter.Write(data, 0, size);
@@ -154,12 +159,21 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
                             callback(StateCode.UNKNOWN_ERROR, e.Message);
                             yield break;
                         }
+                        
+                        if ((DateTime.Now - time).TotalSeconds > 0.25f)
+                        {
+                            time = DateTime.Now;
+
+                            float progressStream = (float)nowSize / (float)totalSize;
+                            progressCallback(progressStream);
+                                
+                            yield return null;
+                        }
                     }
 
                     streamWriter.Close();
                 }
-                nowCount++;
-                float progress = (float)nowCount / (float)totalCount;
+                float progress = (float)nowSize / (float)totalSize;
                 progressCallback(progress);
                 yield return null;
             }
@@ -179,11 +193,19 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
             }
             try
             {
-                if (true == Directory.Exists(unZipTargetFolderPath))
+                if(true == isOverwrite)
                 {
-                    FileUtil.DeleteFileOrDirectory(unZipTargetFolderPath);
+                    FileManager.CopyDirectory(tempPath, unZipTargetFolderPath, true);
                 }
-                FileUtil.MoveFileOrDirectory(tempPath, unZipTargetFolderPath);
+                else
+                {
+                    if (true == Directory.Exists(unZipTargetFolderPath))
+                    {
+                        FileUtil.DeleteFileOrDirectory(unZipTargetFolderPath);
+                    }
+                    FileUtil.MoveFileOrDirectory(tempPath, unZipTargetFolderPath);
+                }
+
                 FileUtil.DeleteFileOrDirectory(tempPathRoot);
             }
             catch (Exception e)

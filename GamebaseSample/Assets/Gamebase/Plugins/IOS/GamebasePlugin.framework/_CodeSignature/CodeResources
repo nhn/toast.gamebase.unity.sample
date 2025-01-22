@@ -12,9 +12,13 @@
 		<data>
 		hT+yWW2XTNSXfJOnWxWCAWwjRMU=
 		</data>
+		<key>Headers/GamebaseEngine.h</key>
+		<data>
+		UJ1DrrrLGAQyRhgqe09iJseq1pQ=
+		</data>
 		<key>Headers/GamebasePlugin.h</key>
 		<data>
-		0OXh5XZIJtZ6X4bXuwI0mwtyC6Q=
+		xuSjtymgPlaNTtIwL96/3R6PXIM=
 		</data>
 		<key>Headers/NativeMessage.h</key>
 		<data>
@@ -38,7 +42,7 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		89aEDVEzSKYBJZxR/tr4JJ7SpAM=
+		WrARJPelg9xUxi3UkEiIQzvEdww=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -73,15 +77,26 @@
 			PzlpJytuTYplnmvN5IzrVLb9oXlwhXGHRBul6aRpdqs=
 			</data>
 		</dict>
+		<key>Headers/GamebaseEngine.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			UJ1DrrrLGAQyRhgqe09iJseq1pQ=
+			</data>
+			<key>hash2</key>
+			<data>
+			ycYNX7K56epdwEurgAu7bvGiEdPr9qAgylUqQdpC/3c=
+			</data>
+		</dict>
 		<key>Headers/GamebasePlugin.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			0OXh5XZIJtZ6X4bXuwI0mwtyC6Q=
+			xuSjtymgPlaNTtIwL96/3R6PXIM=
 			</data>
 			<key>hash2</key>
 			<data>
-			aPyId6Uq/oyPn8J6gDcbrH+QJxoqeYwh46o81Hmqw6s=
+			xoTGInoKMlJaOaLt6lqwv8vkL2EE1UYT1KR5UAO32h8=
 			</data>
 		</dict>
 		<key>Headers/NativeMessage.h</key>

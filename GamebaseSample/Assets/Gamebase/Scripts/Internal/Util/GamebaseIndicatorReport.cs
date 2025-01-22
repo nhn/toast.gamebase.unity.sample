@@ -56,8 +56,6 @@ namespace Toast.Gamebase.Internal
         public const string GB_CARRIER = "GBCarrier";
         public const string GB_DEVICE_MODEL = "GBDeviceModel";
 
-
-
         public const string GB_EXCEPTION = "txtGBException";
         public const string GB_ERROR_CODE = "GBErrorCode";
         public const string GB_ERROR_DOMAIN = "GBErrorDomain";
@@ -72,12 +70,10 @@ namespace Toast.Gamebase.Internal
         public const string KEY_LAST_LOGGEDIN_IDP = "KEY_LAST_LOGGEDIN_IDP";
         public const string KEY_LAST_LOGGEDIN_USERID = "KEY_LAST_LOGGEDIN_USERID";
 
-        private const int APP_KEY_VERSION = 1;
-        private const int INIT_FAIL_COUNT = 5;
-
         public static LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stability = new LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability();
         
         public static Dictionary<string, string> basicDataDictionary;
+        private static readonly Queue<IndicatorItem> queue = new Queue<IndicatorItem>();
 
         private static string platform = string.Empty;
 
@@ -96,13 +92,14 @@ namespace Toast.Gamebase.Internal
 
             string filePath = Path.Combine(Application.streamingAssetsPath, "Gamebase/defaultstability.json");
 
-            GamebaseStringLoader localFileLoader = new GamebaseStringLoader();
+            var localFileLoader = new GamebaseStringLoader();
             localFileLoader.LoadStringFromFile(filePath, (jsonString) => 
             {
                 if (string.IsNullOrEmpty(jsonString) == false)
                 {
                     jsonString = GamebaseEncryptUtilHelper.DecryptDefaultStabilityEncryptedKey(jsonString);
-                    Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability> stabilityDictionary = JsonMapper.ToObject<Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability>>(jsonString);
+
+                    var stabilityDictionary = JsonMapper.ToObject<Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability>>(jsonString);
                     if (stabilityDictionary != null)
                     {
                         if(string.IsNullOrEmpty(GamebaseUnitySDK.ZoneType) == true)
@@ -118,6 +115,8 @@ namespace Toast.Gamebase.Internal
                 SetStability(stability);
                 CreateInstanceLogger();
 
+                GamebaseJsonUtil.AddBlackList(LaunchingInfoHelper.GetSecurityBlacklist());
+
                 callback();
 
                 GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.CORE_TYPE, SendIndicatorInQueue());
@@ -126,14 +125,14 @@ namespace Toast.Gamebase.Internal
 
         public static void SetLastLoggedInInfo(string idP, string userId)
         {
-            Dictionary<string, string> lastLoggedInInfoDictionary = new Dictionary<string, string>();
-            lastLoggedInInfoDictionary.Add(GB_LAST_LOGGEDIN_IDP, idP);
-            lastLoggedInInfoDictionary.Add(GB_LAST_LOGGEDIN_USER_ID, userId);
+            var lastLoggedInInfoDictionary = new Dictionary<string, string>
+            {
+                { GB_LAST_LOGGEDIN_IDP, idP },
+                { GB_LAST_LOGGEDIN_USER_ID, userId }
+            };
 
             MergeDictionary(ref basicDataDictionary, lastLoggedInInfoDictionary);
         }
-
-        private static Queue<IndicatorItem> queue = new Queue<IndicatorItem>();
 
         public class IndicatorItem
         {
@@ -192,10 +191,8 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            Dictionary<string, string> userFields =  MakeindicatorDictionary(stabilityCode, customFields, error, isUserCanceled, isExternalLibraryError);
-
-
             GpLogLevel level = (GpLogLevel)ConvertLogLevelToEnum(logLevel);
+            Dictionary<string, string> userFields = GetUserField(stabilityCode, customFields, error, isUserCanceled, isExternalLibraryError);
 
             switch (level)
             {
@@ -232,14 +229,14 @@ namespace Toast.Gamebase.Internal
             return ConvertLogLevelToEnum(stability.logLevel);
         }
 
-        private static Dictionary<string, string> MakeindicatorDictionary(
+        private static Dictionary<string, string> GetUserField(
             string stabilityCode,
             Dictionary<string, string> customFields,
             GamebaseError error,
             bool isUserCanceled,
             bool isExternalLibraryError)
         {
-            Dictionary<string, string> indicatorDictionary = new Dictionary<string, string>();
+            var indicatorDictionary = new Dictionary<string, string>();
 
             if (string.IsNullOrEmpty(stabilityCode) == false)
             {

@@ -53,7 +53,7 @@ namespace Toast.Gamebase
 #elif UNITY_STANDALONE_OSX
             GamebaseUnitySDK.StoreCode = storeCodeStandaloneMacOS;
 #else
-            GamebaseUnitySDK.StoreCode = storeCodeStandalone;
+            GamebaseUnitySDK.StoreCode = storeCodeStandaloneWindows;
 #endif
 
             GamebaseUnitySDK.StoreCode = GamebaseUnitySDK.StoreCode.ToUpper();

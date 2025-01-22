@@ -8,8 +8,20 @@ namespace Toast.Gamebase.Internal.Single
 {
     public interface IWebviewAdapter
     {
-        void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null, GamebaseCallback.GamebaseDelegate<string> schemeEvent = null);
-        void ShowLoginWebView(string url, WebViewRequest.TitleBarConfiguration configuration = null, GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null, GamebaseCallback.GamebaseDelegate<string> schemeEvent = null);
+        void ShowWebView(
+            string url,
+            GamebaseRequest.Webview.Configuration configuration = null,
+            GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null,
+            GamebaseCallback.GamebaseDelegate<string> schemeEvent = null, 
+            GamebaseCallback.VoidDelegate callback = null);
+        
+        void ShowLoginWebView(
+            string url,
+            WebViewRequest.TitleBarConfiguration configuration = null,
+            GamebaseCallback.ErrorDelegate closeCallback = null,
+            List<string> schemeList = null,
+            GamebaseCallback.GamebaseDelegate<string> schemeEvent = null);
+        
         void CloseWebView();
 
         void SetTitleBarEnable(bool enable);

@@ -31,10 +31,7 @@ namespace GamePlatform.Logger.Internal
                 yield return null;
             }
 
-            if (callback != null)
-            {
-                callback();
-            }
+            callback?.Invoke();
         }
 
         public string GetData()
@@ -51,7 +48,7 @@ namespace GamePlatform.Logger.Internal
         {
             if (IsError() == true)
             {
-                GpLog.Warn(NETWORK_ERROR_MESSAGE, GetType(), "IsSuccess");
+                GpLog.Warn(NETWORK_ERROR_MESSAGE, GetType());
                 return false;
             }
 
@@ -61,14 +58,14 @@ namespace GamePlatform.Logger.Internal
                     PROTOCOL_ERROR_MESSAGE,
                     request.responseCode,
                     request.error,
-                    request.downloadHandler.text), GetType(), "IsSuccess");
+                    request.downloadHandler.text), GetType());
 
                 return false;
             }
 
             if (string.IsNullOrEmpty(request.downloadHandler.text) == true)
             {
-                GpLog.Warn(EMPTY_CONTENT_MESSAGE, GetType(), "IsSuccess");
+                GpLog.Warn(EMPTY_CONTENT_MESSAGE, GetType());
                 return false;
             }
 
@@ -83,7 +80,7 @@ namespace GamePlatform.Logger.Internal
             if (request.isNetworkError == true)
 #endif
             {
-                GpLog.Warn(string.Format("UnityWebRqeuest isNetworkError error occurred. error:{0}", request.error), GetType(), "IsError");
+                GpLog.Warn(string.Format("UnityWebRqeuest isNetworkError error occurred. error:{0}", request.error), GetType());
                 return true;
             }
 #if UNITY_2020_2_OR_NEWER

@@ -1749,9 +1749,40 @@ namespace Toast.Gamebase
         {
             return GamebaseImplementation.Instance.GetAccessToken();
         }
+        
+        /// <summary>
+        /// Get the last logged-in Provider Name in Gamebase. 
+        /// @since Added 2.69.0.
+        /// </summary>
+        /// <param name="callback">Callback pass to API result.</param>
+        /// <example> 
+        /// Example Usage : 
+        /// <code>
+        /// public void RequestLastLoggedInProviderSample()
+        /// {
+        ///     Gamebase.RequestLastLoggedInProvider(lastLoggedInProvider, error)=> 
+        ///     {
+        ///         if (Gamebase.IsSuccess(error) == true) 
+        ///         {
+        ///             Debug.Log(string.Format("lastLoggedInProvider:{0}", lastLoggedInProvider));
+        ///         }
+        ///         else 
+        ///         {
+        ///             // Failed.
+        ///         }
+        ///     });
+        /// }
+        ///     
+        /// </code>
+        /// </example>
+        public static void RequestLastLoggedInProvider(GamebaseCallback.GamebaseDelegate<string> callback)
+        {
+            GamebaseImplementation.Instance.RequestLastLoggedInProvider(callback);
+        }
 
         /// <summary>
         /// Get the last logged-in Provider Name in Gamebase.
+        /// If the value has not been initialized yet, 'NOT_INITIALIZED_YET'.
         /// @since Added 1.4.0.
         /// </summary>
         /// <returns>The name that is last logged-in authentication provider.</returns>
@@ -2839,7 +2870,7 @@ namespace Toast.Gamebase
             /// }
             /// </code>
             /// </example>
-            public static void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null, GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
+            public static void ShowWebView(string url, GamebaseRequest.Webview.Configuration configuration = null, GamebaseCallback.ErrorDelegate closeCallback = null, List<string> schemeList = null, GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
             {
                 GamebaseWebviewImplementation.Instance.ShowWebView(url, configuration, closeCallback, schemeList, schemeEvent);
             }
@@ -2937,6 +2968,58 @@ namespace Toast.Gamebase
             public static void ShowToast(string message, GamebaseUIToastType type)
             {
                 GamebaseUtilImplementation.Instance.ShowToast(message, type);
+            }
+
+            /// <summary>
+            /// Request app-tracking permission status for user authorization.
+            /// @since Added 2.64.0.
+            /// </summary>
+            /// <returns>One of GamebaseAppTrackingAuthorizationStatus.AUTHORIZED, GamebaseAppTrackingAuthorizationStatus.DENIED, GamebaseAppTrackingAuthorizationStatus.NOT_DETERMINED, GamebaseAppTrackingAuthorizationStatus.RESTRICTED, GamebaseAppTrackingAuthorizationStatus.UNKNOWN</returns>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void GetAppTrackingAuthorizationStatusSample()
+            /// {
+            /// #if UNITY_IOS
+            ///     switch (Gamebase.Util.GetAppTrackingAuthorizationStatus() ) Ios only
+            ///     {
+            ///         case GamebaseAppTrackingAuthorizationStatus.AUTHORIZED:
+            ///         {
+            /// 
+            ///         }
+            ///         break;  
+            ///         
+            ///         case GamebaseAppTrackingAuthorizationStatus.DENIED:
+            ///         {
+            /// 
+            ///         }
+            ///         break;
+            /// 
+            ///         case GamebaseAppTrackingAuthorizationStatus.NOT_DETERMINED:
+            ///         {
+            /// 
+            ///         }
+            ///         break;
+            /// 
+            ///         case GamebaseAppTrackingAuthorizationStatus.RESTRICTED:
+            ///         {
+            /// 
+            ///         }
+            ///         break;
+            /// 
+            ///         case GamebaseAppTrackingAuthorizationStatus.UNKNOWN:
+            ///         {
+            /// 
+            ///         }
+            ///         break;
+            ///     }
+            /// #endif
+            /// }
+            /// </code>
+            /// </example>           
+            public static GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus()
+            {
+                return GamebaseUtilImplementation.Instance.GetAppTrackingAuthorizationStatus();
             }
         }
 
@@ -3721,10 +3804,53 @@ namespace Toast.Gamebase
         }
 
         /// <summary>
-        /// Displays the terms and conditions set in the Gamebase console.
-        /// @since Added 2.20.0.
+        /// This class provides wrapping of function execution related to TOAST Community.
+        /// @since Added 2.64.0.
         /// </summary>
-        public static class Terms
+        public static class Community
+        {
+            /// <summary>
+            /// Open Community WebView with URL.
+            /// If the CS URL is empty or invalid, you will receive a GamebaseError.
+            /// @since Added 2.64.0.
+            /// </summary>
+            /// <param name="configuration">The init settings of contact URL.</param>
+            /// <param name="callback">Callbacks the result of Community.</param>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleOpenCommunity()
+            /// {
+            ///     var configuration = new GamebaseRequest.Community.Configuration()
+            ///     {
+            ///         forcedURL = "https://www.nhncloud.com"
+            ///     };
+            /// 
+            ///     Gamebase.Community.OpenCommunity(configuration, (error) =>
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             // A user close the contact web view.
+            ///         }
+            ///         else 
+            ///         {
+            ///             // An error occur when opening the contact web view.
+            ///         }
+            ///     });
+            /// }
+            /// </code>
+            /// </example>
+            public static void OpenCommunity(GamebaseRequest.Community.Configuration configuration, GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseCommunityImplementation.Instance.OpenCommunity(configuration, callback);
+            }
+        }
+
+            /// <summary>
+            /// Displays the terms and conditions set in the Gamebase console.
+            /// @since Added 2.20.0.
+            /// </summary>
+            public static class Terms
         {
             /// <summary>
             /// Displays the terms and conditions window on the screen.

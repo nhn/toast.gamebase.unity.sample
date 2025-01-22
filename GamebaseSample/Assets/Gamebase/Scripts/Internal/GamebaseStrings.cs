@@ -41,6 +41,7 @@
         public const string REMOVE_SERVER_PUSH_FAILED                           = "Failed to remove serverPush";
         public const string ADD_EVENT_HANDLER_FAILED                            = "Failed to add eventHandler";
         public const string REMOVE_EVENT_HANDLER_FAILED                         = "Failed to remove eventHandler";
+        public const string SERVER_INVALID_RESPONSE                             = "This is invalid server response value";
 
         public const string UNKNOWN_ERROR                                       = "Unknown error";
         
@@ -147,5 +148,9 @@
         public const string UI_TERMS_ALREADY_IN_PROGRESS_ERROR                  = "Terms API is already in progress.";
         public const string UI_TERMS_ANDROID_DUPLICATED_VIEW                    = "The terms and conditions web view is already open.";
         public const string UI_SYSTEM_POPUP_BUTTON_SETTING_ERROR                = "Check the system popup button settings";
+
+        public const string UI_COMMUNITY_FAIL_INVALID_URL                       = "Community URL generation failed.";
+        public const string UI_COMMUNITY_FAIL_ISSUE_SHORT_TERM_TICKET           = "Failed to create ShortTermTicket.";
+        public const string UI_COMMUNITY_FAIL_ANDROID_DUPLICATED_VIEW           = "Community is already open.";
     }
 }

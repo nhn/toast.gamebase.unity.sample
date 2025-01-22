@@ -25,6 +25,9 @@
         public const int FAILED_TO_LOAD_LOCALIZED_STRING_FILE = 307;
         public const int FAILED_TO_LOAD_INSTALLED_VERSION_FILE = 308;
         public const int FAILED_TO_LOAD_ADAPTER_SETTINGS_FILE = 309;
+        public const int FAILED_TO_LOAD_INSTALLED_INFO_FILE = 310;
+        public const int FAILED_TO_LOAD_NOTICE_FILE = 311;
+        public const int FAILED_TO_LOAD_INSTALL_CHECK_FILE = 312;
 
 
         public const int UNKNOWN_ERROR = 999;

@@ -229,7 +229,7 @@ namespace Toast.Gamebase.Internal
             GamebaseLog.Debug(
                 string.Format(
                     "Data : {0}", 
-                    GamebaseJsonUtil.ToPrettyJsonString(data)),
+                    GamebaseJsonUtil.ToPretty(data)),
                 this);
             MergeDictionary(ref basicDataDic, data);
         }

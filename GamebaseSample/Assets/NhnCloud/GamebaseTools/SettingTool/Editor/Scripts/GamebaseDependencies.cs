@@ -13,14 +13,28 @@ namespace NhnCloud.GamebaseTools.SettingTool
     {
         private const string DOMAIN = "GamebaseDependencies";
 
+        static public XmlDocument NewXmlDocument()
+        {
+            XmlDocument xmlDocument = new XmlDocument();
+            XmlDeclaration xmlDeclaration = xmlDocument.CreateXmlDeclaration("1.0", "utf-8", null);
+            xmlDocument.AppendChild(xmlDeclaration);
+                    
+            var dependencies = xmlDocument.CreateElement("dependencies");
+            xmlDocument.AppendChild(dependencies);
+
+            dependencies.AppendChild(xmlDocument.CreateElement("androidPackages"));
+            dependencies.AppendChild(xmlDocument.CreateElement("iosPods"));
+
+            return xmlDocument;
+        }
+            
         public void Dispose()
         {
             EditorCoroutines.StopAllCoroutines(this);
         }
 
-        public void UpdateGamebaseAllDependenciesFile(SettingToolCallback.ErrorDelegate callback)
+        public void UpdateGamebaseAllDependenciesFile(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
-            var adapterSettings = DataManager.GetData<SettingToolResponse.AdapterSettings>(DataKey.ADAPTER_SETTINGS);
             var document = DataManager.GetData<XmlDocument>(DataKey.GAMEBASE_ALL_DEPENDENCIES);
 
             var androidPackages = document.SelectSingleNode("dependencies/androidPackages");
@@ -29,35 +43,35 @@ namespace NhnCloud.GamebaseTools.SettingTool
             androidPackages.RemoveAll();
             iosPods.RemoveAll();
 
-            if (adapterSettings.useAndroid == true)
+            if (settingOption.IsActivePlatform(SettingToolStrings.TEXT_ANDROID) == true)
             {
-                AddXmlChild(document, androidPackages, new SelectedAdapterInfo { name = adapterSettings.android.fileName }, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID));
+                AddXmlChild(document, androidPackages, settingOption.GetPlatform(SettingToolStrings.TEXT_ANDROID).install, "androidPackage", "spec", settingOption.GetAndroidVersion());
             }
 
-            if (adapterSettings.useIOS == true)
+            if (settingOption.IsActivePlatform(SettingToolStrings.TEXT_IOS) == true)
             {
-                AddXmlChild(document, iosPods, new SelectedAdapterInfo { name = adapterSettings.ios.fileName }, "iosPod", "name", GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS));
+                AddXmlChild(document, iosPods, settingOption.GetPlatform(SettingToolStrings.TEXT_IOS).install, "iosPod", "name", settingOption.GetIOSVersion());
             }
 
-            AppendChildren(adapterSettings.android, document, androidPackages, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(SupportPlatform.ANDROID));
-            AppendChildren(adapterSettings.ios, document, iosPods, "iosPod", "name", GamebaseInfo.GetCurrentVersion(SupportPlatform.IOS));
+            AppendChildren(settingOption, SettingToolStrings.TEXT_ANDROID, document, androidPackages, "androidPackage", "spec", settingOption.GetAndroidVersion());
+            AppendChildren(settingOption, SettingToolStrings.TEXT_IOS, document, iosPods, "iosPod", "name", settingOption.GetIOSVersion());
 
-            EditorCoroutines.StartCoroutine(SaveGamebaseAllDependenciesFile(document, callback), this);
+            SaveGamebaseAllDependenciesFile(document, callback);
         }
 
-        public IEnumerator SaveGamebaseAllDependenciesFile(XmlDocument document, SettingToolCallback.ErrorDelegate callback)
+        public void SaveGamebaseAllDependenciesFile(XmlDocument document, SettingToolCallback.ErrorDelegate callback)
         {
             try
             {
-                document.Save(DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).gamebaseAllDependencies.path);
+                document.Save(DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO)
+                    .gamebaseAllDependencies.path);
             }
             catch (Exception e)
             {
                 callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message));
-                yield break;
+                return;
             }
 
-            yield return new WaitForSecondsRealtime(1);
             callback(null);
         }
 
@@ -70,101 +84,114 @@ namespace NhnCloud.GamebaseTools.SettingTool
             androidPackages.RemoveAll();
             iosPods.RemoveAll();
 
-            EditorCoroutines.StartCoroutine(SaveGamebaseAllDependenciesFile(document, callback), this);
+            SaveGamebaseAllDependenciesFile(document, callback);
         }
 
         private void AppendChildren(
-            SettingToolResponse.AdapterSettings.Platform platform,
+            SettingOption settingOption,
+            string platform,
             XmlDocument document,
             XmlNode parentNode,
             string newNodeName,
             string newAttributeName,
             string version)
         {
-            var adapterInfoList = GetSelectedAdapterInfoListByPlatform(platform);
-
-            foreach (var adapterInfo in adapterInfoList)
+            foreach (var installInfo in settingOption.GetInstallInfos(platform))
             {
-                AddXmlChild(document, parentNode, adapterInfo, newNodeName, newAttributeName, version);
+                AddXmlChild(document, parentNode, installInfo, newNodeName, newAttributeName, version);
             }
-        }
-
-        public class SelectedAdapterInfo
-        {
-            public string name;
-            public List<string> repositories;
         }
 
         private void AddXmlChild(
             XmlDocument document,
             XmlNode parentNode,
-            SelectedAdapterInfo adapterInfo,
+            InstallInfo installInfo,
             string newNodeName,
             string newAttributeName,
             string version)
         {
-            var newNode = document.CreateElement(newNodeName);
-            var attribute = document.CreateAttribute(newAttributeName);
-            attribute.Value = adapterInfo.name;
-            newNode.Attributes.Append(attribute);
-
-            // Platform-specific version information must be written in a different way.
-            switch (newNodeName)
+            if (installInfo != null &&
+                string.IsNullOrEmpty(installInfo.name) == false)
             {
-                case "androidPackage":
+                string value = installInfo.name;
+                if (newNodeName == "androidPackage")
+                {
+                    value = string.Format("{0}:{1}", value, version);
+                }
+                
+                XmlNode node = null;
+                XmlAttribute attribute = null;
+                foreach (XmlNode item in parentNode.ChildNodes)
+                {
+                    if (item.Attributes[newAttributeName].Value == value)
                     {
-                        if (adapterInfo.repositories != null)
+                        node = item;
+                        break;
+                    }
+                }
+
+                if (node == null)
+                {
+                    node = document.CreateElement(newNodeName);
+
+                    attribute = document.CreateAttribute(newAttributeName);
+                    attribute.Value = value;
+                    
+                    node.Attributes.Append(attribute);
+                    parentNode.AppendChild(node);
+                }
+                
+
+                if (string.IsNullOrEmpty(installInfo.version) == false)
+                {
+                    version = installInfo.version;
+                }
+
+                // Platform-specific version information must be written in a different way.
+                switch (newNodeName)
+                {
+                    case "androidPackage":
+                    {
+                        if (installInfo.repositories != null)
                         {
                             var repositoriesNode = document.CreateElement("repositories");
-                            newNode.AppendChild(repositoriesNode);
+                            node.AppendChild(repositoriesNode);
 
                             XmlElement repositoryNode;
-
-                            foreach (var repository in adapterInfo.repositories)
+                            foreach (var repository in installInfo.repositories)
                             {
                                 repositoryNode = document.CreateElement("repository");
                                 repositoryNode.InnerText = repository;
                                 repositoriesNode.AppendChild(repositoryNode);
-                            }                            
+                            }
                         }
-
-                        attribute.Value = string.Format("{0}:{1}", attribute.Value, version);
                         break;
                     }
-                case "iosPod":
+                    case "iosPod":
                     {
                         var versionAttributes = document.CreateAttribute("version");
                         versionAttributes.Value = version;
-                        newNode.Attributes.Append(versionAttributes);
+                        node.Attributes.Append(versionAttributes);
+
+                        if (installInfo.repositories != null)
+                        {
+                            var sourcesNode = document.CreateElement("sources");
+                            node.AppendChild(sourcesNode);
+                            XmlElement sourceNode;
+                            foreach (var repository in installInfo.repositories)
+                            {
+                                sourceNode = document.CreateElement("source");
+                                sourceNode.InnerText = repository;
+                                sourcesNode.AppendChild(sourceNode);
+                            }
+                        }
+
                         break;
                     }
+                }
+
+                
             }
-
-            parentNode.AppendChild(newNode);
-        }
-
-        private List<SelectedAdapterInfo> GetSelectedAdapterInfoListByPlatform(SettingToolResponse.AdapterSettings.Platform platform)
-        {
-            var adapterInfoList = new List<SelectedAdapterInfo>();
-            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.authentication.adapters));
-            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.purchase.adapters));
-            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.push.adapters));
-            adapterInfoList.AddRange(GetSelectedAdapterInfoListByAdapterList(platform.etc.adapters));
-
-            return adapterInfoList;
-        }
-
-        private List<SelectedAdapterInfo> GetSelectedAdapterInfoListByAdapterList(List<SettingToolResponse.AdapterSettings.Platform.Category.Adapter> adapterList)
-        {
-            if (adapterList == null)
-            {
-                return new List<SelectedAdapterInfo>();
-            }
-
-            return adapterList
-                .OfType<SettingToolResponse.AdapterSettings.Platform.Category.Adapter>()
-                .Where(adapter => adapter.used == true)
-                .Select(adapter => new SelectedAdapterInfo { name = adapter.fileName, repositories = adapter.repositories } ).ToList();
         }
     }
 }

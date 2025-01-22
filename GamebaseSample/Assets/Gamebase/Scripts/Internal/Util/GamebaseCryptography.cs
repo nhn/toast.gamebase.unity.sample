@@ -11,13 +11,13 @@ namespace Toast.Gamebase.Internal
                                         240, 236, 230, 236,  14, 169,  10,  19,  49, 238, 127, 213,  69, 142,  95,  16 };
         private readonly byte[] iv = {  125, 154,  69,  31, 127,   8, 112, 250, 188,  39, 230,  10,  31, 139,  39, 139 };
 
-        static private GamebaseCryptography instance = null;
+        private static GamebaseCryptography instance = null;
 
-        static public GamebaseCryptography Instance
+        public static GamebaseCryptography Instance
         {
             get
             {
-                if (null == instance)
+                if (instance == null)
                 {
                     instance = new GamebaseCryptography();
                     instance.Init();
@@ -26,15 +26,12 @@ namespace Toast.Gamebase.Internal
                 return instance;
             }
         }
-            
-
+        
         private void Init()
         {
-            using (RijndaelManaged rm = new RijndaelManaged())
-            {
-                encryptTransform = rm.CreateEncryptor(key, iv);
-                decryptTransform = rm.CreateDecryptor(key, iv);
-            }
+            using var rm = new RijndaelManaged();
+            encryptTransform = rm.CreateEncryptor(key, iv);
+            decryptTransform = rm.CreateDecryptor(key, iv);
         }
 
         public string EncryptStringToString(string original)
@@ -46,17 +43,15 @@ namespace Toast.Gamebase.Internal
         {
             byte[] encrypted = null;
 
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
-                using (CryptoStream cs = new CryptoStream(ms, encryptTransform, CryptoStreamMode.Write))
+                using var cs = new CryptoStream(ms, encryptTransform, CryptoStreamMode.Write);
+                using (var sw = new StreamWriter(cs))
                 {
-                    using (StreamWriter sw = new StreamWriter(cs))
-                    {
-                        sw.Write(original);
-                    }
-
-                    encrypted = ms.ToArray();
+                    sw.Write(original);
                 }
+
+                encrypted = ms.ToArray();
             }
 
             return encrypted;
@@ -71,38 +66,33 @@ namespace Toast.Gamebase.Internal
         {
             string original = null;
 
-            using (MemoryStream ms = new MemoryStream(encrypted))
+            using (var ms = new MemoryStream(encrypted))
             {
-                using (CryptoStream cs = new CryptoStream(ms, decryptTransform, CryptoStreamMode.Read))
-                {
-                    using (StreamReader sr = new StreamReader(cs))
-                    {
-                        original = sr.ReadToEnd();
-                    }
-                }
+                using var cs = new CryptoStream(ms, decryptTransform, CryptoStreamMode.Read);
+                using var sr = new StreamReader(cs);
+                original = sr.ReadToEnd();
             }
 
             return original;
         }
 
 
-        static public byte[] ConvertStringToByteArray(string original)
+        public byte[] ConvertStringToByteArray(string original)
         {
             byte[] convert = null;
 
             if (original.Length > 0)
             {
                 convert = new byte[original.Length / 3];
-
-                byte    value           = 0;
-                int     originalIndex   = 0;
-                int     convertIndex    = 0;
+                int originalIndex = 0;
+                int convertIndex = 0;
+                byte value;
 
                 do
                 {
-                    value                   = byte.Parse(original.Substring(originalIndex, 3));
+                    value = byte.Parse(original.Substring(originalIndex, 3));
                     convert[convertIndex++] = value;
-                    originalIndex           += 3;
+                    originalIndex += 3;
                 }
                 while (originalIndex < original.Length);
             }
@@ -111,14 +101,15 @@ namespace Toast.Gamebase.Internal
         }
 
 
-        static public string ConvertByteArrToString(byte[] original)
+        public string ConvertByteArrToString(byte[] original)
         {
-            byte    val     = 0;
-            string  convert = string.Empty;
+            string convert = string.Empty;
+            byte val;
 
             for (int i = 0; i <= original.GetUpperBound(0); ++i)
             {
                 val = original[i];
+
                 if (val < (byte)10)
                 {
                     convert += "00" + val.ToString();

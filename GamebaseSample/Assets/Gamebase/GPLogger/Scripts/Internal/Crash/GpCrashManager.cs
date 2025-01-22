@@ -60,7 +60,7 @@ namespace GamePlatform.Logger.Internal
         {
             if (crashFilterList.Contains(filter) == true)
             {
-                GpLog.Warn("This filter is already registered.", GetType(), "AddCrashFilter");
+                GpLog.Warn("This filter is already registered.", GetType());
                 return;
             }
 
@@ -71,7 +71,7 @@ namespace GamePlatform.Logger.Internal
         {
             if (crashFilterList.Contains(filter) == false)
             {
-                GpLog.Warn("This is an unregistered filter.", GetType(), "RemoveCrashFilter");
+                GpLog.Warn("This is an unregistered filter.", GetType());
                 return;
             }
 

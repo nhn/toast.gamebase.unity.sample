@@ -1,6 +1,5 @@
 #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
 
-using GamePlatform.Logger;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,7 +34,6 @@ namespace Toast.Gamebase.Internal.Single
         public void SetDebugMode(bool isDebugMode)
         {
             GamebaseDebugSettings.Instance.SetDebugMode(isDebugMode);
-            GpLogger.DebugMode = isDebugMode;
         }
         
         public void Initialize(GamebaseRequest.GamebaseConfiguration configuration, int handle)
@@ -65,11 +63,7 @@ namespace Toast.Gamebase.Internal.Single
                     () =>
                     {
                         var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo>>(handle);
-
-                        if (callback != null)
-                        {
-                            callback(launchingInfo, error);
-                        }
+                        callback?.Invoke(launchingInfo, error);
 
                         GamebaseCallbackHandler.UnregisterCallback(handle);
                     });
@@ -168,6 +162,17 @@ namespace Toast.Gamebase.Internal.Single
             return vo.token.accessToken;
         }
 
+        public void RequestLastLoggedInProvider(int handle)
+        {
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<string>>(handle);
+            if (callback == null)
+            {
+                return;
+            }
+            
+            callback(GetLastLoggedInProvider(), new GamebaseError(GamebaseErrorCode.SUCCESS));
+        }
+        
         public string GetLastLoggedInProvider()
         {
             var vo = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);

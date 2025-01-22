@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-	<string name="default_web_client_id" translatable="false">283619115829-ol7eq0tg87dcpvh2uh1i1nv5ktfc8i6m.apps.googleusercontent.com</string>
-	<string name="gcm_defaultSenderId" translatable="false">283619115829</string>
-	<string name="firebase_database_url" translatable="false">https://gamebase-sample-49974446.firebaseio.com</string>
-	<string name="google_app_id" translatable="false">1:283619115829:android:2883af6208a9ce58</string>
-	<string name="google_api_key" translatable="false">AIzaSyCvXZKx4xz_UE9c9J5qPPuFOzcE12SG6Qs</string>
-	<string name="google_storage_bucket" translatable="false">gamebase-sample-49974446.appspot.com</string>
-</resources>

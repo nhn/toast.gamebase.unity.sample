@@ -45,7 +45,7 @@ namespace GamePlatform.Logger
 
             if (string.IsNullOrEmpty(errorName) == true)
             {
-                GpLog.Debug(string.Format("Not found error message for errorCode {0}", code), GetType(), "RetrieveErrorMessage");
+                GpLog.Debug(string.Format("Not found error message for errorCode {0}", code), GetType());
                 return string.Empty;
             }
 

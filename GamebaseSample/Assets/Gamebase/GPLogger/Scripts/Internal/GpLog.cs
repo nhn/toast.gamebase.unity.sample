@@ -65,7 +65,7 @@ namespace GamePlatform.Logger.Internal
         /// <summary>
         /// 개발자 로그
         /// </summary>
-        public static void Developer(object message, Type classType, string methodName = "")
+        public static void Developer(object message, Type classType, [System.Runtime.CompilerServices.CallerMemberName] string methodName = "")
         {
             PrintLog(LogLevel.DEVELOPER, message, classType, methodName);
         }
@@ -73,7 +73,7 @@ namespace GamePlatform.Logger.Internal
         /// <summary>
         /// 디버그 로그
         /// </summary>
-        public static void Debug(object message, Type classType, string methodName = "")
+        public static void Debug(object message, Type classType, [System.Runtime.CompilerServices.CallerMemberName] string methodName = "")
         {
             PrintLog(LogLevel.DEBUG, message, classType, methodName);
         }
@@ -81,7 +81,7 @@ namespace GamePlatform.Logger.Internal
         /// <summary>
         /// 정보성 로그
         /// </summary>
-        public static void Info(object message, Type classType, string methodName = "")
+        public static void Info(object message, Type classType, [System.Runtime.CompilerServices.CallerMemberName] string methodName = "")
         {
             PrintLog(LogLevel.INFO, message, classType, methodName);
         }
@@ -89,7 +89,7 @@ namespace GamePlatform.Logger.Internal
         /// <summary>
         /// 애플리케이션 흐름에는 영향이 없으나 제한되거나 권장하지 않는 흐름에 대한 로그
         /// </summary>
-        public static void Warn(object message, Type classType, string methodName = "")
+        public static void Warn(object message, Type classType, [System.Runtime.CompilerServices.CallerMemberName] string methodName = "")
         {
             PrintLog(LogLevel.WARN, message, classType, methodName);
         }
@@ -97,7 +97,7 @@ namespace GamePlatform.Logger.Internal
         /// <summary>
         /// 애플리케이션 흐름에 치명적인 영향이 있는 오류
         /// </summary>
-        public static void Error(object message, Type classType, string methodName = "")
+        public static void Error(object message, Type classType, [System.Runtime.CompilerServices.CallerMemberName] string methodName = "")
         {
             PrintLog(LogLevel.ERROR, message, classType, methodName);
         }

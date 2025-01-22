@@ -1,15 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <dependencies>
   <androidPackages>
-    <androidPackage spec="com.toast.android.gamebase:gamebase-sdk:2.62.1" />
-    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-facebook:2.62.1" />
-    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-google:2.62.1" />
-    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-payco:2.62.1" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-sdk:2.69.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-facebook:2.69.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-google:2.69.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-auth-payco:2.69.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-purchase-google:2.69.0" />
+    <androidPackage spec="com.toast.android.gamebase:gamebase-adapter-push-fcm:2.69.0" />
   </androidPackages>
   <iosPods>
-    <iosPod name="Gamebase" version="2.62.0" />
-    <iosPod name="GamebaseAuthFacebookAdapter" version="2.62.0" />
-    <iosPod name="GamebaseAuthGoogleAdapter" version="2.62.0" />
-    <iosPod name="GamebaseAuthPaycoAdapter" version="2.62.0" />
+    <iosPod name="Gamebase" version="2.69.0" />
+    <iosPod name="GamebaseAuthFacebookAdapter" version="2.69.0" />
+    <iosPod name="GamebaseAuthGoogleAdapter" version="2.69.0" />
+    <iosPod name="GamebaseAuthPaycoAdapter" version="2.69.0" />
+    <iosPod name="GamebasePurchaseIAPAdapter" version="2.69.0" />
+    <iosPod name="GamebasePushAdapter" version="2.69.0" />
   </iosPods>
 </dependencies>

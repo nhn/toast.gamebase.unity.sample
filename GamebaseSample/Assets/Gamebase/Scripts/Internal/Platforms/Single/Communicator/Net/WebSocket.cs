@@ -174,8 +174,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 yield break;
             }
             GamebaseLog.Debug(string.Format("Send Count:{0}", requestQueueItem.retryCount), this);
-            GamebaseLog.Debug(string.Format("request:{0}", GamebaseJsonUtil.ToPrettyJsonString(requestQueueItem.requestVO)), this);
-         
+            GamebaseLog.Debug(string.Format("request:{0}", GamebaseJsonUtil.ToPretty(JsonMapper.ToJson(requestQueueItem.requestVO))), this);
+
             yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Send(JsonMapper.ToJson(requestQueueItem.requestVO), (error) =>
             {
                 if (error == null)
@@ -286,7 +286,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         private void RecvEvent(string response)
         {
-            GamebaseLog.Debug(GamebaseJsonUtil.ToPrettyJsonString(response), this);
+            GamebaseLog.Debug(GamebaseJsonUtil.ToPretty(response), this);
 
             ProtocolResponse protocol = JsonMapper.ToObject<ProtocolResponse>(response);
 
@@ -358,11 +358,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 #else
             internetReachability = Gamebase.Network.IsConnected();
 #endif
-            
-            if (callback != null)
-            {
-                callback(internetReachability);
-            }
+            callback?.Invoke(internetReachability);
             yield return null;
         }
 

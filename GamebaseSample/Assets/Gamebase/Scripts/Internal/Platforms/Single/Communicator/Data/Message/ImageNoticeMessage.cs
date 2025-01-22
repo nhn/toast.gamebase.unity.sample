@@ -6,7 +6,6 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public static WebSocketRequest.RequestVO GetImageNoticesMessage()
         {
             var vo = new ImageNoticeRequest.ReqImageNoticeInfoVO();
-
             vo.parameter.osCode = GamebaseSystemInfo.Platform;
             vo.parameter.clientVersion = GamebaseUnitySDK.AppVersion;
             vo.parameter.storeCode = GamebaseUnitySDK.StoreCode;
@@ -17,6 +16,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Launching.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {
+                apiId = Lighthouse.API.Launching.ID.GET_IMAGE_NOTICES,
                 parameters = vo.parameter
             };
 

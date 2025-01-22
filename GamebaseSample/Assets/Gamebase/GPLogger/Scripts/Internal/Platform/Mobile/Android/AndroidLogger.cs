@@ -28,7 +28,7 @@ namespace GamePlatform.Logger.Internal
         {
             if (androidPlugin != null)
             {
-                GpLog.Debug(string.Format("jsonString:{0}", jsonString), GetType(), "SendMessage");
+                GpLog.Debug(string.Format("jsonString:{0}", jsonString), GetType());
                 return androidPlugin.CallStatic<string>("unityMessage", jsonString);
             }
 

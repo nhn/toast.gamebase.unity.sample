@@ -1,4 +1,7 @@
 {
+    "settingTool": {
+        "path": "NhnCloud/GamebaseTools"
+    },
     "cdn": {
         "path": "NhnCloud/GamebaseTools/SettingTool/Editor/cdn.json"
     },
@@ -8,14 +11,22 @@
     "installedVersion": {
         "path": "NhnCloud/GamebaseTools/SettingTool/Editor/installedVersion.json"
     },
-    "adapterSettings": {
+    "legacyAdapterSetting": {
         "path": "NhnCloud/GamebaseTools/SettingTool/Editor/adapterSettings.json"
+    },
+    "additionalAdapterData": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/additionalData/"
+    },
+    "adapterSelection": {
+        "path": "NhnCloud/GamebaseTools/SettingTool/Editor/adapterSelection.json",
+        "historyPath": "NhnCloud/GamebaseTools/SettingTool/Editor/settingHistory.json"
     },
     "gamebaseAllDependencies": {
         "path": "NhnCloud/GamebaseTools/SettingTool/Editor/gamebaseAllDependencies.xml"
     },
     "gamebaseSdk": {
-        "path": "GamebaseSDK"
+        "path": "GamebaseSDK",
+        "versionPath": "GamebaseSDK/packageVersion.json"
     },
     "ad": {
         "downloadPath": "NHNCloud/GamebaseTools/SettingTool/Ad/"

@@ -17,7 +17,7 @@ namespace GamePlatform.Logger.Internal
 
         public void Initialize(GpLoggerParams.Initialization param)
         {
-            GpLog.Debug(string.Format("param:{0}", JsonMapper.ToJson(param)), GetType(), "Initialize");
+            GpLog.Debug(string.Format("param:{0}", JsonMapper.ToJson(param)), GetType());
             appKey = param.appKey;
 
             string apiScheme;
@@ -53,7 +53,7 @@ namespace GamePlatform.Logger.Internal
                     logLevel.ToString().ToUpper(),
                     message,
                     (userFields == null) ? "" : JsonMapper.ToJson(userFields),
-                    logType), GetType(), "Log");
+                    logType), GetType());
 
             string apiScheme;
 
@@ -93,7 +93,7 @@ namespace GamePlatform.Logger.Internal
                             GpLoggerErrorCode.INVALID_PARAMETER,
                             DOMAIN,
                             GpLoggerStrings.INVALID_PARAMETER_KEY_IS_NULL_OR_EMPTY);
-                        GpLog.Error(error, GetType(), "Log");
+                        GpLog.Error(error, GetType());
 
                         return;
                     }
@@ -107,7 +107,7 @@ namespace GamePlatform.Logger.Internal
 
         public void SetUserField(string key, string value)
         {
-            GpLog.Debug(string.Format("key:{0}, value:{1}", key, value), GetType(), "SetUserField");
+            GpLog.Debug(string.Format("key:{0}, value:{1}", key, value), GetType());
 
             if (string.IsNullOrEmpty(key) == true)
             {
@@ -115,7 +115,7 @@ namespace GamePlatform.Logger.Internal
                     GpLoggerErrorCode.INVALID_PARAMETER,
                     DOMAIN,
                     GpLoggerStrings.INVALID_PARAMETER_KEY_IS_NULL_OR_EMPTY);
-                GpLog.Error(error, GetType(), "SetUserField");
+                GpLog.Error(error, GetType());
 
                 return;
             }
@@ -148,7 +148,7 @@ namespace GamePlatform.Logger.Internal
 
         public void Report(CrashData crashData)
         {
-            GpLog.Debug(string.Format("crashData:{0}", JsonMapper.ToJson(crashData)), GetType(), "Report");
+            GpLog.Debug(string.Format("crashData:{0}", JsonMapper.ToJson(crashData)), GetType());
 
             var apiScheme = ApiScheme.Generate("Exception");
             var protocol = new LoggerProtocol(apiScheme);
@@ -163,13 +163,13 @@ namespace GamePlatform.Logger.Internal
 
         public void SetLoggerListener(IGpLoggerListener listener)
         {
-            GpLog.Debug("SetLoggerListener", GetType(), "SetLoggerListener");
+            GpLog.Debug("SetLoggerListener", GetType());
             SetCrashLoggerListener();
         }
 
         public void SetCrashListener(GpLogger.CrashListener listener)
         {
-            GpLog.Debug("SetCrashListener", GetType(), "SetCrashListener");
+            GpLog.Debug("SetCrashListener", GetType());
             SetCrashLoggerListener();
         }
 

@@ -89,11 +89,7 @@ namespace Toast.Gamebase.Internal.Single
                 }
                 
                 var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Purchase.PurchasableReceipt>>(handle);
-
-                if (callback != null)
-                {
-                    callback(purchasableReceipt, error);
-                }
+                callback?.Invoke(purchasableReceipt, error);
 
                 GamebaseCallbackHandler.UnregisterCallback(handle);
             };

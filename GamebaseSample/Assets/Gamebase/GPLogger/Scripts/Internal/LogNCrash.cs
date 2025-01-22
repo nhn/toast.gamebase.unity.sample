@@ -18,7 +18,7 @@ namespace GamePlatform.Logger.Internal
         {
             if (string.IsNullOrEmpty(appKey) == true)
             {
-                GpLog.Warn(string.Format("Log&Crash appKey cannot be null. appKey:{0}", appKey), GetType(), "LogNCrash");
+                GpLog.Warn(string.Format("Log&Crash appKey cannot be null. appKey:{0}", appKey), GetType());
             }
 
             this.appKey = appKey;

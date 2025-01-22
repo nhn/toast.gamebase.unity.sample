@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Authentication;
 using Toast.Gamebase.WebSocketSharp;
 using UnityEngine;
 
@@ -58,6 +59,20 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         private void CreateSocket()
         {
             socket = new WebSocketSharp.WebSocket(socketAdress);
+
+            var socketUri = new Uri(socketAdress);
+            if (socketUri.Scheme.Equals("wss") == true)
+            {
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                //
+                //  SslProtocols Enum (Unity 2020.3.16)
+                //
+                //  https://learn.microsoft.com/ko-kr/dotnet/api/system.security.authentication.sslprotocols?view=netstandard-2.0
+                //
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                socket.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+            }
+
             AddEvents();
         }
 
@@ -354,7 +369,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         private void OnError(object sender, ErrorEventArgs e)
         {
             errorMessage = e.Message;
-            GamebaseLog.Warn(GamebaseJsonUtil.ToPrettyJsonString(e) ,this);
+            GamebaseLog.Warn(GamebaseJsonUtil.ToPretty(e) ,this);
         }
 
         private void OnClose(object sender, CloseEventArgs e)

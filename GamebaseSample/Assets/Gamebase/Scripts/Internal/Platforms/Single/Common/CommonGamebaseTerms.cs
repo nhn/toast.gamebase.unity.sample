@@ -39,19 +39,13 @@ namespace Toast.Gamebase.Internal.Single
 
             if (configuration == null)
             {
-                if (callback != null)
-                {
-                    callback(new GamebaseError(GamebaseErrorCode.INVALID_PARAMETER, Domain));
-                }
+                callback?.Invoke(new GamebaseError(GamebaseErrorCode.INVALID_PARAMETER, Domain));
                 return;
             }
 
             if (GamebaseUnitySDK.IsInitialized == false)
             {
-                if (callback != null)
-                {
-                    callback(new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
-                }                
+                callback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
                 return;
             }
 
@@ -59,10 +53,7 @@ namespace Toast.Gamebase.Internal.Single
 
             if (requestVo == null)
             {
-                if (callback != null)
-                {
-                    callback(new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
-                }
+                callback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
                 return;
             }
 
@@ -70,10 +61,7 @@ namespace Toast.Gamebase.Internal.Single
             {
                 if (error != null)
                 {
-                    if (callback != null)
-                    {
-                        callback(error);
-                    }
+                    callback?.Invoke(error);
                     return;
                 }
 
@@ -83,10 +71,7 @@ namespace Toast.Gamebase.Internal.Single
                     error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVo.transactionId, requestVo.apiId, vo.header, Domain);
                 }
 
-                if (callback != null)
-                {
-                    callback(error);
-                }   
+                callback?.Invoke(error);
             });
         }
 
@@ -97,10 +82,7 @@ namespace Toast.Gamebase.Internal.Single
 
             if (GamebaseUnitySDK.IsInitialized == false)
             {
-                if (callback != null)
-                {
-                    callback(null, new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
-                }
+                callback?.Invoke(null, new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
                 return;
             }
 
@@ -109,10 +91,7 @@ namespace Toast.Gamebase.Internal.Single
             {
                 if (error != null)
                 {
-                    if (callback != null)
-                    {
-                        callback(null, error);
-                    }   
+                    callback?.Invoke(null, error);
                     return;
                 }
 
@@ -128,10 +107,7 @@ namespace Toast.Gamebase.Internal.Single
                     error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVo.transactionId, requestVo.apiId, vo.header, Domain);
                 }
 
-                if (callback != null)
-                {
-                    callback(queryTermsResult, error);
-                }   
+                callback?.Invoke(queryTermsResult, error);
             });
         }
         

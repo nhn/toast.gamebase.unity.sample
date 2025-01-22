@@ -8,11 +8,9 @@ using Toast.Gamebase.Internal.Single.WebGL;
 using Toast.Gamebase.Internal.Single.Standalone;
 #endif
 
-using System.Collections.Generic;
 using System;
 using Toast.Gamebase.LitJson;
 using System.Text;
-using GamePlatform.Logger;
 
 namespace Toast.Gamebase.Internal
 {
@@ -49,7 +47,6 @@ namespace Toast.Gamebase.Internal
         {
             GamebaseGameInformationReport.Instance.AddApiName();
             sdk.SetDebugMode(isDebugMode);
-            GpLogger.DebugMode = isDebugMode;
         }
 
         public void Initialize(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Launching.LaunchingInfo> callback)
@@ -72,7 +69,7 @@ namespace Toast.Gamebase.Internal
 
             var sb = new StringBuilder();
             sb.AppendLine(string.Format("Gamebase VERSION:{0}", GamebaseUnitySDK.SDKVersion));
-            sb.AppendLine(string.Format("Gamebase Configuration:{0}", GamebaseJsonUtil.ToPrettyJsonString(configuration)));
+            sb.AppendLine(string.Format("Gamebase Configuration:{0}", GamebaseJsonUtil.ToPretty(configuration)));
             GamebaseLog.Debug(string.Format("{0}", sb), this);
             
             InitializeUnitySDK();
@@ -130,6 +127,12 @@ namespace Toast.Gamebase.Internal
             GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetAccessToken();
         }
+        
+        public void RequestLastLoggedInProvider(GamebaseCallback.GamebaseDelegate<string> callback) {
+            GamebaseGameInformationReport.Instance.AddApiName();    
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            sdk.RequestLastLoggedInProvider(handle);
+        }   
 
         public string GetLastLoggedInProvider()
         {

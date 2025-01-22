@@ -143,6 +143,7 @@
         //  UI
         //----------------------------------------  
         public const int UI_IMAGE_NOTICE_TIMEOUT                            = 6901;
+        public const int UI_IMAGE_NOTICE_NOT_SUPPORTED_OS                   = 6902;
         
         public const int UI_CONTACT_FAIL_INVALID_URL                        = 6911;
         public const int UI_CONTACT_FAIL_ISSUE_SHORT_TERM_TICKET            = 6912;
@@ -153,7 +154,11 @@
         public const int UI_TERMS_UNREGISTERED_SEQ                          = 6923;
         public const int UI_TERMS_ALREADY_IN_PROGRESS_ERROR                 = 6924;
         public const int UI_TERMS_ANDROID_DUPLICATED_VIEW                   = 6925;
-        
+
+        public const int UI_COMMUNITY_FAIL_INVALID_URL                      = 6931;
+        public const int UI_COMMUNITY_FAIL_ISSUE_SHORT_TERM_TICKET          = 6932;
+        public const int UI_COMMUNITY_FAIL_ANDROID_DUPLICATED_VIEW          = 6933;
+
         public const int UI_UNKNOWN_ERROR                                   = 6999;
 
         //----------------------------------------
@@ -171,7 +176,7 @@
         //----------------------------------------
         public const int SERVER_INTERNAL_ERROR                              = 8001;
         public const int SERVER_REMOTE_SYSTEM_ERROR                         = 8002;
-
+        public const int SERVER_INVALID_RESPONSE                            = 8003;
         public const int SERVER_UNKNOWN_ERROR                               = 8999;
 
         //----------------------------------------

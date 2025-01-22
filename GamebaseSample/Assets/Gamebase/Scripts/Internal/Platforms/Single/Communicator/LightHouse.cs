@@ -72,7 +72,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public class API
         {
-            public const string VERSION = "v1.3.3";
+            public const string VERSION = "v1.3.4";
 
             public class Launching
             {

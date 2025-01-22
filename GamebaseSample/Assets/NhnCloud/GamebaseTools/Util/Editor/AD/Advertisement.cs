@@ -6,14 +6,14 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad
 {
     public static class Advertisement
     {
-        public static void Initialize(EditorWindow window, Rect drawRect, AdvertisementConfigurations advertisementInfo, string languageCode)
+        public static void Initialize(AdvertisementConfigurations advertisementInfo, string languageCode)
         {
-            AdvertisementImplementation.Instance.Initialize(window, drawRect, advertisementInfo, languageCode);
+            AdvertisementImplementation.Instance.Initialize(advertisementInfo, languageCode);
         }
 
-        public static void Draw()
+        public static void Draw(Rect drawRect)
         {
-            AdvertisementImplementation.Instance.Draw();
+            AdvertisementImplementation.Instance.Draw(drawRect);
         }
         
         public static void SetSelectAdvertisementInfoCallback(System.Action<string, string> selectAdvertisementInfoCallback)

@@ -12,6 +12,7 @@ namespace Toast.Gamebase.Internal.Mobile
             public const string GAMEBASE_API_GET_SDK_VERSION                 = "gamebase://getSDKVersion";
             public const string GAMEBASE_API_GET_USERID                      = "gamebase://getUserID";
             public const string GAMEBASE_API_GET_ACCESSTOKEN                 = "gamebase://getAccessToken";
+            public const string GAMEBASE_API_REQUEST_LAST_LOGGED_IN_PROVIDER = "gamebase://requestLastLoggedInProvider";
             public const string GAMEBASE_API_GET_LAST_LOGGED_IN_PROVIDER     = "gamebase://getLastLoggedInProvider";
             public const string GAMEBASE_API_GET_DEVICE_LANGUAGE_CODE        = "gamebase://getDeviceLanguageCode";
             public const string GAMEBASE_API_GET_CARRIER_CODE                = "gamebase://getCarrierCode";
@@ -44,6 +45,8 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.Initialize(CLASS_NAME);
 
             DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_INITIALIZE,               DelegateManager.SendGamebaseDelegateOnce<LaunchingResponse.LaunchingInfo>, OnInitialize);
+            DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_REQUEST_LAST_LOGGED_IN_PROVIDER, DelegateManager.SendGamebaseDelegateOnce<string>);
+            
             DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_ADD_SERVER_PUSH_EVENT,    DelegateManager.SendDataDelegate<GamebaseResponse.SDK.ServerPushMessage>);
             DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_ADD_OBSERVER,             DelegateManager.SendDataDelegate<GamebaseResponse.SDK.ObserverMessage>);
             DelegateManager.AddDelegate(GamebaseScheme.GAMEBASE_API_ADD_EVENT_HANDLER,        DelegateManager.SendDataDelegate<GamebaseResponse.Event.GamebaseEventMessage>);
@@ -89,6 +92,16 @@ namespace Toast.Gamebase.Internal.Mobile
         {
             string jsonData = JsonMapper.ToJson(new UnityMessage(GamebaseScheme.GAMEBASE_API_GET_ACCESSTOKEN));
             return messageSender.GetSync(jsonData);
+        }
+        
+        virtual public void RequestLastLoggedInProvider(int handle)
+        {
+            string jsonData = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebaseScheme.GAMEBASE_API_REQUEST_LAST_LOGGED_IN_PROVIDER,
+                    handle: handle
+                ));
+            messageSender.GetAsync(jsonData);
         }
 
         virtual public string GetLastLoggedInProvider()

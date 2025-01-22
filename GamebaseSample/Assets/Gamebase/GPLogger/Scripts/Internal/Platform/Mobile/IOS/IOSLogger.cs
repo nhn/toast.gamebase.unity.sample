@@ -15,7 +15,7 @@ namespace GamePlatform.Logger.Internal
 
         public override string SendMessage(string jsonString)
         {
-            GpLog.Debug(string.Format("jsonString:{0}", jsonString), GetType(), "SendMessage");
+            GpLog.Debug(string.Format("jsonString:{0}", jsonString), GetType());
 
             var ret = GPLoggerPlugin_receiveMessageFromEngine(jsonString);
             return Marshal.PtrToStringAnsi(ret);

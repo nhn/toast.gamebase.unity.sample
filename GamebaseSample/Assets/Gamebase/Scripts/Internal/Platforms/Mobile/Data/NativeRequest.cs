@@ -115,7 +115,7 @@ namespace Toast.Gamebase.Internal.Mobile
             public class WebviewConfiguration
             {
                 public string url;
-                public GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration;                
+                public GamebaseRequest.Webview.Configuration configuration;                
             }
         }
 

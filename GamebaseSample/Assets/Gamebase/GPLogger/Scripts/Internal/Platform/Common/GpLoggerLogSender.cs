@@ -60,7 +60,7 @@ namespace GamePlatform.Logger.Internal
 
         private IEnumerator SendReport(LogItemContainer container, string logContents, long createTime, string transactionId)
         {
-            GpLog.Debug(string.Format("logContents:{0}, createTime:{1}, transactionId:{2}", logContents, createTime, transactionId), GetType(), "SendReport");
+            GpLog.Debug(string.Format("logContents:{0}, createTime:{1}, transactionId:{2}", logContents, createTime, transactionId), GetType());
 
             couroutineCount++;
 

@@ -28,7 +28,7 @@ namespace GamePlatform.Logger.Internal
 
         public void Initialize(GpLoggerParams.Initialization param)
         {
-            GpLog.Debug(string.Format("param:{0}", JsonMapper.ToJson(param)), GetType(), "Initialize");
+            GpLog.Debug(string.Format("param:{0}", JsonMapper.ToJson(param)), GetType());
 
             logNCrash = new LogNCrash(param.appKey, param.serviceZone);
 
@@ -72,7 +72,7 @@ namespace GamePlatform.Logger.Internal
             GameObjectManager.GetCoroutineComponent(GameObjectType.GP_LOGGER).StartCoroutine(
                 logNCrash.RequestLogNCrashSettings(() =>
                 {
-                    GpLog.Debug(string.Format("settings:{0}", JsonMapper.ToJson(logNCrash.Settings)), GetType(), "LoadLogNCrashSettings");
+                    GpLog.Debug(string.Format("settings:{0}", JsonMapper.ToJson(logNCrash.Settings)), GetType());
                     callback();
                 }));
         }
@@ -83,7 +83,7 @@ namespace GamePlatform.Logger.Internal
                     logLevel.ToString().ToUpper(),
                     message,
                     (userFields == null) ? "" : JsonMapper.ToJson(userFields),
-                    logType), GetType(), "Log");
+                    logType), GetType());
 
             BaseLogItem item = new BaseLogItem();
 
@@ -101,14 +101,14 @@ namespace GamePlatform.Logger.Internal
                 item.SetUserFields(userFields);
             }
 
-            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType(), "Log");
+            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType());
 
             AddLogItem(item);
         }
 
         public void SetUserField(string key, string value)
         {
-            GpLog.Debug(string.Format("key:{0}, value:{1}", key, value), GetType(), "SetUserField");
+            GpLog.Debug(string.Format("key:{0}, value:{1}", key, value), GetType());
 
             if (string.IsNullOrEmpty(key) == true || string.IsNullOrEmpty(value) == true)
             {
@@ -135,7 +135,7 @@ namespace GamePlatform.Logger.Internal
 
         public void Report(CrashData crashData)
         {
-            GpLog.Debug(string.Format("crashData:{0}", JsonMapper.ToJson(crashData)), GetType(), "Report");
+            GpLog.Debug(string.Format("crashData:{0}", JsonMapper.ToJson(crashData)), GetType());
 
             CrashLogItem item = new CrashLogItem();
             item.SetDefaultLog(logNCrash.GetAppKey(), crashData.logType, (GpLogLevel)Enum.Parse(typeof(GpLogLevel), crashData.logLevel), crashData.message);
@@ -162,13 +162,13 @@ namespace GamePlatform.Logger.Internal
         public void SetLoggerListener(IGpLoggerListener listener)
         {
             // not work.
-            GpLog.Debug("SetLoggerListener", GetType(), "SetLoggerListener");
+            GpLog.Debug("SetLoggerListener", GetType());
         }
 
         public void SetCrashListener(GpLogger.CrashListener listener)
         {
             // not work.
-            GpLog.Debug("SetCrashListener", GetType(), "SetCrashListener");
+            GpLog.Debug("SetCrashListener", GetType());
         }
 
         private void SendSessionData()

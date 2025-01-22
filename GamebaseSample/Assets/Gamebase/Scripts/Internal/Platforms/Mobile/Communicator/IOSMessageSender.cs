@@ -27,7 +27,7 @@ namespace Toast.Gamebase.Internal.Mobile.IOS
 
         public string GetSync(string jsonString)
         {
-            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPrettyJsonString(jsonString)), this);
+            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPretty(jsonString)), this);
 
             string retValue = string.Empty;
             IntPtr result = getSync(jsonString);
@@ -46,7 +46,7 @@ namespace Toast.Gamebase.Internal.Mobile.IOS
 
         public void GetAsync(string jsonString)
         {
-            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPrettyJsonString(jsonString)), this);
+            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPretty(jsonString)), this);
 
             getAsync(jsonString);
         }

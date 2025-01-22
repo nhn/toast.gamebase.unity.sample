@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 
 namespace GamePlatform.Logger.Internal
 {
@@ -74,27 +73,27 @@ namespace GamePlatform.Logger.Internal
         //--------------------------------------------------------------------------------
         public void SetLoggerListener(IGpLoggerListener listener)
         {
-            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType(), MethodBase.GetCurrentMethod().Name);
+            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType());
         }
 
         public void SetCrashListener(GpLogger.CrashListener listener)
         {
-            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType(), MethodBase.GetCurrentMethod().Name);
+            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType());
         }
 
         public void AddCrashFilter(GpLogger.CrashFilter filter)
         {
-            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType(), MethodBase.GetCurrentMethod().Name);
+            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType());
         }
 
         public void RemoveCrashFilter(GpLogger.CrashFilter filter)
         {
-            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType(), MethodBase.GetCurrentMethod().Name);
+            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType());
         }
 
         public void Report(GpLogLevel logLevel, string message, string logString, string stackTrace)
         {
-            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType(), MethodBase.GetCurrentMethod().Name);
+            GpLog.Warn(GpLoggerStrings.NOT_SUPPORTED, GetType());
         }
     }
 }

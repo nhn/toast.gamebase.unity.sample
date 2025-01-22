@@ -237,10 +237,7 @@ namespace Toast.Gamebase.Internal.Single
                 string.Empty,
                 (buttonID) =>
                 {
-                    if (callback != null)
-                    {
-                        callback();
-                    }
+                    callback?.Invoke();
                 });
         }
 

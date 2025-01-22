@@ -92,7 +92,7 @@ namespace Toast.Gamebase.Internal.Single
                         string.Format(
                             "{0}\n{1}",
                             "Failed request.",
-                            GamebaseJsonUtil.ToPrettyJsonString(error)),
+                            GamebaseJsonUtil.ToPretty(error)),
                         this,
                         "CompletePurchase");
                     callback(error);
@@ -147,7 +147,7 @@ namespace Toast.Gamebase.Internal.Single
                         string.Format(
                             "{0}\n{1}",
                             "Failed request.",
-                            GamebaseJsonUtil.ToPrettyJsonString(error)),
+                            GamebaseJsonUtil.ToPretty(error)),
                         this,
                         "SetUserMeta");
                     callback(error);

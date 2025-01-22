@@ -28,5 +28,18 @@
 
 
         public const string UNKNOWN_ERROR = "Unknown error";
+
+
+        public const string TEXT_WINDOWS = "Windows";
+        public const string TEXT_MACOS = "macOS";
+        public const string TEXT_UNITY = "Unity";
+        public const string TEXT_ANDROID = "Android";
+        public const string TEXT_IOS = "iOS";
+
+        public const string TEXT_AUTHENTICATION = "authentication";
+        public const string TEXT_PURCHASE = "purchase";
+        public const string TEXT_PUSH = "push";
+        public const string TEXT_ETC = "etc";
+
     }
 }

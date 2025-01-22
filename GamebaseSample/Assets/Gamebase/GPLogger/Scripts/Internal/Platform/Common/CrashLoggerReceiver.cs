@@ -1,4 +1,5 @@
 ﻿using GamePlatform.Logger.ThirdParty;
+using System;
 using UnityEngine;
 
 namespace GamePlatform.Logger.Internal
@@ -17,7 +18,7 @@ namespace GamePlatform.Logger.Internal
 
         public void SetLoggerListener(IGpLoggerListener loggerListener)
         {
-            this.loggerListener = loggerListener; 
+            this.loggerListener = loggerListener;
         }
 
         public void SetCrashListener(GpLogger.CrashListener crashListener)
@@ -28,11 +29,8 @@ namespace GamePlatform.Logger.Internal
         #region Received from MobileSDK.
         public void OnLogSuccess(string jsonString)
         {
-            GpLog.Debug(jsonString, GetType(), "OnLogSuccess");
-
-            if (ValidateReceivedJsonString(jsonString) == false)
+            if (ValidateReceivedJsonString(jsonString, nameof(OnLogSuccess)) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogSuccess");
                 return;
             }
 
@@ -42,11 +40,8 @@ namespace GamePlatform.Logger.Internal
 
         public void OnLogFilter(string jsonString)
         {
-            GpLog.Debug(jsonString, GetType(), "OnLogFilter");
-
-            if (ValidateReceivedJsonString(jsonString) == false)
+            if (ValidateReceivedJsonString(jsonString, nameof(OnLogFilter)) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogFilter");
                 return;
             }
 
@@ -58,11 +53,8 @@ namespace GamePlatform.Logger.Internal
 
         public void OnLogSave(string jsonString)
         {
-            GpLog.Debug(jsonString, GetType(), "OnLogSave");
-
-            if (ValidateReceivedJsonString(jsonString) == false)
+            if (ValidateReceivedJsonString(jsonString, nameof(OnLogSave)) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogSave");
                 return;
             }
 
@@ -72,11 +64,8 @@ namespace GamePlatform.Logger.Internal
 
         public void OnLogError(string jsonString)
         {
-            GpLog.Debug(jsonString, GetType(), "OnLogError");
-
-            if (ValidateReceivedJsonString(jsonString) == false)
+            if (ValidateReceivedJsonString(jsonString, nameof(OnLogError)) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogError");
                 return;
             }
 
@@ -90,11 +79,11 @@ namespace GamePlatform.Logger.Internal
         {
             if (ValidateReceivedItem(item) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogSuccessWithLogItem");
+                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType());
                 return;
             }
 
-            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType(), "OnLogSuccessWithLogItem");
+            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType());
 
             DispatchOnLogSuccess(ConvertLogEntry(item));
         }
@@ -103,11 +92,11 @@ namespace GamePlatform.Logger.Internal
         {
             if (ValidateReceivedItem(item) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogFilterWithLogItem");
+                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType());
                 return;
             }
 
-            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType(), "OnLogFilterWithLogItem");
+            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType());
 
             DispatchOnLogFilter(ConvertLogEntry(item), LogFilter.FromName(filterName));
         }
@@ -116,11 +105,11 @@ namespace GamePlatform.Logger.Internal
         {
             if (ValidateReceivedItem(item) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogSaveWithLogItem");
+                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType());
                 return;
             }
 
-            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType(), "OnLogSaveWithLogItem");
+            GpLog.Debug(JsonMapper.ToJson(item.GetLogDictionary()), GetType());
 
             DispatchOnLogSave(ConvertLogEntry(item));
         }
@@ -129,14 +118,16 @@ namespace GamePlatform.Logger.Internal
         {
             if (ValidateReceivedItem(item) == false)
             {
-                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType(), "OnLogErrorWithLogItem");
+                GpLog.Warn(GpLoggerStrings.INVALID_DATA_RECEIVED, GetType());
                 return;
             }
 
             GpLog.Debug(
-                string.Format("item:{0}, errorMessage:{1}", JsonMapper.ToJson(item.GetLogDictionary()), errorMessage),
-                GetType(),
-                "OnLogErrorWithLogItem");
+                string.Format(
+                    "item:{0}, errorMessage:{1}",
+                    JsonMapper.ToJson(item.GetLogDictionary()),
+                    errorMessage),
+                GetType());
 
             DispatchOnLogError(ConvertLogEntry(item), errorMessage);
         }
@@ -226,20 +217,32 @@ namespace GamePlatform.Logger.Internal
         /// 모두 같은 데이터 형식으므로 가장 기본이 되는 Success로 데이터를 검증한다.
         /// 
         ///----------------------------------------------------------------------
-        private bool ValidateReceivedJsonString(string jsonString)
+        private bool ValidateReceivedJsonString(string jsonString, string methodName)
         {
+            GpLog.Debug(jsonString, GetType(), methodName);
+
             if (string.IsNullOrEmpty(jsonString) == true)
             {
+                GpLog.Warn(string.Format("{0} response jsonString is empty.", GpLoggerStrings.INVALID_DATA_RECEIVED), GetType(), methodName);
                 return false;
             }
 
-            var vo = JsonMapper.ToObject<GpLoggerResponse.SetLoggerListener.Success>(jsonString);
-            if (vo == null || vo.body == null || vo.body.log == null)
+            try
             {
-                return false;
+                var vo = JsonMapper.ToObject<GpLoggerResponse.SetLoggerListener.Success>(jsonString);
+
+                if (vo != null && vo.body != null && vo.body.log != null)
+                {
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                GpLog.Warn(string.Format("The value of userFields passed from Native is not a string. message:{0}", e.Message), GetType(), methodName);
             }
 
-            return true;
+            GpLog.Warn(string.Format("{0} response jsonString:{1}", GpLoggerStrings.INVALID_DATA_RECEIVED, jsonString), GetType(), methodName);
+            return false;
         }
 
         private bool ValidateReceivedItem(BaseLogItem item)

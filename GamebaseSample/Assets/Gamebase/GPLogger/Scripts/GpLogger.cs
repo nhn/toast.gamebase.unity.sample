@@ -2,7 +2,6 @@
 using GamePlatform.Logger.ThirdParty;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace GamePlatform.Logger
 {
@@ -23,7 +22,7 @@ namespace GamePlatform.Logger
         {
             get
             {
-                return (GpLog.Level < GpLog.LogLevel.WARN) ? true : false;
+                return (GpLog.Level < GpLog.LogLevel.WARN);
             }
             set
             {
@@ -40,7 +39,7 @@ namespace GamePlatform.Logger
 
         public static void Initialize(GpLoggerParams.Initialization param, bool isUserAccess)
         {
-            if (IsValidAppKey(param.appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (IsValidAppKey(param.appKey, nameof(Initialize)) == false)
             {
                 return;
             }
@@ -50,7 +49,7 @@ namespace GamePlatform.Logger
 
         public static void SetLoggerListener(string appKey, IGpLoggerListener listener)
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(SetLoggerListener)) == false)
             {
                 return;
             }
@@ -60,7 +59,7 @@ namespace GamePlatform.Logger
 
         public static void SetCrashListener(string appKey, CrashListener listener)
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(SetCrashListener)) == false)
             {
                 return;
             }
@@ -70,7 +69,7 @@ namespace GamePlatform.Logger
 
         public static void SetUserField(string appKey, string key, string value)
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(SetUserField)) == false)
             {
                 return;
             }
@@ -80,7 +79,7 @@ namespace GamePlatform.Logger
 
         public static void AddCrashFilter(string appKey, CrashFilter filter)
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(AddCrashFilter)) == false)
             {
                 return;
             }
@@ -90,7 +89,7 @@ namespace GamePlatform.Logger
 
         public static void RemoveCrashFilter(string appKey, CrashFilter filter)
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(RemoveCrashFilter)) == false)
             {
                 return;
             }
@@ -100,7 +99,7 @@ namespace GamePlatform.Logger
 
         public static void Debug(string appKey, string message, Dictionary<string, string> userFields = null, string logType = "")
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(Debug)) == false)
             {
                 return;
             }
@@ -110,7 +109,7 @@ namespace GamePlatform.Logger
 
         public static void Info(string appKey, string message, Dictionary<string, string> userFields = null, string logType = "")
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(Info)) == false)
             {
                 return;
             }
@@ -120,7 +119,7 @@ namespace GamePlatform.Logger
 
         public static void Warn(string appKey, string message, Dictionary<string, string> userFields = null, string logType = "")
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(Warn)) == false)
             {
                 return;
             }
@@ -130,7 +129,7 @@ namespace GamePlatform.Logger
 
         public static void Error(string appKey, string message, Dictionary<string, string> userFields = null, string logType = "")
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(Error)) == false)
             {
                 return;
             }
@@ -140,7 +139,7 @@ namespace GamePlatform.Logger
 
         public static void Fatal(string appKey, string message, Dictionary<string, string> userFields = null, string logType = "")
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(Fatal)) == false)
             {
                 return;
             }
@@ -150,7 +149,7 @@ namespace GamePlatform.Logger
 
         public static void Report(string appKey, GpLogLevel logLevel, string message, string logString, string stackTrace)
         {
-            if (HasLoggerInstance(appKey, MethodBase.GetCurrentMethod().Name) == false)
+            if (HasLoggerInstance(appKey, nameof(Report)) == false)
             {
                 return;
             }
@@ -158,9 +157,9 @@ namespace GamePlatform.Logger
             GpLoggerInstanceManager.GetLoggerInstance(appKey).Report(logLevel, message, logString, stackTrace);
         }
 
-        private static bool HasLoggerInstance(string appKey, string apiName)
+        private static bool HasLoggerInstance(string appKey, string methodName)
         {
-            if (IsValidAppKey(appKey, apiName) == false)
+            if (IsValidAppKey(appKey, methodName) == false)
             {
                 return false;
             }
@@ -171,7 +170,7 @@ namespace GamePlatform.Logger
             {
                 var type = typeof(GpLogger);
                 var error = new GpLoggerError(GpLoggerErrorCode.NOT_INITIALIZED_LOGGER, type.Name);
-                GpLog.Warn(error, type, apiName);
+                GpLog.Warn(error, type, methodName);
 
                 return false;
             }

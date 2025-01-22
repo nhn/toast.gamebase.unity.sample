@@ -28,7 +28,7 @@ namespace Toast.Gamebase.Internal.Single
             Application.OpenURL(url);
         }
 
-        public virtual void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, int closeCallback = -1, List<string> schemeList = null, int schemeEvent = -1)
+        public virtual void ShowWebView(string url, GamebaseRequest.Webview.Configuration configuration = null, int closeCallback = -1, List<string> schemeList = null, int schemeEvent = -1)
         {
             GamebaseErrorNotifier.FireNotSupportedAPI(this);
         }

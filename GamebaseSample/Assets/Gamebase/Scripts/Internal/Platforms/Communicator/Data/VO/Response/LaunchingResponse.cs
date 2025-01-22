@@ -53,6 +53,13 @@ namespace Toast.Gamebase.Internal
 
                     public class IDP
                     {
+                        public class Channel
+                        {
+                            public string region;
+                            public string clientId;
+                            public string clientSecret;
+                        }
+
                         public class LoginWebView
                         {
                             public string titleBgColor;
@@ -64,6 +71,7 @@ namespace Toast.Gamebase.Internal
                         public string clientSecret;
                         public string additional;
                         public string callbackUrl;
+                        public List<Channel> channels;
 
                         public LoginWebView loginWebView;
                     }
@@ -140,6 +148,7 @@ namespace Toast.Gamebase.Internal
                         public string appKey;
                         public long appKeyVersion;
                         public int initFailCount;
+                        public List<string> securityBlacklist;
                     }
 
                     public class ForceRemoteSettings

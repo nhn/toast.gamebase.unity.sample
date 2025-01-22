@@ -53,7 +53,7 @@ namespace Toast.Gamebase.Internal
                     }
             }
 
-            GamebaseLog.Debug(GamebaseJsonUtil.ToPrettyJsonString(param), typeof(UnityLoggerController));
+            GamebaseLog.Debug(GamebaseJsonUtil.ToPretty(param), typeof(UnityLoggerController));
 
             GpLogger.Initialize(param, true);
         }

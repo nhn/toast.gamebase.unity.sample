@@ -34,6 +34,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     /// </summary>
                     public string session;
                     public string subCode;
+                    public string authorizationProtocol;
                 }
 
                 public class Member

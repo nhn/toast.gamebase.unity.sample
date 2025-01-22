@@ -6,6 +6,11 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
     {
         public class LocalFileInfo
         {
+            public class SettingToolRoot
+            {
+                public string path;
+            }
+            
             public class Cdn
             {
                 public string path;
@@ -16,9 +21,21 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                 public string path;
             }
 
-            public class AdapterSettings
+            public class LegacyAdapterData
             {
                 public string path;
+            }
+
+            public class AdditionalAdapterData
+            {
+                public string path;
+                
+            }
+
+            public class AdapterSelection
+            {
+                public string path;
+                public string historyPath;
             }
 
             public class GamebaseAllDependencies
@@ -30,10 +47,11 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
             {
                 public string path;
             }
-
+            
             public class GamebaseSdk
             {
                 public string path;
+                public string versionPath;
             }
 
             public class Ad
@@ -41,9 +59,12 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                 public string downloadPath;
             }
 
+            public SettingToolRoot settingTool;
             public Cdn cdn;
             public LocalizedString localizedString;
-            public AdapterSettings adapterSettings;
+            public LegacyAdapterData legacyAdapterSetting;
+            public AdditionalAdapterData additionalAdapterData;
+            public AdapterSelection adapterSelection;
             public GamebaseAllDependencies gamebaseAllDependencies;
             public InstalledVersion installedVersion;
             public GamebaseSdk gamebaseSdk;
@@ -53,61 +74,104 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
         public class Cdn
         {
             public string url;
-            public string toastovenUrl;
         }
 
         public class Master
         {
-            public class Version
-            {
-                public string path;
-            }
-
-            public class Ad
-            {
-                public string path;
-            }
-
-            public class Launching
+            public class LaunchingInfo
             {
                 public string url;
                 public string version;
                 public string appKey;
+                public string subKey;
                 public bool isEncoding;
             }
 
-            public Version version;
-            public Ad ad;
-            public Launching launching;
+            public LaunchingInfo launchingInfo;
         }
 
-        public class Version
+        public class SupportVersion
         {
             public class SettingTool
             {
                 public string minimum;
                 public string newest;
             }
-
-            public class Unity
-            {
-                public string newest;
-            }
-
-            public class Android
-            {
-                public string newest;
-            }
-
-            public class IOS
-            {
-                public string newest;
-            }
-
+            
             public SettingTool settingTool;
-            public Unity unity;
-            public Android android;
-            public IOS ios;
+            
+            public string[] unity;
+            public string[] android;
+            public string[] ios;
+
+            public string GetUnityLastVersion()
+            {
+                if (unity != null &&
+                    unity.Length > 0)
+                {
+                    return unity[0];
+                }
+
+                return "";
+            }
+            
+            public string GetAndroidLastVersion()
+            {
+                if (android != null &&
+                    android.Length > 0)
+                {
+                    return android[0];
+                }
+
+                return "";
+            }
+            
+            public string GetIOSLastVersion()
+            {
+                if (ios != null &&
+                    ios.Length > 0)
+                {
+                    return ios[0];
+                }
+
+                return "";
+            }
+        }
+
+        public class Notice
+        {
+            public class NoticeMessage
+            {
+                public string platform;
+                public string minVersion;
+                public string maxVersion;
+                public string message;
+                public string linkText;
+                public string linkUrl;
+                
+                public bool CanShow()
+                {
+                    if (string.IsNullOrEmpty(maxVersion) == false)
+                    {
+                        if (VersionUtility.CompareVersion(GamebaseInfo.GetCurrentVersion(platform), maxVersion) == -1)
+                        {
+                            return false;
+                        }
+                    }
+                    
+                    if (string.IsNullOrEmpty(minVersion) == false)
+                    {
+                        if (VersionUtility.CompareVersion(minVersion, GamebaseInfo.GetCurrentVersion(platform)) == -1)
+                        {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                }
+            }
+
+            public List<NoticeMessage> noticeList;
         }
 
         public class Ad
@@ -160,16 +224,8 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
                         public string activation;
                     }
 
-                    public class NaverCafePlug
-                    {
-                        public string sdkUrl;
-                        public string installPath;
-                        public string extensionUrl;
-                    }
-
                     public Zone alpha;
                     public Zone real;
-                    public NaverCafePlug naverCafePlug;
                 }
 
                 public SettingTool settingTool;
@@ -179,50 +235,13 @@ namespace NhnCloud.GamebaseTools.SettingTool.Data
             public Launching launching;
         }
 
-        public class AdapterSettings
-        {
-            public bool useAndroid;
-            public bool useIOS;
-
-            public Platform unity;
-            public Platform android;
-            public Platform ios;
-
-            public class Platform
-            {
-                /// <summary>
-                /// Android, iOS, Unity Core SDK's file name.
-                /// </summary>
-                public string fileName;
-                public Category authentication;
-                public Category purchase;
-                public Category push;
-                public Category etc;
-
-                public class Category
-                {
-                    public string name;
-                    public bool onlyOneCanBeSelectedFromCategory;
-                    public List<Adapter> adapters;
-
-                    public class Adapter
-                    {
-                        public string name;
-                        public bool used;
-                        public bool canOnlyChooseEitherUnityOrNative;
-                        public string fileName;
-                        public string moreInfo;
-                        public List<string> repositories;
-                    }
-                }
-            }
-        }
+        
 
         public class InstalledVersion
         {
-            public string unity;
-            public string android;
-            public string ios;
+            public string unity = "";
+            public string android = "";
+            public string ios = "";
         }
     }
 }

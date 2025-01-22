@@ -26,7 +26,7 @@ namespace Toast.Gamebase.Internal.Mobile.Android
 
         public string GetSync(string jsonString)
         {
-            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPrettyJsonString(jsonString)), this);
+            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPretty(jsonString)), this);
             
             string retValue = jc.CallStatic<string>("getSync", jsonString);
 
@@ -40,7 +40,7 @@ namespace Toast.Gamebase.Internal.Mobile.Android
 
         public void GetAsync(string jsonString)
         {
-            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPrettyJsonString(jsonString)), this);
+            GamebaseLog.Debug(string.Format("jsonString : {0}", GamebaseJsonUtil.ToPretty(jsonString)), this);
 
             jc.CallStatic("getAsync", jsonString);
         }
