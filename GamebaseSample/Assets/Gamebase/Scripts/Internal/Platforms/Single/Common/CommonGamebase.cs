@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using Toast.Gamebase.Internal.Single.Communicator;
 using Toast.Gamebase.LitJson;
 
@@ -33,7 +34,6 @@ namespace Toast.Gamebase.Internal.Single
         public void SetDebugMode(bool isDebugMode)
         {
             GamebaseDebugSettings.Instance.SetDebugMode(isDebugMode);
-            ToastSdk.DebugMode = isDebugMode;
         }
         
         public void Initialize(GamebaseRequest.GamebaseConfiguration configuration, int handle)
@@ -47,10 +47,12 @@ namespace Toast.Gamebase.Internal.Single
             {
                 if (Gamebase.IsSuccess(error) == true)
                 {
+                    GamebaseEncryptUtilHelper.Initialize(GamebaseUnitySDK.AppID);
+                    DecryptLaunchingInfo(launchingInfo);
+
                     DataContainer.SetData(VOKey.Launching.LAUNCHING_INFO, launchingInfo);
                     Gamebase.SetDisplayLanguageCode(launchingInfo.request.displayLanguage);
 
-                    ToastSdkInitialize();
                     IapAdapterInitialize(configuration, launchingInfo);
                 }
 
@@ -61,11 +63,7 @@ namespace Toast.Gamebase.Internal.Single
                     () =>
                     {
                         var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<LaunchingResponse.LaunchingInfo>>(handle);
-
-                        if (callback != null)
-                        {
-                            callback(launchingInfo, error);
-                        }
+                        callback?.Invoke(launchingInfo, error);
 
                         GamebaseCallbackHandler.UnregisterCallback(handle);
                     });
@@ -73,6 +71,68 @@ namespace Toast.Gamebase.Internal.Single
 
             initializeHandle = GamebaseCallbackHandler.RegisterCallback(initializeCallback);
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.CORE_TYPE, Init());
+        }
+
+        /// <summary>
+        /// "launching.tcgbClient.stability.appKey"
+        /// "tcProduct.*.appKey"
+        /// "launching.app.idP.*.clientSecret"
+        /// "launching.tcgbClient.forceRemoteSettings.log.appKeyIndicator"
+        /// "launching.tcgbClient.forceRemoteSettings.log.appKeyLog"
+        /// 
+        /// line channel is not used in WebGL, Standalone.
+        /// "launching.app.idP.line.channels.[].clientSecret"
+        /// </summary>
+        /// <param name="launchingInfo"></param>
+
+        private void DecryptLaunchingInfo(LaunchingResponse.LaunchingInfo launchingInfo)
+        {
+            try
+            {
+                DecryptString(ref launchingInfo.launching.tcgbClient.stability.appKey);
+                DecryptString(ref launchingInfo.launching.tcgbClient.forceRemoteSettings.log.appKeyIndicator);
+                DecryptString(ref launchingInfo.launching.tcgbClient.forceRemoteSettings.log.appKeyLog);
+                DecryptTcProduct(launchingInfo.tcProduct);
+                DecryptIdP(launchingInfo.launching.app.idP);
+            }
+            catch (Exception e)
+            {
+                GamebaseLog.Warn(string.Format("An error occurred while decrypting LaunchInfo. message:{0}, stackTrace:{1}", e.Message, e.StackTrace), this);
+            }
+        }
+
+        private void DecryptTcProduct(LaunchingResponse.LaunchingInfo.TCProduct tcProduct)
+        {
+            var fieldInfos = tcProduct.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var field in fieldInfos)
+            {
+                if (field.FieldType == typeof(LaunchingResponse.LaunchingInfo.TCProduct.AppKeyInfo))
+                {
+                    var appkeyInfo = (LaunchingResponse.LaunchingInfo.TCProduct.AppKeyInfo)field.GetValue(tcProduct);
+                    if (appkeyInfo != null)
+                    {
+                        DecryptString(ref appkeyInfo.appKey);
+                    }
+                }
+            }
+        }
+
+        private void DecryptIdP(Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.App.IDP> idPs)
+        {
+            foreach (var idP in idPs)
+            {
+                DecryptString(ref idP.Value.clientSecret);
+            }
+        }
+
+        private void DecryptString(ref string encryptedString)
+        {
+            if (string.IsNullOrEmpty(encryptedString) == true)
+            {
+                return;
+            }
+
+            encryptedString = GamebaseEncryptUtilHelper.DecryptLaunchingEncryptedKey(encryptedString);
         }
 
         public string GetSDKVersion()
@@ -84,7 +144,9 @@ namespace Toast.Gamebase.Internal.Single
         {
             var vo = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
             if (vo == null)
+            {
                 return string.Empty;
+            }
 
             return vo.member.userId;
         }
@@ -93,11 +155,24 @@ namespace Toast.Gamebase.Internal.Single
         {
             var vo = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
             if (vo == null)
+            {
                 return string.Empty;
+            }
 
             return vo.token.accessToken;
         }
 
+        public void RequestLastLoggedInProvider(int handle)
+        {
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<string>>(handle);
+            if (callback == null)
+            {
+                return;
+            }
+            
+            callback(GetLastLoggedInProvider(), new GamebaseError(GamebaseErrorCode.SUCCESS));
+        }
+        
         public string GetLastLoggedInProvider()
         {
             var vo = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
@@ -111,7 +186,7 @@ namespace Toast.Gamebase.Internal.Single
         
         public string GetDeviceLanguageCode()
         {
-            return GamebaseUnitySDK.DeviceLanguageCode;
+            return GamebaseSystemInfo.DeviceLanguageCode;
         }
 
         public string GetCarrierCode()
@@ -144,7 +219,7 @@ namespace Toast.Gamebase.Internal.Single
 
         public string GetCountryCodeOfDevice()
         {
-            return GamebaseUnitySDK.CountryCode;
+            return GamebaseSystemInfo.CountryCode;
         }
 
         public bool IsSandbox()
@@ -156,7 +231,7 @@ namespace Toast.Gamebase.Internal.Single
             }
 
             var vo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
-            return vo.launching.app.typeCode.Equals("SANDBOX", System.StringComparison.Ordinal);
+            return vo.launching.app.typeCode.Equals("SANDBOX", StringComparison.Ordinal);
         }
 
         public void SetDisplayLanguageCode(string languageCode)
@@ -289,14 +364,9 @@ namespace Toast.Gamebase.Internal.Single
 
         }
         
-        private void ToastSdkInitialize()
-        {
-            ToastSdk.Initialize();
-        }
-
         private void IapAdapterInitialize(GamebaseRequest.GamebaseConfiguration configuration, LaunchingResponse.LaunchingInfo launchingInfo)
         {
-            if (PurchaseAdapterManager.Instance.CreateIDPAdapter("iapadapter") == true)
+            if (PurchaseAdapterManager.Instance.CreateIAPAdapter("iapadapter") == true)
             {
                 var iapConfiguration = new PurchaseRequest.Configuration();
                 iapConfiguration.appKey = launchingInfo.tcProduct.iap.appKey;

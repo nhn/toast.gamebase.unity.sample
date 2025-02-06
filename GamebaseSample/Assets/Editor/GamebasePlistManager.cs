@@ -1,7 +1,8 @@
 ﻿using GamebaseSample;
-using NE.XcodeEditor;
 using System.Collections.Generic;
 using System.IO;
+
+using UnityEditor.iOS.Xcode;
 
 public class GamebasePlistManager
 {

@@ -9,8 +9,10 @@ namespace Toast.Gamebase.Internal.Mobile
         protected class GamebaseTerms
         {
             public const string TERMS_API_SHOW_TERMS_VIEW = "gamebase://showTermsView";
+            public const string TERMS_API_SHOW_TERMS_VIEW_WITH_CONFIGURATION = "gamebase://showTermsViewWithConfiguration";
             public const string TERMS_API_UPDATE_TERMS = "gamebase://updateTerms";
             public const string TERMS_API_QUERY_TERMS = "gamebase://queryTerms";
+            public const string TERMS_IS_SHOWING_TERMS_VIEW = "gamebase://isShowingTermsView";
         }
 
         protected INativeMessageSender messageSender = null;
@@ -24,24 +26,29 @@ namespace Toast.Gamebase.Internal.Mobile
         virtual protected void Init()
         {
             messageSender.Initialize(CLASS_NAME);
-            messageSender.InitializeUnityInterface();
 
-            DelegateManager.AddDelegate(GamebaseTerms.TERMS_API_SHOW_TERMS_VIEW, DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.DataContainer>);
+            DelegateManager.AddDelegate(GamebaseTerms.TERMS_API_SHOW_TERMS_VIEW_WITH_CONFIGURATION, DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.DataContainer>);
             DelegateManager.AddDelegate(GamebaseTerms.TERMS_API_UPDATE_TERMS, DelegateManager.SendErrorDelegateOnce);
-            DelegateManager.AddDelegate(GamebaseTerms.TERMS_API_QUERY_TERMS, DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Terms.QueryTermsResult>);
-            
+            DelegateManager.AddDelegate(GamebaseTerms.TERMS_API_QUERY_TERMS, DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Terms.QueryTermsResult>);   
         }
-
-        public void ShowTermsView(int handle)
+        
+        public void ShowTermsView(GamebaseRequest.Terms.GamebaseTermsConfiguration configuration, int handle)
         {
+            string jsonString = null;
+            if (configuration != null)
+            {
+                jsonString = JsonMapper.ToJson(configuration);
+            }
+
             string jsonData = JsonMapper.ToJson(
                 new UnityMessage(
-                    GamebaseTerms.TERMS_API_SHOW_TERMS_VIEW,
-                    handle: handle
-                    ));
+                    GamebaseTerms.TERMS_API_SHOW_TERMS_VIEW_WITH_CONFIGURATION,
+                    handle: handle,
+                    jsonData: jsonString
+                ));
             messageSender.GetAsync(jsonData);
         }
-
+        
         public void UpdateTerms(GamebaseRequest.Terms.UpdateTermsConfiguration configuration, int handle)
         {
             string jsonData = JsonMapper.ToJson(
@@ -60,6 +67,26 @@ namespace Toast.Gamebase.Internal.Mobile
                     handle: handle
                     ));
             messageSender.GetAsync(jsonData);
+        }
+
+        public bool IsShowingTermsView()
+        {
+            string jsonData = JsonMapper.ToJson(new UnityMessage(GamebaseTerms.TERMS_IS_SHOWING_TERMS_VIEW));
+            string jsonString = messageSender.GetSync(jsonData);
+
+            if (string.IsNullOrEmpty(jsonString) == true)
+            {
+                return false;
+            }
+
+            JsonData requestData = JsonMapper.ToObject(jsonString);
+
+            if (null != requestData["isShowingTermsView"])
+            {
+                return (bool)requestData["isShowingTermsView"];
+            }
+
+            return false;
         }
     }
 }

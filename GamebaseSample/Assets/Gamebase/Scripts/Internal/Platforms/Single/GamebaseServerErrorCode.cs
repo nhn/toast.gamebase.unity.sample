@@ -396,6 +396,23 @@ namespace Toast.Gamebase.Internal.Single
         /// </summary>
         public const int PURCHASE_NOT_FOUND_PRODUCT_ID                  = -4041001;
         #endregion
+
+        #region Terms
+        /// <summary>
+        /// The terms and conditions information is not registered on the console.
+        /// </summary>
+        public const int CANNOT_FIND_DEPLOY_TERMS                       = -4001108;
+
+        /// <summary>
+        /// The terms and conditions information corresponding to the device country code is not registered on the console.
+        /// </summary>
+        public const int CANNOT_FIND_DEFAULT_TERMS                      = -4001110;
+
+        /// <summary>
+        /// The unregistered terms Seq value.
+        /// </summary>
+        public const int ILLEGAL_TERMS_SEQUENCE_NUMBER                  = -4001106;
+        #endregion
     }
 }
 #endif

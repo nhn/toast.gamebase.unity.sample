@@ -8,12 +8,18 @@
  **/
 #endregion
 
+
 using System;
-using Toast.Gamebase.Internal;
+
 
 namespace Toast.Gamebase.LitJson
 {
-    public class JsonException : ApplicationException
+    public class JsonException :
+#if NETSTANDARD1_5
+        Exception
+#else
+        ApplicationException
+#endif
     {
         public JsonException () : base ()
         {
@@ -31,7 +37,6 @@ namespace Toast.Gamebase.LitJson
                     "Invalid token '{0}' in input string", token),
                 inner_exception)
         {
-            GamebaseLog.Debug(string.Format("JsonException token:{0}, inner_exception:{1}", token, inner_exception), this);
         }
 
         internal JsonException (int c) :
@@ -50,7 +55,6 @@ namespace Toast.Gamebase.LitJson
 
         public JsonException (string message) : base (message)
         {
-            GamebaseLog.Debug(string.Format("JsonException message:{0}", message), this);
         }
 
         public JsonException (string message, Exception inner_exception) :

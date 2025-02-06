@@ -1,13 +1,31 @@
-﻿using NhnCloud.GamebaseTools.SettingTool.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 
 namespace NhnCloud.GamebaseTools.SettingTool
 {
+    public class LocalizedString
+    {
+        public Dictionary<string, string> localize = new Dictionary<string, string>();
+
+        public void Add(LocalizedString addData)
+        {
+            foreach(var pair in addData.localize)
+            {
+                if(localize.ContainsKey(pair.Key))
+                {
+                    localize[pair.Key] = pair.Value;
+                }
+                else
+                {
+                    localize.Add(pair.Key, pair.Value);
+                }
+            }
+        }
+    }
+
     public static class Multilanguage
     {
         private static int _selectedLanguageIndex;
@@ -25,13 +43,21 @@ namespace NhnCloud.GamebaseTools.SettingTool
             }
         }
 
-        private static Dictionary<string, LocalizedStringVo> localizedStrings;
+        private static Dictionary<string, LocalizedString> localizedStrings;
         private static string[] supportedLanguages;
         private static string[] supportedNativeLanguages;
 
         public static void Initialize()
         {
-            localizedStrings = DataManager.GetData<Dictionary<string, LocalizedStringVo>>(DataKey.LOCALIZED_STRING);
+            if (EditorPrefs.HasKey(EditorPrefsKey.SETTING_TOOL_LANGUAGE))
+            {
+                _selectedLanguageIndex = EditorPrefs.GetInt(EditorPrefsKey.SETTING_TOOL_LANGUAGE);
+            }
+        }
+
+        public static void SetLocalizedStrings(Dictionary<string, LocalizedString> value)
+        {
+            localizedStrings = value;
             supportedLanguages = localizedStrings.Keys.ToArray();
 
             var languageList = new List<string>();
@@ -42,29 +68,66 @@ namespace NhnCloud.GamebaseTools.SettingTool
             }
 
             supportedNativeLanguages = languageList.ToArray();
+        }
 
-            if (EditorPrefs.HasKey(EditorPrefsKey.SETTING_TOOL_LANGUAGE) == true)
+        public static void AddLocalizedStrings(Dictionary<string, LocalizedString> value)
+        {
+            if (localizedStrings == null)
             {
-                _selectedLanguageIndex = EditorPrefs.GetInt(EditorPrefsKey.SETTING_TOOL_LANGUAGE);
+                SetLocalizedStrings(value);
+            }
+            else
+            {
+                var supportedLanguagesList = new List<string>(supportedLanguages);
+                foreach (var pair in value)
+                {
+                    if (localizedStrings.ContainsKey(pair.Key))
+                    {
+                        localizedStrings[pair.Key].Add(pair.Value);
+                    }
+                    else
+                    {
+                        localizedStrings.Add(pair.Key, pair.Value);
+
+                        supportedLanguagesList.Add(pair.Key);
+                    }
+                }
+
+                supportedLanguages = supportedLanguagesList.ToArray();
+
+                var languageList = new List<string>();
+                for (var i = 0; i < supportedLanguages.Length; i++)
+                {
+                    languageList.Add(CultureInfo.GetCultureInfo(supportedLanguages[i]).NativeName);
+                }
+                supportedNativeLanguages = languageList.ToArray();
             }
         }
 
         public static string GetString(string key)
         {
-            if (localizedStrings == null)
+            if (localizedStrings == null ||
+                string.IsNullOrEmpty(key))
             {
                 return string.Empty;
             }
 
-            FieldInfo fieldInfo = typeof(LocalizedStringVo).GetField(key);
+            LocalizedString selectedLocalized = localizedStrings[supportedLanguages[SelectedLanguageIndex]];
 
-            if (fieldInfo == null)
+            string value = null;
+            if(selectedLocalized.localize.TryGetValue(key, out value))
             {
-                SettingToolLog.Warn(string.Format("FieldInfo not found for {0}.", key), typeof(Multilanguage), "GetString");
-                return string.Empty;
+                return value;
             }
+            else
+            {
+                return key;
+            }
+        }
 
-            return fieldInfo.GetValue(localizedStrings[supportedLanguages[SelectedLanguageIndex]]).ToString();
+        public static string GetString(string key, params object[] args)
+        {
+            return string.Format(GetString(key), args);
         }
 
         public static string[] GetSupportLanguages()

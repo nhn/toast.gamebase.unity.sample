@@ -73,10 +73,10 @@ namespace Toast.Gamebase.Internal.Single
             vo.payload.paySeq = purchasableReceipt.paymentSeq;
             vo.payload.clientVersion = GamebaseUnitySDK.AppVersion;
             vo.payload.idPCode = IdPCode;
-            vo.payload.deviceModel = GamebaseUnitySDK.DeviceModel;
-            vo.payload.osCode = GamebaseUnitySDK.Platform;
+            vo.payload.deviceModel = GamebaseSystemInfo.DeviceModel;
+            vo.payload.osCode = GamebaseSystemInfo.Platform;
             vo.payload.usimCountryCode = "ZZ";
-            vo.payload.deviceCountryCode = GamebaseUnitySDK.CountryCode;
+            vo.payload.deviceCountryCode = GamebaseSystemInfo.CountryCode;
             vo.payload.userMetaData = MakeUserMetaData();
 
             var requestVO = new WebSocketRequest.RequestVO(PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID);
@@ -92,7 +92,7 @@ namespace Toast.Gamebase.Internal.Single
                         string.Format(
                             "{0}\n{1}",
                             "Failed request.",
-                            GamebaseJsonUtil.ToPrettyJsonString(error)),
+                            GamebaseJsonUtil.ToPretty(error)),
                         this,
                         "CompletePurchase");
                     callback(error);
@@ -147,7 +147,7 @@ namespace Toast.Gamebase.Internal.Single
                         string.Format(
                             "{0}\n{1}",
                             "Failed request.",
-                            GamebaseJsonUtil.ToPrettyJsonString(error)),
+                            GamebaseJsonUtil.ToPretty(error)),
                         this,
                         "SetUserMeta");
                     callback(error);

@@ -7,7 +7,7 @@ namespace Toast.Gamebase.Internal
         private const int WATER_MARK_WIDTH = 300;
         private const int WATER_MARK_HEIGHT = 40;
         private const int OFFSET = 20;
-        private const string WATER_MARK_MESSAGE = "Sandbox environment...";
+        private const string WATER_MARK_MESSAGE = "Sandbox Environment";
         private GUIStyle guiStyle = null;
 
         private void Start()
@@ -18,9 +18,9 @@ namespace Toast.Gamebase.Internal
             guiStyle.alignment = TextAnchor.MiddleCenter;
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
-            if (null != guiStyle)
+            if (guiStyle != null)
             {
                 GUI.Label(new Rect((Screen.width - WATER_MARK_WIDTH) / 2, Screen.height - WATER_MARK_HEIGHT - OFFSET, WATER_MARK_WIDTH, WATER_MARK_HEIGHT), WATER_MARK_MESSAGE, guiStyle);
             }
@@ -28,7 +28,10 @@ namespace Toast.Gamebase.Internal
 
         public static void ShowWaterMark()
         {
-            if (true == Gamebase.IsSandbox())
+#if HIDE_WATERMARK
+            return;
+#endif
+            if (Gamebase.IsSandbox() == true)
             {
                 GamebaseComponentManager.AddComponent<GamebaseWaterMark>(GamebaseGameObjectManager.GameObjectType.WATER_MARK_TYPE);             
             }

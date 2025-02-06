@@ -1,9 +1,6 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
-using System;
-using System.Text;
 using Toast.Gamebase.Internal.Single.Communicator;
 using Toast.Gamebase.LitJson;
-using UnityEngine.Networking;
 
 namespace Toast.Gamebase.Internal.Single
 {
@@ -39,6 +36,11 @@ namespace Toast.Gamebase.Internal.Single
                     callback(null, error);
                 }
             });
+        }
+        
+        public static bool IsLaunchingPlayable(int statusCode)
+        {
+            return statusCode >= 200 && statusCode < 300;
         }
     }
 }

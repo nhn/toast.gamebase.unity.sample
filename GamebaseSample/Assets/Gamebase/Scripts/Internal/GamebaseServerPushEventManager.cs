@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal
 {
@@ -27,7 +26,7 @@ namespace Toast.Gamebase.Internal
 
         public void AddServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
         {
-            if (false == serverPushEventSet.Add(serverPushEvent))
+            if (serverPushEventSet.Add(serverPushEvent) == false)
             {
                 GamebaseLog.Warn(GamebaseStrings.ADD_SERVER_PUSH_FAILED, this);
                 return;
@@ -36,7 +35,7 @@ namespace Toast.Gamebase.Internal
 
         public void RemoveServerPushEvent(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ServerPushMessage> serverPushEvent)
         {
-            if (false == serverPushEventSet.Remove(serverPushEvent))
+            if (serverPushEventSet.Remove(serverPushEvent) == false)
             {
                 GamebaseLog.Warn(GamebaseStrings.REMOVE_SERVER_PUSH_FAILED, this);
                 return;
@@ -45,12 +44,12 @@ namespace Toast.Gamebase.Internal
 
         public void RemoveAllServerPushEvent()
         {
-            if (null == serverPushEventSet)
+            if (serverPushEventSet == null)
             {
                 return;
             }
 
-            if (0 == serverPushEventSet.Count)
+            if (serverPushEventSet.Count == 0)
             {
                 return;
             }
@@ -60,7 +59,7 @@ namespace Toast.Gamebase.Internal
 
         public int GetCount()
         {
-            if (null == serverPushEventSet)
+            if (serverPushEventSet == null)
             {
                 return 0;
             }
@@ -70,11 +69,11 @@ namespace Toast.Gamebase.Internal
 
         public void OnServerPushEvent(GamebaseResponse.SDK.ServerPushMessage message)
         {
-            if (null != serverPushEventSet && 0 < serverPushEventSet.Count)
+            if (serverPushEventSet != null && serverPushEventSet.Count > 0)
             {
                 foreach (var serverPushEvent in serverPushEventSet)
                 {
-                    if (null != serverPushEvent)
+                    if (serverPushEvent != null)
                     {
                         serverPushEvent(message);
                     }

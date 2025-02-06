@@ -61,5 +61,11 @@ namespace Toast.Gamebase.Internal
             int handle = GamebaseCallbackHandler.RegisterCallback(buttonCallback);
             util.ShowAlert(parameters, alertType, handle);
         }
+
+        public GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus()
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            return util.GetAppTrackingAuthorizationStatus();
+        }
     }
 }

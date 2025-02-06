@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS
 using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal.Mobile
@@ -13,6 +13,7 @@ namespace Toast.Gamebase.Internal.Mobile
             public const string PUSH_API_REGISTER_PUSH_WITH_OPTION  = "gamebase://registerPushWithOption";
             public const string PUSH_API_QUERY_TOKEN_INFO           = "gamebase://queryTokenInfo";
             public const string PUSH_API_GET_NOTIFICATION_OPTIONS   = "gamebase://getNotificationOptions";
+            public const string PUSH_API_QUERY_NOTIFICATION_ALLOWED = "gamebase://queryNotificationAllowed";
         }
 
         protected INativeMessageSender  messageSender       = null;
@@ -31,6 +32,7 @@ namespace Toast.Gamebase.Internal.Mobile
             DelegateManager.AddDelegate(GamebasePush.PUSH_API_QUERY_PUSH,                   DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Push.PushConfiguration>);
             DelegateManager.AddDelegate(GamebasePush.PUSH_API_REGISTER_PUSH_WITH_OPTION,    DelegateManager.SendErrorDelegateOnce);
             DelegateManager.AddDelegate(GamebasePush.PUSH_API_QUERY_TOKEN_INFO,             DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Push.TokenInfo>);
+            DelegateManager.AddDelegate(GamebasePush.PUSH_API_QUERY_NOTIFICATION_ALLOWED,   DelegateManager.SendGamebaseDelegateOnce<bool>);
         }
 
         public void RegisterPush(GamebaseRequest.Push.PushConfiguration pushConfiguration, int handle)
@@ -111,6 +113,16 @@ namespace Toast.Gamebase.Internal.Mobile
             }
 
             return notificationOptions;
+        }
+        
+        public void QueryNotificationAllowed(int handle)
+        {
+            string jsonData = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebasePush.PUSH_API_QUERY_NOTIFICATION_ALLOWED,
+                    handle: handle
+                ));
+            messageSender.GetAsync(jsonData);
         }
     }
 }

@@ -52,7 +52,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             CreateSocket();
 
             float waitTime = 0;
-            while (false == IsConnected() && null == GetErrorMessage() && waitTime < CommunicatorConfiguration.connectionTimeout)
+            while (
+                (SocketState(nativeRef) == (int)WebSocketState.Connecting) &&
+                IsConnected() == false &&
+                string.IsNullOrEmpty(GetErrorMessage()) == true &&
+                waitTime < CommunicatorConfiguration.connectionTimeout)
             {
                 waitTime += Time.unscaledDeltaTime;
                 yield return null;
@@ -60,7 +64,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             GamebaseError error = null;
 
-            if (false == string.IsNullOrEmpty(GetErrorMessage()))
+            if (string.IsNullOrEmpty(GetErrorMessage()) == false)
             {
                 error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, message: GetErrorMessage());
             }

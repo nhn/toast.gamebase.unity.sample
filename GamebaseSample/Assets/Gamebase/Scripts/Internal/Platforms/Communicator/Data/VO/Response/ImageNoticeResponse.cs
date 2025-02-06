@@ -16,15 +16,19 @@ namespace Toast.Gamebase.Internal
                         public int height;
                     }
 
-                    public int imageNoticeId;
+                    public long imageNoticeId;
                     public string path;
                     public string clickScheme;
                     public string clickType;
-                    public string theme;
                     public ImageInfo imageInfo;
                 }
 
-                public string domain;
+                public string type;
+                public string theme;
+                public bool hasImageNotice;
+                public long rollingImageNoticeId = -1;
+                public long nextPopupTimeMillis = -1;
+                public string address;
                 public int footerHeight;
                 public List<ImageNoticeInfo> pageList;
             }

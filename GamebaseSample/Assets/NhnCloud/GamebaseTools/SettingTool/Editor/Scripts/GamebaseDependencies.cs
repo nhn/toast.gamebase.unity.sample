@@ -13,14 +13,28 @@ namespace NhnCloud.GamebaseTools.SettingTool
     {
         private const string DOMAIN = "GamebaseDependencies";
 
+        static public XmlDocument NewXmlDocument()
+        {
+            XmlDocument xmlDocument = new XmlDocument();
+            XmlDeclaration xmlDeclaration = xmlDocument.CreateXmlDeclaration("1.0", "utf-8", null);
+            xmlDocument.AppendChild(xmlDeclaration);
+                    
+            var dependencies = xmlDocument.CreateElement("dependencies");
+            xmlDocument.AppendChild(dependencies);
+
+            dependencies.AppendChild(xmlDocument.CreateElement("androidPackages"));
+            dependencies.AppendChild(xmlDocument.CreateElement("iosPods"));
+
+            return xmlDocument;
+        }
+            
         public void Dispose()
         {
             EditorCoroutines.StopAllCoroutines(this);
         }
 
-        public void UpdateGamebaseAllDependenciesFile(SettingToolCallback.ErrorDelegate callback)
+        public void UpdateGamebaseAllDependenciesFile(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
-            var adapterSettings = DataManager.GetData<SettingToolResponse.AdapterSettings>(DataKey.ADAPTER_SETTINGS);
             var document = DataManager.GetData<XmlDocument>(DataKey.GAMEBASE_ALL_DEPENDENCIES);
 
             var androidPackages = document.SelectSingleNode("dependencies/androidPackages");
@@ -29,35 +43,35 @@ namespace NhnCloud.GamebaseTools.SettingTool
             androidPackages.RemoveAll();
             iosPods.RemoveAll();
 
-            if (adapterSettings.useAndroid == true)
+            if (settingOption.IsActivePlatform(SettingToolStrings.TEXT_ANDROID) == true)
             {
-                AddXmlChild(document, androidPackages, adapterSettings.android.fileName, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.ANDROID_CURRENT_VERSION));
+                AddXmlChild(document, androidPackages, settingOption.GetPlatform(SettingToolStrings.TEXT_ANDROID).install, "androidPackage", "spec", settingOption.GetAndroidVersion());
             }
 
-            if (adapterSettings.useIOS == true)
+            if (settingOption.IsActivePlatform(SettingToolStrings.TEXT_IOS) == true)
             {
-                AddXmlChild(document, iosPods, adapterSettings.ios.fileName, "iosPod", "name", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.IOS_CURRENT_VERSION));
+                AddXmlChild(document, iosPods, settingOption.GetPlatform(SettingToolStrings.TEXT_IOS).install, "iosPod", "name", settingOption.GetIOSVersion());
             }
 
-            AppendChildren(adapterSettings.android, document, androidPackages, "androidPackage", "spec", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.ANDROID_CURRENT_VERSION));
-            AppendChildren(adapterSettings.ios, document, iosPods, "iosPod", "name", GamebaseInfo.GetCurrentVersion(EditorPrefsKey.IOS_CURRENT_VERSION));
+            AppendChildren(settingOption, SettingToolStrings.TEXT_ANDROID, document, androidPackages, "androidPackage", "spec", settingOption.GetAndroidVersion());
+            AppendChildren(settingOption, SettingToolStrings.TEXT_IOS, document, iosPods, "iosPod", "name", settingOption.GetIOSVersion());
 
-            EditorCoroutines.StartCoroutine(SaveGamebaseAllDependenciesFile(document, callback), this);
+            SaveGamebaseAllDependenciesFile(document, callback);
         }
 
-        public IEnumerator SaveGamebaseAllDependenciesFile(XmlDocument document, SettingToolCallback.ErrorDelegate callback)
+        public void SaveGamebaseAllDependenciesFile(XmlDocument document, SettingToolCallback.ErrorDelegate callback)
         {
             try
             {
-                document.Save(DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).gamebaseAllDependencies.path);
+                document.Save(DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO)
+                    .gamebaseAllDependencies.path);
             }
             catch (Exception e)
             {
                 callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message));
-                yield break;
+                return;
             }
 
-            yield return new WaitForSecondsRealtime(1);
             callback(null);
         }
 
@@ -70,81 +84,114 @@ namespace NhnCloud.GamebaseTools.SettingTool
             androidPackages.RemoveAll();
             iosPods.RemoveAll();
 
-            EditorCoroutines.StartCoroutine(SaveGamebaseAllDependenciesFile(document, callback), this);
+            SaveGamebaseAllDependenciesFile(document, callback);
         }
 
         private void AppendChildren(
-            SettingToolResponse.AdapterSettings.Platform platform,
+            SettingOption settingOption,
+            string platform,
             XmlDocument document,
             XmlNode parentNode,
             string newNodeName,
             string newAttributeName,
             string version)
         {
-            var fileNameList = GetFileListByPlatform(platform);
-
-            foreach (var fileName in fileNameList)
+            foreach (var installInfo in settingOption.GetInstallInfos(platform))
             {
-                AddXmlChild(document, parentNode, fileName, newNodeName, newAttributeName, version);
+                AddXmlChild(document, parentNode, installInfo, newNodeName, newAttributeName, version);
             }
         }
 
         private void AddXmlChild(
             XmlDocument document,
             XmlNode parentNode,
-            string fileName,
+            InstallInfo installInfo,
             string newNodeName,
             string newAttributeName,
             string version)
         {
-            var newNode = document.CreateElement(newNodeName);
-            var attribute = document.CreateAttribute(newAttributeName);
-            attribute.Value = fileName;
-            newNode.Attributes.Append(attribute);
-
-            // Platform-specific version information must be written in a different way.
-            switch (newNodeName)
+            if (installInfo != null &&
+                string.IsNullOrEmpty(installInfo.name) == false)
             {
-                case "androidPackage":
+                string value = installInfo.name;
+                if (newNodeName == "androidPackage")
+                {
+                    value = string.Format("{0}:{1}", value, version);
+                }
+                
+                XmlNode node = null;
+                XmlAttribute attribute = null;
+                foreach (XmlNode item in parentNode.ChildNodes)
+                {
+                    if (item.Attributes[newAttributeName].Value == value)
                     {
-                        attribute.Value = string.Format("{0}:{1}", attribute.Value, version);
+                        node = item;
                         break;
                     }
-                case "iosPod":
+                }
+
+                if (node == null)
+                {
+                    node = document.CreateElement(newNodeName);
+
+                    attribute = document.CreateAttribute(newAttributeName);
+                    attribute.Value = value;
+                    
+                    node.Attributes.Append(attribute);
+                    parentNode.AppendChild(node);
+                }
+                
+
+                if (string.IsNullOrEmpty(installInfo.version) == false)
+                {
+                    version = installInfo.version;
+                }
+
+                // Platform-specific version information must be written in a different way.
+                switch (newNodeName)
+                {
+                    case "androidPackage":
+                    {
+                        if (installInfo.repositories != null)
+                        {
+                            var repositoriesNode = document.CreateElement("repositories");
+                            node.AppendChild(repositoriesNode);
+
+                            XmlElement repositoryNode;
+                            foreach (var repository in installInfo.repositories)
+                            {
+                                repositoryNode = document.CreateElement("repository");
+                                repositoryNode.InnerText = repository;
+                                repositoriesNode.AppendChild(repositoryNode);
+                            }
+                        }
+                        break;
+                    }
+                    case "iosPod":
                     {
                         var versionAttributes = document.CreateAttribute("version");
                         versionAttributes.Value = version;
-                        newNode.Attributes.Append(versionAttributes);
+                        node.Attributes.Append(versionAttributes);
+
+                        if (installInfo.repositories != null)
+                        {
+                            var sourcesNode = document.CreateElement("sources");
+                            node.AppendChild(sourcesNode);
+                            XmlElement sourceNode;
+                            foreach (var repository in installInfo.repositories)
+                            {
+                                sourceNode = document.CreateElement("source");
+                                sourceNode.InnerText = repository;
+                                sourcesNode.AppendChild(sourceNode);
+                            }
+                        }
+
                         break;
                     }
+                }
+
+                
             }
-
-            parentNode.AppendChild(newNode);
-        }
-
-        private List<string> GetFileListByPlatform(SettingToolResponse.AdapterSettings.Platform platform)
-        {
-            List<string> fileNameList = new List<string>();
-
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.authentication.adapters)).ToList();
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.purchase.adapters)).ToList();
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.push.adapters)).ToList();
-            fileNameList = fileNameList.Union(GetFileListByAdapterList(platform.etc.adapters)).ToList();
-
-            return fileNameList;
-        }
-
-        private List<string> GetFileListByAdapterList(List<SettingToolResponse.AdapterSettings.Platform.Category.Adapter> adapterList)
-        {
-            if (adapterList == null)
-            {
-                return new List<string>();
-            }
-
-            return adapterList
-                .OfType<SettingToolResponse.AdapterSettings.Platform.Category.Adapter>()
-                .Where(adapter => adapter.used == true)
-                .Select(adapter => adapter.fileName).ToList();
         }
     }
 }

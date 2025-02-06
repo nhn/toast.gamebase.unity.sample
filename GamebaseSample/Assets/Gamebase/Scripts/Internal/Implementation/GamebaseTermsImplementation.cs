@@ -10,8 +10,8 @@ using Toast.Gamebase.Internal.Single.Standalone;
 
 namespace Toast.Gamebase.Internal
 {
-	public class GamebaseTermsImplementation
-	{
+    public class GamebaseTermsImplementation
+    {
         private static readonly GamebaseTermsImplementation instance = new GamebaseTermsImplementation();
 
         public static GamebaseTermsImplementation Instance
@@ -33,13 +33,13 @@ namespace Toast.Gamebase.Internal
             terms = new StandaloneGamebaseTerms();
 #endif
         }
-
-        public void ShowTermsView(GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer> callback)
+        
+        public void ShowTermsView(GamebaseRequest.Terms.GamebaseTermsConfiguration configuration, GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer> callback)
         {
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
-            terms.ShowTermsView(handle);
+            terms.ShowTermsView(configuration, handle);
         }
-
+        
         public void UpdateTerms(GamebaseRequest.Terms.UpdateTermsConfiguration configuration, GamebaseCallback.ErrorDelegate callback)
         {
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
@@ -50,6 +50,11 @@ namespace Toast.Gamebase.Internal
         {
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             terms.QueryTerms(handle);
+        }
+
+        public bool IsShowingTermsView()
+        {
+            return terms.IsShowingTermsView();
         }
     }
 }

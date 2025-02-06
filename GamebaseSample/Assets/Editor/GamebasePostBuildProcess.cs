@@ -1,8 +1,9 @@
-﻿using UnityEditor;
+﻿using UnityEngine;
+using UnityEditor;
 using UnityEditor.Callbacks;
 using System.IO;
 using System.Collections.Generic;
-using NE.XcodeEditor;
+using UnityEditor.iOS.Xcode;
 
 public class GamebasePostBuildProcess
 {
@@ -37,34 +38,31 @@ public class GamebasePostBuildProcess
             string[] whiteList = new string[]
             {
                 "fbapi",
-                "fb-messenger-api",
-                "fbauth2",
-                "fbshareextension",
+                "fb-messenger-share-api",
             };
-
+            
             SetPBXProject(
                 path + "/Unity-iPhone.xcodeproj/project.pbxproj",
                 ldFlags,
                 frameworks,
                 tbds
             );
+            
             SetPlistProperties(path, whiteList);
         }
     }
 
     public static void SetPBXProject(string path, string[] ldFlags, string[] frameworks, string[] tbds)
     {
-
         PBXProject proj = LoadPBXProject(path);
-        string projGuid = proj.TargetGuidByName("Unity-iPhone");
+        string projGuid = proj.GetUnityMainTargetGuid();
 
         List<string> configGuidList = new List<string>();
         configGuidList.Add(proj.BuildConfigByName(projGuid, "Debug"));
         configGuidList.Add(proj.BuildConfigByName(projGuid, "Release"));
-#if UNITY_5_5_OR_NEWER
         configGuidList.Add(proj.BuildConfigByName(projGuid, "ReleaseForProfiling"));
         configGuidList.Add(proj.BuildConfigByName(projGuid, "ReleaseForRunning"));
-#endif
+
         SetOtherLinkFlags(proj, configGuidList, ldFlags);
         SetFrameworks(proj, projGuid, frameworks);
         SetTbds(proj, projGuid, tbds);
@@ -73,6 +71,12 @@ public class GamebasePostBuildProcess
         AddCapability(proj, projGuid);
 
         SavePBXProject(proj, path, tbds);
+        
+        var manager = new ProjectCapabilityManager(path, "Entitlements.entitlements", null, projGuid);
+        manager.AddInAppPurchase();
+        manager.AddPushNotifications(true);
+        manager.AddGameCenter();
+        manager.WriteToFile();  
     }
 
     private static PBXProject LoadPBXProject(string path)
@@ -132,24 +136,21 @@ public class GamebasePostBuildProcess
 
     private static void SetPlistProperties(string path, string[] whiteList)
     {
-        string[] localizations = new string[]
-        {
-            "en",
-            "ko",
-        };
-
         GamebasePlistManager.GetInstance().LoadPlist(path);
-        GamebasePlistManager.GetInstance().SetURLSchemes("fb834403209993340");
-        GamebasePlistManager.GetInstance().SetURLSchemes("paycoadapter");
-        GamebasePlistManager.GetInstance().SetIDPAppID("FacebookAppID", "834403209993340");
-        GamebasePlistManager.GetInstance().SetIDPAppID("TOAST_IAP_SERVER", "BETA");
-        GamebasePlistManager.GetInstance().SetIDPAppID("NSPhotoLibraryUsageDescription", "Test");
+        GamebasePlistManager.GetInstance()
+            .SetURLSchemes(string.Format("tcgb.{0}.payco", Application.identifier));
+        GamebasePlistManager.GetInstance().SetURLSchemes("paycologinsdk");
+        GamebasePlistManager.GetInstance().SetURLSchemes("fb252590081934203");
+        
+        GamebasePlistManager.GetInstance().SetIDPAppID("FacebookAppID", "252590081934203");
+        GamebasePlistManager.GetInstance().SetIDPAppID("FacebookClientToken", "012e060867866b205ca253e258ab2991");
+        GamebasePlistManager.GetInstance().SetIDPAppID("FacebookDisplayName", Application.productName);
+        
         GamebasePlistManager.GetInstance().SetWhiteList(whiteList);
-        GamebasePlistManager.GetInstance().SetList("CFBundleLocalizations", localizations);
+        
         GamebasePlistManager.GetInstance().SavePlist(path);
     }
 
-    // Unity 2017 or NE.XcodeEditor Only
     private static void AddCapability(PBXProject proj, string target)
     {
         proj.AddCapability(target, PBXCapabilityType.GameCenter);
