@@ -23,15 +23,13 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util
         public IEnumerator SendWebRequest(Action callback = null, Action<float> callbackProgress = null)
         {
             request.timeout = TIMEOUT;
-            //request.SetRequestHeader("Content-Type", "application/json");
             
-            yield return request.SendWebRequest();
-
-            while (request.isDone == false)
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            while (operation.isDone == false)
             {
                 if (callbackProgress != null)
                 {
-                    callbackProgress(request.downloadProgress);
+                    callbackProgress(operation.progress);
                 }
 
                 yield return null;

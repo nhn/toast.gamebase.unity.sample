@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal
 {
@@ -20,16 +19,14 @@ namespace Toast.Gamebase.Internal
             internal set;
         }
 
-
         private GamebaseObserverManager()
         {
-            Handle = GamebaseCallbackHandler.RegisterCallback(new GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage>(OnObserverEvent));
-            
+            Handle = GamebaseCallbackHandler.RegisterCallback(new GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage>(OnObserverEvent));            
         }
 
         public void AddObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
         {
-            if (false == observerSet.Add(observer))
+            if (observerSet.Add(observer) == false)
             {
                 GamebaseLog.Warn(GamebaseStrings.ADD_OBSERVER_FAILED, this);
                 return;
@@ -38,7 +35,7 @@ namespace Toast.Gamebase.Internal
 
         public void RemoveObserver(GamebaseCallback.DataDelegate<GamebaseResponse.SDK.ObserverMessage> observer)
         {
-            if (false == observerSet.Remove(observer))
+            if (observerSet.Remove(observer) == false)
             {
                 GamebaseLog.Warn(GamebaseStrings.REMOVE_OBSERVER_FAILED, this);
                 return;
@@ -47,12 +44,12 @@ namespace Toast.Gamebase.Internal
 
         public void RemoveAllObserver()
         {
-            if (null == observerSet)
+            if (observerSet == null)
             {
                 return;
             }
 
-            if (0 == observerSet.Count)
+            if (observerSet.Count == 0)
             {
                 return;
             }
@@ -62,7 +59,7 @@ namespace Toast.Gamebase.Internal
 
         public int GetCount()
         {
-            if(null == observerSet)
+            if(observerSet == null)
             {
                 return 0;
             }
@@ -72,11 +69,11 @@ namespace Toast.Gamebase.Internal
 
         public void OnObserverEvent(GamebaseResponse.SDK.ObserverMessage message)
         {
-            if (null != observerSet && 0 < observerSet.Count)
+            if (observerSet != null && observerSet.Count > 0)
             {
                 foreach (var observer in observerSet)
                 {
-                    if (null != observer)
+                    if (observer != null)
                     {
                         observer(message);
                     }

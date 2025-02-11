@@ -42,7 +42,7 @@ namespace Toast.Gamebase.Internal
         {
             GamebaseGameInformationReport.Instance.AddApiName();
             var launchingInfo = launching.GetLaunchingInformations();
-            return JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(JsonMapper.ToJson(launchingInfo));            
+            return launchingInfo == null ? null : JsonMapper.ToObject<GamebaseResponse.Launching.LaunchingInfo>(JsonMapper.ToJson(launchingInfo));
         }
 
         public int GetLaunchingStatus()

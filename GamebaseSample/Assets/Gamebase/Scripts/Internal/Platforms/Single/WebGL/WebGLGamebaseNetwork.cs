@@ -21,18 +21,20 @@ namespace Toast.Gamebase.Internal.Single.WebGL
         {
             var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<bool>>(handle);
 
-            UnityWebRequest www = UnityWebRequest.Get(HealthCheckURL());
-            www.SetRequestHeader("X-TCGB-Transaction-Id", Lighthouse.CreateTransactionId().ToString().ToLower());
-            www.timeout = CommunicatorConfiguration.timeout;
-
-            yield return UnityCompatibility.WebRequest.Send(www);
-
-            if (true == UnityCompatibility.WebRequest.IsError(www))
+            using (UnityWebRequest www = UnityWebRequest.Get(HealthCheckURL()))
             {
-                GamebaseLog.Debug(string.Format("error:{0}", www.error), this);
-            }
+                www.SetRequestHeader("X-TCGB-Transaction-Id", Lighthouse.CreateTransactionId().ToString().ToLower());
+                www.timeout = CommunicatorConfiguration.timeout;
 
-            callback(string.IsNullOrEmpty(www.error));
+                yield return UnityCompatibility.WebRequest.Send(www);
+
+                if (true == UnityCompatibility.WebRequest.IsError(www))
+                {
+                    GamebaseLog.Debug(string.Format("error:{0}", www.error), this);
+                }
+
+                callback(string.IsNullOrEmpty(www.error));
+            }
         }
 
         #region healthCheck
@@ -44,13 +46,13 @@ namespace Toast.Gamebase.Internal.Single.WebGL
                     var info = string.Format("/tcgb-gateway/{0}/apps/{1}/health", Lighthouse.API.VERSION, GamebaseUnitySDK.AppID);
 
                     if (GamebaseUnitySDK.IsInitialized == false)
-                        return "https://api-gamebase.cloud.toast.com/tcgb-gateway/v1.0/apps/MASf2WiO/health";
+                        return "https://api-gamebase.nhncloudservice.com/tcgb-gateway/v1.0/apps/MASf2WiO/health";
 
                     return (Gamebase.IsSandbox()) ?
-                        string.Format("https://sandbox-api-gamebase.cloud.toast.com{0}", info) :
-                        string.Format("https://api-gamebase.cloud.toast.com{0}", info);
+                        string.Format("https://sandbox-api-gamebase.nhncloudservice.com{0}", info) :
+                        string.Format("https://api-gamebase.nhncloudservice.com{0}", info);
                 default:
-                    return "https://sandbox-api-gamebase.cloud.toast.com/tcgb-gateway/v1.0/apps/gwJZCFnR/health";
+                    return "https://sandbox-api-gamebase.nhncloudservice.com/tcgb-gateway/v1.0/apps/gwJZCFnR/health";
             }
         }
         #endregion

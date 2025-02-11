@@ -2,9 +2,9 @@ using NhnCloud.GamebaseTools.SettingTool.Data;
 using NhnCloud.GamebaseTools.SettingTool.ThirdParty;
 using NhnCloud.GamebaseTools.SettingTool.Util;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,18 +12,16 @@ namespace NhnCloud.GamebaseTools.SettingTool
 {
     public class SettingTool : IDisposable
     {
-        public const string VERSION = "2.0.0";
+        public const string VERSION = "3.0.0";
         private const string DOMAIN = "SettingTool";
 
-        private DataLoader loader;
-        private Version version;
-        private Indicator indicator;
+        private VersionStatus versionStatus;
         private GamebaseInfo gamebaseInfo;
-        private GamebaseDependencies gamebaseDependencies;
-        private string gamebaseSdkPath;
+        private GamebasePackage gamebasePackacge;
 
-        private SettingToolCallback.VoidDelegate onDeleteGamebaseSdk;
-        private SettingToolCallback.DataDelegate<ProgressInfo> showProgressBar;
+        private GamebaseDependencies gamebaseDependencies;
+        
+        private ProcessInfo processInfo;
 
         public static void SetDebugMode(bool isDebug)
         {
@@ -39,243 +37,202 @@ namespace NhnCloud.GamebaseTools.SettingTool
         {
             EditorCoroutines.StopAllCoroutines(this);
 
-            if (loader != null)
-            {
-                loader.Dispose();
-                loader = null;
-            }
-
-            if (indicator != null)
-            {
-                indicator.Dispose();
-                indicator = null;
-            }
-
             if (gamebaseInfo != null)
             {
                 gamebaseInfo.Dispose();
                 gamebaseInfo = null;
             }
 
+            if (gamebasePackacge != null)
+            {
+                gamebasePackacge.Dispose();
+                gamebasePackacge = null;
+            }
+            
             if (gamebaseDependencies != null)
             {
                 gamebaseDependencies.Dispose();
                 gamebaseDependencies = null;
             }
-
             FileManager.Dispose();
         }
 
         public void Initialize(
-            SettingToolCallback.ErrorDelegate callback,
-            SettingToolCallback.VoidDelegate onDeleteGamebaseSdk,
-            SettingToolCallback.DataDelegate<ProgressInfo> showProgressBar)
+            ProcessInfo processInfo, 
+            SettingToolCallback.ErrorDelegate callback)
         {
-            this.onDeleteGamebaseSdk = onDeleteGamebaseSdk;
-            this.showProgressBar = showProgressBar;
+            this.processInfo = processInfo;
+            var adapterData = DataManager.GetData<AdapterData>(DataKey.ADAPTER_DATA);
+            var savedSelection = DataManager.GetData<AdapterSelection>(DataKey.ADAPTER_SELECTION);
+            AdapterSettings.Initialize(adapterData, savedSelection);
 
-            loader = new DataLoader();
-            loader.LoadData((error) =>
+            gamebaseInfo = new GamebaseInfo();
+            gamebaseInfo.Initialize();
+
+            gamebasePackacge = new GamebasePackage();
+            gamebasePackacge.Initialize(processInfo);
+
+            gamebaseDependencies = new GamebaseDependencies();
+
+            Multilanguage.Initialize();
+
+            versionStatus = new VersionStatus();
+
+            DataManager.SetData(DataKey.SETTING_TOOL, this);
+
+            callback(null);
+        }
+        
+        public void RemoveGamebase(SettingToolCallback.ErrorDelegate callback)
+        {
+            DeleteDirectories(error =>
             {
-                if (IsSuccess(error) == true)
-                {
-                    SettingToolLog.Debug("Data load was successful.", GetType(), "Initialize");
-
-                    gamebaseSdkPath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).gamebaseSdk.path;
-
-                    indicator = new Indicator();
-                    indicator.Initialize();
-
-                    gamebaseInfo = new GamebaseInfo();
-                    gamebaseInfo.Initialize(ChangeGamebaseSdkDownloadStatus);
-
-                    gamebaseDependencies = new GamebaseDependencies();
-
-                    Multilanguage.Initialize();
-
-                    version = new Version();
-
-                    callback(null);
-                }
-                else
-                {
-                    callback(new SettingToolError(SettingToolErrorCode.NOT_INITIALIZED, GetType().Name, string.Empty, error));
-                }
+                DeleteGamebaseSetting(callback);
             });
         }
 
-        public void OnDeleteGamebaseSdk()
+        public void DeleteGamebaseSetting(SettingToolCallback.ErrorDelegate callback)
         {
-            version.CheckGamebaseSdkStatus();
+            gamebaseInfo.ClearInstallVersion();
+            gamebasePackacge.Delete();
+
+            gamebaseDependencies.RemoveGamebaseAllDependencies(callback);
+
         }
+        
+        delegate void InstallFunc(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback);
 
-        #region Download Gamebase SDK
-        public void DownloadGamebaseSdk(SettingToolCallback.ErrorDelegate callback)
+        public void InstallGamebase(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
-            DownloadFile(
-                gamebaseSdkPath,
-                Path.Combine(DataManager.GetData<string>(DataKey.CDN_URL), "GamebaseSDK-Unity.zip"),
-                Path.Combine(gamebaseSdkPath, "GamebaseSDK.zip"),
-                (error) =>
-                {
-                    if (IsSuccess(error) == true)
-                    {
-                        ExtractZip((extractError) =>
-                        {
-                            if (IsSuccess(extractError) == true)
-                            {
-                                gamebaseInfo.ClearCurrentVersion();
-                                gamebaseInfo.SetCurrentVersion();
-
-                                version.CheckGamebaseSdkStatus();
-
-                                callback(null);
-                            }
-                            else
-                            {
-                                callback(extractError);
-                            }
-                        });
-                    }
-                    else
-                    {
-                        callback(error);
-                    }
-                });
-        }
-
-        public void DownloadNaverCefePlug(SettingToolCallback.ErrorDelegate callback)
-        {
-            SettingToolLog.Debug("Download Naver Cafe Plug.", GetType(), "DownloadNaverCefePlug");
-
-            var naverCafePlugData = DataManager.GetData<SettingToolResponse.LaunchingData>(DataKey.LAUNCHING).launching.settingTool.naverCafePlug;
-            var naverCefePlugPath = Application.dataPath.Replace("Assets", naverCafePlugData.installPath);
-
-            DownloadFile(
-                naverCefePlugPath,
-                naverCafePlugData.sdkUrl,
-                Path.Combine(naverCefePlugPath, Path.GetFileName(naverCafePlugData.sdkUrl)),
-                (error) =>
-                {
-                    if (IsSuccess(error) == true)
-                    {   
-                        SettingToolLog.Debug(string.Format("{0} download was successful.", Path.GetFileName(naverCafePlugData.sdkUrl)), GetType(), "DownloadNaverCefePlug");
-
-                        DownloadFile(
-                            naverCefePlugPath,
-                            naverCafePlugData.extensionUrl,
-                            Path.Combine(naverCefePlugPath, Path.GetFileName(naverCafePlugData.extensionUrl)),
-                            (downloadError) =>
-                            {
-                                if (IsSuccess(downloadError) == true)
-                                {
-                                    SettingToolLog.Debug(string.Format("{0} download was successful.", Path.GetFileName(naverCafePlugData.extensionUrl)), GetType(), "DownloadNaverCefePlug");
-
-                                    var androidManifest = string.Format("{0}/Plugins/Android/androidManifest.xml", Application.dataPath);
-
-                                    if (File.Exists(androidManifest) == true)
-                                    {
-                                        var androidManifestBackup = string.Format(
-                                            "{0}/Plugins/Android/androidManifest{1}.xml",
-                                            Application.dataPath,
-                                            string.Format("_{0:yyyy_MM_dd_HH_mm_ss}", DateTime.Now));
-
-                                        FileUtil.CopyFileOrDirectory(androidManifest, androidManifestBackup);
-                                    }
-
-                                    ImportUnityPackage(new List<string> { naverCefePlugPath }, callback);
-                                }
-                                else
-                                {
-                                    callback(downloadError);
-                                }
-                            });
-                    }
-                    else
-                    {
-                        callback(error);
-                    }
-                });
-        }
-
-        private void DownloadFile(string root, string remoteFileName, string localFileName, SettingToolCallback.ErrorDelegate callback)
-        {
-            if (Directory.Exists(root) == false)
+            InstallFunc[] installFuncs =
             {
-                Directory.CreateDirectory(root);
+                DownloadGamebasePackage,
+                ResetAllSettings,
+                UpdateAllSettings,
+            };
+            
+            EditorCoroutines.StartCoroutine(_InstallAll(installFuncs, settingOption, callback), this);
+        }
+        
+        private IEnumerator _InstallAll(InstallFunc[] installFuncs, SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
+        {
+            int count = 0;
+            int max = installFuncs.Length;
+
+            //progress = 0;
+            
+            SettingToolError lastError = null;
+            foreach (var installFunc in installFuncs)
+            {
+                bool waitLoad = true;
+                installFunc.Invoke(settingOption, (error) =>
+                {
+                    waitLoad = false;
+                    if (error != null)
+                    {
+                        lastError = error;
+                    }
+                });
+
+                while (waitLoad)
+                {
+                    yield return null; 
+                }
+
+                count++;
+                processInfo.title = "Install";
+                processInfo.desc = installFunc.Method.Name;
+                processInfo.SetCount(count, installFuncs.Length);
+
+                if (lastError != null)
+                {
+                    break;    
+                }
             }
 
-            FileManager.DownloadFileToLocal(remoteFileName, localFileName, (code, message) =>
-            {
-                showProgressBar(new ProgressInfo() { downloadFileName = string.Empty, progress = 0 });
-
-                switch (code)
-                {
-                    case FileManager.StateCode.SUCCESS:
-                        {
-                            callback(null);
-                            break;
-                        }
-                    case FileManager.StateCode.FILE_NOT_FOUND_ERROR:
-                        {
-                            callback(new SettingToolError(SettingToolErrorCode.FILE_NOT_FOUND, DOMAIN));
-                            break;
-                        }
-                    case FileManager.StateCode.WEB_REQUEST_ERROR:
-                        {
-                            callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, message));
-                            break;
-                        }
-                    case FileManager.StateCode.UNKNOWN_ERROR:
-                        {
-                            callback(new SettingToolError(SettingToolErrorCode.UNKNOWN_ERROR, DOMAIN, message));
-                            break;
-                        }
-                }
-            }, (progressValue) => {
-                showProgressBar(new ProgressInfo() { downloadFileName = localFileName, progress = progressValue });
-            });
+            processInfo.Clear();
+            
+            callback(lastError);
         }
-
-        private void ExtractZip(SettingToolCallback.ErrorDelegate callback)
+       
+        #region Download Gamebase SDK
+        
+        public void DownloadGamebasePackage(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
-            EditorCoroutines.StartCoroutine(
-                ZipManager.Extract(
-                    Path.Combine(gamebaseSdkPath, "GamebaseSDK.zip"),
-                    gamebaseSdkPath,
-                    (code, message) =>
+            gamebasePackacge.LoadPackageVersion(settingOption.GetUnityVersion(), (packageVersion, error) =>
+            {
+                if (IsSuccess(error))
+                {
+                    var installPackageList = gamebasePackacge.GetInstallPackagesList(settingOption);
+                    
+                    var option = new DownloadOption(packageVersion, installPackageList);
+                    if (option.force)
                     {
-                        if (code == ZipManager.StateCode.SUCCESS)
+                        gamebasePackacge.Delete();
+                    }
+            
+                    
+                    gamebasePackacge.DownloaGamebasePackage(option, (error) =>
+                    {
+                        if (IsSuccess(error))
                         {
                             callback(null);
                         }
                         else
                         {
-                            callback(new SettingToolError((int)code, DOMAIN, message));
+                            callback(error);
                         }
-                    },
-                    (stream) => { },
-                    (progress) => { }
-                ), this);
+                    });
+                }
+                else
+                {
+                    callback(error);
+                }
+            });
         }
-
+        
+        
         #endregion
 
         #region UpdateAllSettings
-        public void UpdateAllSettings(SettingToolCallback.ErrorDelegate callback)
+        
+        public void UpdateAllSettings(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
-            UpdateGamebaseDependencies(callback);
-        }
+            SettingHistory history = DataManager.GetData<SettingHistory>(DataKey.SETTING_HISTORY);
 
-        private void UpdateGamebaseDependencies(SettingToolCallback.ErrorDelegate callback)
-        {
+            var installedVersion = DataManager.GetData<GamebaseVersion>(DataKey.INSTALLED_VERSION);
+            
             SettingToolLog.Debug("UpdateSettings STEP1. Update gamebaseAllDependencies.xml.", GetType(), "UpdateGamebaseDependencies");
-
-            gamebaseDependencies.UpdateGamebaseAllDependenciesFile((error) =>
+            gamebaseDependencies.UpdateGamebaseAllDependenciesFile(settingOption, (error) =>
             {
-                if (IsSuccess(error) == true)
+                if (IsSuccess(error))
                 {
-                    UpdateUnitypackages(callback);
+                    gamebasePackacge.UpdateUnitypackages(settingOption, packageError =>
+                    {
+                        if (IsSuccess(packageError))
+                        {
+                            if (installedVersion.Equals(settingOption.GetGamebaseVersion()) == false)
+                            {
+                                gamebaseInfo.SaveInstallVersion(settingOption.GetUnityVersion(), settingOption.GetAndroidVersion(), settingOption.GetIOSVersion());
+
+                                history.Remove(settingOption.GetGamebaseVersion());
+                                history.AddSave(installedVersion);
+                            }
+                            
+                            AssetDatabase.ImportAsset(DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO)
+                                .settingTool.path);
+                            
+                            settingOption.UpdatePlatformSetting();
+                            
+                            AssetDatabase.Refresh();
+
+                            callback(null);
+                        }
+                        else
+                        {
+                            callback(packageError);
+                        }
+                    });
                 }
                 else
                 {
@@ -284,117 +241,120 @@ namespace NhnCloud.GamebaseTools.SettingTool
             });
         }
 
-        private void UpdateUnitypackages(SettingToolCallback.ErrorDelegate callback)
+        public void ClearSelection()
         {
-            SettingToolLog.Debug("UpdateSettings STEP2. Import Unitypackages", GetType(), "UpdateUnitypackages");
+            AdapterSettings.Clear();
 
-            var data = DataManager.GetData<SettingToolResponse.AdapterSettings>(DataKey.ADAPTER_SETTINGS);
-            var unitypackageList = new List<string>()
+            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).adapterSelection.path;
+
+            try
             {
-                Path.Combine(gamebaseSdkPath, data.unity.fileName)
-            };
-
-            unitypackageList = unitypackageList.Union(GetFileListByAdapterList(data.unity.authentication.adapters)).ToList();
-            unitypackageList = unitypackageList.Union(GetFileListByAdapterList(data.unity.purchase.adapters)).ToList();
-            unitypackageList = unitypackageList.Union(GetFileListByAdapterList(data.unity.push.adapters)).ToList();
-            unitypackageList = unitypackageList.Union(GetFileListByAdapterList(data.unity.etc.adapters)).ToList();
-
-            ImportUnityPackage(unitypackageList, callback);
-        }
-
-        private List<string> GetFileListByAdapterList(List<SettingToolResponse.AdapterSettings.Platform.Category.Adapter> adapterList)
-        {
-            if (adapterList == null)
-            {
-                return new List<string>();
-            }
-
-            return adapterList
-                .OfType<SettingToolResponse.AdapterSettings.Platform.Category.Adapter>()
-                .Where(adapter => adapter.used == true)
-                .Select(adapter => Path.Combine(gamebaseSdkPath, adapter.fileName)).ToList();
-        }
-
-        private void ImportUnityPackage(List<string> unitypackageDirectoryNameList, SettingToolCallback.ErrorDelegate callback)
-        {
-            if (unitypackageDirectoryNameList.Count == 0)
-            {
-                callback(new SettingToolError(SettingToolErrorCode.FILE_NOT_FOUND, DOMAIN, "UnitypackageList is empty."));
-                return;
-            }
-
-            foreach (var unitypackageDirectoryName in unitypackageDirectoryNameList)
-            {
-                string[] unitypackages = null;
-
-                if (Directory.Exists(unitypackageDirectoryName) == true)
+                if (File.Exists(filePath))
                 {
-                    unitypackages = Directory.GetFiles(unitypackageDirectoryName, "*.unitypackage", SearchOption.TopDirectoryOnly);
-                    if (unitypackages.Length == 0)
+                    File.Delete(filePath);
+
+                    string metaPath = filePath + ".meta";
+                    if (File.Exists(metaPath))
                     {
-                        callback(new SettingToolError(SettingToolErrorCode.FILE_NOT_FOUND, DOMAIN, string.Format("Unitypackage is empty in {0}", unitypackageDirectoryName)));
-                        return;
+                        File.Delete(metaPath);
                     }
                 }
-                else
-                {
-                    callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, string.Format("Directory not found :{0}", unitypackageDirectoryName)));
-                    return;
-                }
-                                
-                foreach (var unitypackage in unitypackages)
-                {
-                    SettingToolLog.Debug(string.Format("unitypackage:{0}", unitypackage), GetType(), "ImportUnityPackage");
-                    AssetDatabase.ImportPackage(unitypackage, false);
-                }
             }
-
-            callback(null);
+            catch (Exception e)
+            {
+                SettingToolLog.Error(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message), GetType(), "OnClickReset");
+            }
         }
 
-        private void SaveAdapterSettingsFile(SettingToolCallback.ErrorDelegate callback)
+        public void ClearHistory()
         {
-            var data = DataManager.GetData<SettingToolResponse.AdapterSettings>(DataKey.ADAPTER_SETTINGS);
-            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).adapterSettings.path;
+            DataManager.RemoveKey(DataKey.SETTING_HISTORY);
+            
+            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO)
+                .adapterSelection.historyPath;
 
-            if (File.Exists(filePath) == true)
+            try
             {
-                JsonWriter writer = new JsonWriter
+                if (File.Exists(filePath))
                 {
-                    PrettyPrint = true
-                };
+                    File.Delete(filePath);
 
-                JsonMapper.ToJson(data, writer);
-
-                try
-                {
-                    File.WriteAllText(filePath, writer.ToString());
-                    callback(null);
-                }
-                catch (Exception e)
-                {
-                    callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message));
+                    string metaPath = filePath + ".meta";
+                    if (File.Exists(metaPath))
+                    {
+                        File.Delete(metaPath);
+                    }
                 }
             }
-            else
+            catch (Exception e)
             {
-                callback(new SettingToolError(SettingToolErrorCode.FILE_NOT_FOUND, DOMAIN));
+                SettingToolLog.Error(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message), GetType(), "ClearHistory");
+            }
+        }
+
+        private void SaveAdapterSelectionFile(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
+        {
+            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).adapterSelection.path;
+
+            JsonWriter writer = new JsonWriter
+            {
+                PrettyPrint = true
+            };
+
+            settingOption.Nomalize();
+            JsonMapper.ToJson(settingOption.selection, writer);
+
+            try
+            {
+                File.WriteAllText(filePath, writer.ToString());
+
+                RemoveLagacyAdapterFile(callback);
+            }
+            catch (Exception e)
+            {
+                callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message));
+            }
+        }
+
+        private void RemoveLagacyAdapterFile(SettingToolCallback.ErrorDelegate callback)
+        {
+            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).legacyAdapterSetting.path;
+
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    
+                    string metaPath = filePath + ".meta";
+                    if (File.Exists(metaPath))
+                    {
+                        File.Delete(metaPath);
+                    }
+                }
+                
+                callback(null);
+            }
+            catch (Exception e)
+            {
+                callback(new SettingToolError(SettingToolErrorCode.UNITY_INTERNAL_ERROR, DOMAIN, e.Message));
             }
         }
         #endregion
 
         #region ResetAllSettings
-        public void ResetAllSettings(SettingToolCallback.ErrorDelegate callback)
+
+        public void ResetAllSettings(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
-            ResetAdapterSettings(callback);
+            ResetAdapterSettings(settingOption, callback);
         }
 
-        private void ResetAdapterSettings(SettingToolCallback.ErrorDelegate callback)
+        private void ResetAdapterSettings(SettingOption settingOption, SettingToolCallback.ErrorDelegate callback)
         {
             SettingToolLog.Debug("RemoveSettings STEP1. Reset adapterSettings.json.", GetType(), "ResetAdapterSettings");
-            SaveAdapterSettingsFile((error) =>
+            SaveAdapterSelectionFile(settingOption, (error) =>
             {
-                if (IsSuccess(error) == true)
+                if (IsSuccess(error))
                 {
                     ResetGamebaseDependencies(callback);
                 }
@@ -410,7 +370,7 @@ namespace NhnCloud.GamebaseTools.SettingTool
             SettingToolLog.Debug("RemoveSettings STEP2. Reset gamebaseAllDependencies.xml.", GetType(), "ResetGamebaseDependencies");
             gamebaseDependencies.RemoveGamebaseAllDependencies((error) =>
             {
-                if (IsSuccess(error) == true)
+                if (IsSuccess(error))
                 {
                     DeleteDirectories(callback);
                 }
@@ -426,7 +386,7 @@ namespace NhnCloud.GamebaseTools.SettingTool
             SettingToolLog.Debug("RemoveSettings STEP3. Remove Gamebase SDK folder.", GetType(), "DeleteDirectories");
             DeleteDicrectoriesForUnityAdapter((error) =>
             {
-                if (IsSuccess(error) == true)
+                if (IsSuccess(error))
                 {
                     callback(null);
                 }
@@ -441,19 +401,19 @@ namespace NhnCloud.GamebaseTools.SettingTool
         {
             try
             {
-                if (Directory.Exists(Path.Combine(Application.dataPath, "Gamebase")) == true)
+                if (Directory.Exists(Path.Combine(Application.dataPath, "Gamebase")))
                 {
                     FileUtil.DeleteFileOrDirectory(Path.Combine(Application.dataPath, "Gamebase"));
                     FileUtil.DeleteFileOrDirectory(Path.Combine(Application.dataPath, "Gamebase.meta"));
                 }
 
-                if (Directory.Exists(Application.streamingAssetsPath) == true)
+                if (Directory.Exists(Application.streamingAssetsPath))
                 {
                     var files = Directory.GetFiles(Application.streamingAssetsPath);
-                    if (files.Length == 1 && (Path.GetFileNameWithoutExtension(files[0]).Equals("Gamebase") == true))
+                    if (files.Length == 1 && (Path.GetFileNameWithoutExtension(files[0]).Equals("Gamebase")))
                     {
                         FileUtil.DeleteFileOrDirectory(Application.streamingAssetsPath);
-                        FileUtil.DeleteFileOrDirectory(Path.Combine(Application.streamingAssetsPath, ".meta"));
+                        FileUtil.DeleteFileOrDirectory(Application.streamingAssetsPath + ".meta");
                     }
                     else
                     {
@@ -462,7 +422,7 @@ namespace NhnCloud.GamebaseTools.SettingTool
                     }
                 }
 
-                if (Directory.Exists(Path.Combine(Application.dataPath, "NCSDK")) == true)
+                if (Directory.Exists(Path.Combine(Application.dataPath, "NCSDK")))
                 {
                     FileUtil.DeleteFileOrDirectory(Path.Combine(Application.dataPath, "NCSDK"));
                     FileUtil.DeleteFileOrDirectory(Path.Combine(Application.dataPath, "NCSDK.meta"));
@@ -474,27 +434,8 @@ namespace NhnCloud.GamebaseTools.SettingTool
                 return;
             }
 
-            gamebaseInfo.HasGamebaseSdk = false;
-
             callback(null);
         }
         #endregion
-
-        public void SendIndicator(Dictionary<string, string> sendData)
-        {
-            indicator.Send(sendData);
-        }
-
-        private void ChangeGamebaseSdkDownloadStatus(bool isDownload)
-        {
-            SettingToolLog.Debug(string.Format("HAS_GAMEBASE_SDK:{0}", isDownload), GetType(), "ChangeGamebaseSdkDownloadStatus");
-            if (isDownload == false)
-            {
-                if (onDeleteGamebaseSdk != null)
-                {
-                    onDeleteGamebaseSdk();
-                }
-            }
-        }
     }
 }

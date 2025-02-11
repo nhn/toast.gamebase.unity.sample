@@ -10,6 +10,7 @@ namespace Toast.Gamebase
         void Warn(string message, Dictionary<string, string> userFields = null);
         void Error(string message, Dictionary<string, string> userFields = null);
         void Fatal(string message, Dictionary<string, string> userFields = null);
+        void Report(GamebaseLoggerConst.LogLevel logLevel, string message, string logString, string stackTrace);
         void SetUserField(string key, string value);
         void SetLoggerListener(GamebaseCallback.Logger.ILoggerListener listener);
 

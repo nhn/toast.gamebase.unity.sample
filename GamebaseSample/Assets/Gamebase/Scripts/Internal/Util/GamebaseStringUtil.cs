@@ -1,14 +1,17 @@
 ﻿
-public static class GamebaseStringUtil
+namespace Toast.Gamebase.Internal
 {
-    public static string Capitalize(string text)
+    public static class GamebaseStringUtil
     {
-        if(string.IsNullOrEmpty(text) == true)
+        public static string Capitalize(string text)
         {
-            return "";
-        }
+            if (string.IsNullOrEmpty(text))
+            {
+                return "";
+            }
 
-        return char.ToUpper(text[0]) +
-            ((text.Length > 1) ? text.Substring(1) : string.Empty);
+            return char.ToUpper(text[0]) +
+                   ((text.Length > 1) ? text.Substring(1) : string.Empty);
+        }
     }
 }

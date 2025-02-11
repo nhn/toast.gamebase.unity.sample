@@ -111,13 +111,17 @@ namespace Toast.Gamebase.Internal.Single
         
         private IEnumerator LoadWebFile(string filePath)
         {
-            UnityWebRequest www = UnityWebRequest.Get(filePath);
-            www.timeout = CommunicatorConfiguration.timeout;
-
-            yield return UnityCompatibility.WebRequest.Send(www);
-
-            if (www.isDone == true)
+            using (UnityWebRequest www = UnityWebRequest.Get(filePath))
             {
+                www.timeout = CommunicatorConfiguration.timeout;
+
+                yield return UnityCompatibility.WebRequest.Send(www);
+
+                if (www.isDone != true)
+                {
+                    yield break;
+                }
+                
                 if (www.responseCode == 200)
                 {
                     if (UnityCompatibility.WebRequest.IsError(www) == true)

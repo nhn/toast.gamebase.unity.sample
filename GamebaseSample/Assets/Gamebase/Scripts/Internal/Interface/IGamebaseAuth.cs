@@ -8,6 +8,7 @@ namespace Toast.Gamebase.Internal
         void Login(string providerName, Dictionary<string, object> additionalInfo, int handle);
         void Login(Dictionary<string, object> credentialInfo, int handle);
         void LoginForLastLoggedInProvider(int handle);
+        void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, int handle);
         void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, int handle);
         
         void AddMapping(string providerName, int handle);

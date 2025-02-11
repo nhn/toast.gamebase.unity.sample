@@ -53,6 +53,13 @@ namespace Toast.Gamebase.Internal
 
                     public class IDP
                     {
+                        public class Channel
+                        {
+                            public string region;
+                            public string clientId;
+                            public string clientSecret;
+                        }
+
                         public class LoginWebView
                         {
                             public string titleBgColor;
@@ -64,6 +71,7 @@ namespace Toast.Gamebase.Internal
                         public string clientSecret;
                         public string additional;
                         public string callbackUrl;
+                        public List<Channel> channels;
 
                         public LoginWebView loginWebView;
                     }
@@ -109,6 +117,7 @@ namespace Toast.Gamebase.Internal
                     public string endDate;
                     public long localBeginDate;
                     public long localEndDate;
+                    public bool hideDate;
                 }
 
                 public class Notice
@@ -116,6 +125,17 @@ namespace Toast.Gamebase.Internal
                     public string message;
                     public string title;
                     public string url;
+                }
+
+                public class User
+                {
+                    public TestDevice testDevice;
+
+                    public class TestDevice
+                    {
+                        public bool matchingFlag;
+                        public List<string> matchingTypes;
+                    }
                 }
 
                 public class TCGBClient
@@ -128,6 +148,7 @@ namespace Toast.Gamebase.Internal
                         public string appKey;
                         public long appKeyVersion;
                         public int initFailCount;
+                        public List<string> securityBlacklist;
                     }
 
                     public class ForceRemoteSettings
@@ -164,6 +185,7 @@ namespace Toast.Gamebase.Internal
                 public Maintenance maintenance;
                 public Notice notice;
                 public Status status;
+                public User user;
                 public TCGBClient tcgbClient;
                 public Standalone standalone;
             }
@@ -178,12 +200,12 @@ namespace Toast.Gamebase.Internal
 
             public class TCProduct
             {
-                public TCProductAppKeyInfo gamebase;
-                public TCProductAppKeyInfo tcLaunching;
-                public TCProductAppKeyInfo iap;
-                public TCProductAppKeyInfo push;
+                public AppKeyInfo gamebase;
+                public AppKeyInfo tcLaunching;
+                public AppKeyInfo iap;
+                public AppKeyInfo push;
 
-                public class TCProductAppKeyInfo
+                public class AppKeyInfo
                 {
                     public string appKey;
                 }

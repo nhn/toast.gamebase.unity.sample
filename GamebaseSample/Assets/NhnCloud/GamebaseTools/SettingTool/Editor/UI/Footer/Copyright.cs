@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace NhnCloud.GamebaseTools.SettingTool.Ui
 {
+    using Util.Ad;
+    
     public class Copyright
     {
-        private const string COPYRIGHT_TEXT = "ⓒ NHN Corp. All rights reserved.";
-
         private Rect copyrightArea;
 
         public Copyright(Rect copyrightArea)
@@ -22,7 +22,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
                 {
                     // As EditorGUILayout.Popup UI is added and COPYRIGHT_TEXT moves to the left, a 60 margin is added to compensate for this.
                     GUILayout.Space(60);
-                    GUILayout.Label(COPYRIGHT_TEXT, ToolStyles.CopyrightLabel);
+                    GUILayout.Label(Multilanguage.GetString("COPYRIGHT_TEXT"), ToolStyles.CopyrightLabel);
                     EditorGUI.BeginChangeCheck();
                     {
                         Multilanguage.SelectedLanguageIndex = EditorGUILayout.Popup(
@@ -32,7 +32,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Ui
 
                         if (EditorGUI.EndChangeCheck() == true)
                         {
-                            
+                            Advertisement.SetLanguageCode(Multilanguage.GetSupportLanguages()[Multilanguage.SelectedLanguageIndex]);
                         }
                     }
                     EditorGUILayout.EndHorizontal();

@@ -25,21 +25,24 @@ public class GamebaseStringLoader
 
     private bool IsWebFilePath(string filePath)
     {
-        return (true == filePath.Contains("://")) || (true == filePath.Contains(":///"));
+        return (filePath.Contains("://") == true) || (filePath.Contains(":///") == true);
     }
 
     private IEnumerator LoadWebFile(string filePath, System.Action<string> callback)
     {
-        UnityWebRequest www = UnityWebRequest.Get(filePath);
-        www.timeout = CommunicatorConfiguration.timeout;
-
-        yield return UnityCompatibility.WebRequest.Send(www);
-
-        if (www.isDone == true)
+        using (UnityWebRequest www = UnityWebRequest.Get(filePath))
         {
-            string jsonString = string.Empty;
+            www.timeout = CommunicatorConfiguration.timeout;
 
-            if (200 == www.responseCode)
+            yield return UnityCompatibility.WebRequest.Send(www);
+
+            if (www.isDone != true)
+            {
+                yield break;
+            }
+            
+            string jsonString = string.Empty;
+            if (www.responseCode == 200)
             {
                 if (UnityCompatibility.WebRequest.IsError(www) == false)
                 {                 

@@ -8,9 +8,10 @@ namespace Toast.Gamebase.Internal.Mobile
     {
         protected class GamebaseUtil
         {            
-            public const string UTIL_API_SHOW_TOAST_WITH_TYPE   = "gamebase://showToastWithType";
-            public const string UTIL_API_SHOW_ALERT             = "gamebase://showAlert";
-            public const string UTIL_API_SHOW_ALERT_EVENT       = "gamebase://showAlertEvent";
+            public const string UTIL_API_SHOW_TOAST_WITH_TYPE               = "gamebase://showToastWithType";
+            public const string UTIL_API_SHOW_ALERT                         = "gamebase://showAlert";
+            public const string UTIL_API_SHOW_ALERT_EVENT                   = "gamebase://showAlertEvent";
+            public const string UTIL_API_APP_TRACKING_AUTHORIZATION_STATUS  = "gamebase://appTrackingAuthorizationStatus";
         }
 
         protected INativeMessageSender  messageSender           = null;
@@ -74,6 +75,12 @@ namespace Toast.Gamebase.Internal.Mobile
         virtual public void ShowAlert(Dictionary<string, string> parameters, GamebaseUtilAlertType alertType, int handle)
         {
             GamebaseErrorNotifier.FireNotSupportedAPI(this);
+        }
+
+        virtual public GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus()
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+            return GamebaseAppTrackingAuthorizationStatus.UNKNOWN;
         }
     }
 }

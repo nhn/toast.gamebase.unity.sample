@@ -14,11 +14,16 @@ namespace Toast.Gamebase.Internal
         public static SchemeInfo ConvertURLToSchemeInfo(string url)
         {
             string[] urlParameters = url.Split(new char[] { '?', '&' });
-            if (urlParameters == null || urlParameters.Length == 0)
-                return null;
 
-            SchemeInfo schemeInfo = new SchemeInfo();
-            schemeInfo.scheme = Uri.UnescapeDataString(urlParameters[0]);
+            if (urlParameters == null || urlParameters.Length == 0)
+            {
+                return null;
+            }
+
+            SchemeInfo schemeInfo = new SchemeInfo
+            {
+                scheme = Uri.UnescapeDataString(urlParameters[0])
+            };
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 

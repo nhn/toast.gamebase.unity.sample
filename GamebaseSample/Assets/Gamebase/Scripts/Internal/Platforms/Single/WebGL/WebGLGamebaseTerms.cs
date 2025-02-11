@@ -2,13 +2,13 @@
 
 namespace Toast.Gamebase.Internal.Single.WebGL
 {
-	public class WebGLGamebaseTerms : CommonGamebaseTerms
-	{
+    public class WebGLGamebaseTerms : CommonGamebaseTerms
+    {
 
-		public WebGLGamebaseTerms()
-		{
-			Domain = typeof(WebGLGamebaseTerms).Name;
-		}
-	}
+        public WebGLGamebaseTerms()
+        {
+            Domain = typeof(WebGLGamebaseTerms).Name;
+        }
+    }
 }
 #endif

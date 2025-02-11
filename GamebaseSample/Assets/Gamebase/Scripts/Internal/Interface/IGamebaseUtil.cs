@@ -8,5 +8,7 @@ namespace Toast.Gamebase.Internal
         void ShowAlert(string title, string message, int handle);
         void ShowToast(string message, GamebaseUIToastType type);
         void ShowAlert(Dictionary<string, string> parameters, GamebaseUtilAlertType alertType, int handle);
+
+        GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus();
     }
 }

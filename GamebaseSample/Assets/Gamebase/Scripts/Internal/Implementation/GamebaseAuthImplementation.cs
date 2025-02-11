@@ -40,65 +40,46 @@ namespace Toast.Gamebase.Internal
         public void Login(string providerName, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName();
-            GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> loginCallback = (authToken, error) =>
-            {
-                if (Gamebase.IsSuccess(error) == true)
-                {
-                    SetUserIdOfIndicatorReport();
-                }
-                callback(authToken, error);
-            };
-
-            int handle = GamebaseCallbackHandler.RegisterCallback(loginCallback);
-            auth.Login(providerName, handle);
+            auth.Login(providerName, GetLoginCallbackHandle(callback));
         }
 
         public void Login(Dictionary<string, object> credentialInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName("LoginWithCredentialInfo");
-            GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> loginCallback = (authToken, error) =>
-            {
-                if (Gamebase.IsSuccess(error) == true)
-                {
-                    SetUserIdOfIndicatorReport();
-                }
-                callback(authToken, error);
-            };
-
-            int handle = GamebaseCallbackHandler.RegisterCallback(loginCallback);
-            auth.Login(credentialInfo, handle);
+            auth.Login(credentialInfo, GetLoginCallbackHandle(callback));
         }
 
         public void Login(string providerName, Dictionary<string, object> additionalInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName("LoginWithAdditionalInfo");
-            GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> loginCallback = (authToken, error) =>
-            {
-                if (Gamebase.IsSuccess(error) == true)
-                {
-                    SetUserIdOfIndicatorReport();
-                }
-                callback(authToken, error);
-            };
-
-            int handle = GamebaseCallbackHandler.RegisterCallback(loginCallback);
-            auth.Login(providerName, additionalInfo, handle);
+            auth.Login(providerName, additionalInfo, GetLoginCallbackHandle(callback));
         }
 
         public void LoginForLastLoggedInProvider(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName();
+            auth.LoginForLastLoggedInProvider(GetLoginCallbackHandle(callback));
+        }
+
+        public void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("LoginForLastLoggedInProviderWithAdditionalInfo");
+            auth.LoginForLastLoggedInProvider(additionalInfo, GetLoginCallbackHandle(callback));
+        }
+
+        private int GetLoginCallbackHandle(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
             GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> loginCallback = (authToken, error) =>
             {
                 if (Gamebase.IsSuccess(error) == true)
                 {
-                    SetUserIdOfIndicatorReport();
+                    GamebaseInternalReport.Instance.SetUserId(Gamebase.GetUserID());
                 }
+
                 callback(authToken, error);
             };
 
-            int handle = GamebaseCallbackHandler.RegisterCallback(loginCallback);
-            auth.LoginForLastLoggedInProvider(handle);
+            return GamebaseCallbackHandler.RegisterCallback(loginCallback);
         }
 
         public void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
@@ -263,14 +244,6 @@ namespace Toast.Gamebase.Internal
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             auth.IssueShortTermTicket(handle);
         }       
-
-        #region IndicatorReport
-
-        private void SetUserIdOfIndicatorReport()
-        {
-            GamebaseInternalReport.Instance.SetUserId(Gamebase.GetUserID());                
-        }
-#endregion
     }
 }
  

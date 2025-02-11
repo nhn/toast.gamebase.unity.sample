@@ -52,7 +52,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        public virtual void ShowWebView(string url, GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null, int closeCallback = -1, List<string> schemeList = null, int schemeEvent = -1)
+        public virtual void ShowWebView(string url, GamebaseRequest.Webview.Configuration configuration = null, int closeCallback = -1, List<string> schemeList = null, int schemeEvent = -1)
         {
             NativeRequest.Webview.WebviewConfiguration webviewConfiguration = new NativeRequest.Webview.WebviewConfiguration();
             webviewConfiguration.url                                        = url;

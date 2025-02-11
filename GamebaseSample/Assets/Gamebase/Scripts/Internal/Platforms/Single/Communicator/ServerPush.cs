@@ -73,33 +73,83 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 WebSocket.Instance.Disconnect();
             }
 
-            GamebaseSystemPopup.Instance.ShowServerPushPopup(message.popup);            
-            
-            SendServerPushMessage(serverPush.type, message.result);
+            //------------------------------
+            //
+            //  AddServerPushEvent(Lagacy)
+            //
+            //------------------------------
+            SendServerPushEvent(serverPush.type, message.result);
+
+            //------------------------------
+            //
+            //  AddEventHandler
+            //
+            //------------------------------
+            GamebaseResponse.Event.GamebaseEventServerPushData eventData = new GamebaseResponse.Event.GamebaseEventServerPushData
+            {
+                extras = message.result,
+                popup = JsonMapper.ToObject<GamebaseResponse.Event.GamebaseEventServerPushData.ServerPushPopup>(JsonMapper.ToJson(message.popup))
+            };
+
+            if (serverPush.type.Equals(GamebaseServerPushType.APP_KICKOUT) == true)
+            {
+                SendEventMessage(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT_MESSAGE_RECEIVED, eventData);
+            }
+
+            if (serverPush.popup == true)
+            {
+                GamebaseSystemPopup.Instance.ShowServerPushPopup(message.popup, () => 
+                {
+                    SendEventMessage(ConvertServerPushTypeToEventCategoryType(serverPush.type), eventData);
+                });
+            }
+            else
+            {
+                SendEventMessage(ConvertServerPushTypeToEventCategoryType(serverPush.type), eventData);
+            }
         }
-        
-        private void SendServerPushMessage(string type, string data)
+
+        private void SendServerPushEvent(string type, string result)
         {
-            GamebaseLog.Debug(string.Format("type : {0}, data : {1}", type, data), this);
-            GamebaseResponse.SDK.ServerPushMessage serverPushMessage = new GamebaseResponse.SDK.ServerPushMessage();
-            serverPushMessage.type = type;
-            serverPushMessage.data = data;
+            GamebaseLog.Debug(string.Format("type:{0}, result:{1}", type, result), this);
+
+            GamebaseResponse.SDK.ServerPushMessage serverPushMessage = new GamebaseResponse.SDK.ServerPushMessage
+            {
+                type = type,
+                data = result
+            };
 
             GamebaseServerPushEventManager.Instance.OnServerPushEvent(serverPushMessage);
-
-            SendEventMessage(serverPushMessage);
         }
 
-        private void SendEventMessage(GamebaseResponse.SDK.ServerPushMessage message)
+        private void SendEventMessage(string category, GamebaseResponse.Event.GamebaseEventServerPushData eventData)
         {
-            GamebaseResponse.Event.GamebaseEventServerPushData serverPushData = new GamebaseResponse.Event.GamebaseEventServerPushData();
-            serverPushData.extras = message.data;
-
-            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
-            eventMessage.category = string.Format("serverPush{0}", GamebaseStringUtil.Capitalize(message.type));
-            eventMessage.data = JsonMapper.ToJson(serverPushData);
+            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage
+            {
+                category = category,
+                data = JsonMapper.ToJson(eventData)
+            };
 
             GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
+        }
+
+        private string ConvertServerPushTypeToEventCategoryType(string serverPushType)
+        {
+            switch (serverPushType)
+            {
+                case GamebaseServerPushType.APP_KICKOUT:
+                    {
+                        return GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT;
+                    }
+                case GamebaseServerPushType.TRANSFER_KICKOUT:
+                    {
+                        return GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT;
+                    }
+                default:
+                    {
+                        return string.Empty;
+                    }
+            }
         }
     }   
 }

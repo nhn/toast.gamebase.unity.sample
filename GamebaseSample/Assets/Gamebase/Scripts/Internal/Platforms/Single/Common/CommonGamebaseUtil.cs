@@ -43,6 +43,12 @@ namespace Toast.Gamebase.Internal.Single
             GamebaseErrorNotifier.FireNotSupportedAPI(this);
         }
 
+        public virtual GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus()
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+            return GamebaseAppTrackingAuthorizationStatus.UNKNOWN;
+        }
+
         protected string GetDictionaryValue(Dictionary<string, string> dictionary, string key)
         {
             string value = string.Empty;

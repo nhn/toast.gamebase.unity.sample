@@ -1,4 +1,4 @@
-﻿using NhnCloud.GamebaseTools.SettingTool.Data;
+using NhnCloud.GamebaseTools.SettingTool.Data;
 using NhnCloud.GamebaseTools.SettingTool.ThirdParty;
 using NhnCloud.GamebaseTools.SettingTool.Util;
 using System;
@@ -26,6 +26,12 @@ namespace NhnCloud.GamebaseTools.SettingTool
         {
             var data = DataManager.GetData<SettingToolResponse.LaunchingData>(DataKey.LAUNCHING);
 
+            if (data.header.isSuccessful == false)
+            {
+                SettingToolLog.Debug(SettingToolStrings.FAILED_TO_LOAD_LAUNCHING_DATA, GetType(), "Initialize");
+                return;
+            }
+
 #if GAMEBASE_SETTINGTOOL_ALPHA_ZONE
             var zone = data.launching.settingTool.alpha;
 #else
@@ -40,10 +46,28 @@ namespace NhnCloud.GamebaseTools.SettingTool
                 {"logVersion", zone.logVersion},
                 {"body", BODY}
             };
+
+            SendSettingToolInfo();
+        }
+
+        private void SendSettingToolInfo()
+        {
+            var sendData = new Dictionary<string, string>()
+            {
+                { "ACTION", "SettingToolInfo" },
+                { "ACTION_DETAIL_1", SettingTool.VERSION }
+            };
+
+            Send(sendData);
         }
 
         public void Send(Dictionary<string, string> data)
         {
+            if (string.IsNullOrEmpty(url) == true)
+            {
+                return;
+            }
+
             if (data == null)
             {
                 data = staticData;
@@ -61,12 +85,15 @@ namespace NhnCloud.GamebaseTools.SettingTool
         {
             var encoding = new UTF8Encoding().GetBytes(jsonString);
 
-            var request = UnityWebRequest.Put(string.Format("{0}/{1}/log", url, logVersion), encoding);
-            request.method = UnityWebRequest.kHttpVerbPOST;
+            using (var request = UnityWebRequest.Put(string.Format("{0}/{1}/log", url, logVersion), encoding))
+            {
+                request.SetRequestHeader("Content-Type", "application/json");
+                request.method = UnityWebRequest.kHttpVerbPOST;
 
-            var helper = new UnityWebRequestHelper(request);
+                var helper = new UnityWebRequestHelper(request);
 
-            yield return EditorCoroutines.StartCoroutine(helper.SendWebRequest(), this);
+                yield return EditorCoroutines.StartCoroutine(helper.SendWebRequest(), this);
+            }   
         }
     }
 }

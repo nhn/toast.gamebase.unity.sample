@@ -7,15 +7,43 @@ namespace Toast.Gamebase.Internal.Single.Communicator
     {
         public enum ZoneType
         {
-            [EnumMember(Value = "wss://alpha-gamebase-lh.cloud.toast.com:11443/lh")]
             ALPHA,
-            [EnumMember(Value = "wss://beta-gamebase-lh.cloud.toast.com:11443/lh")]
             BETA,
-            [EnumMember(Value = "wss://gslb-gamebase-lh.cloud.toast.com:11443/lh")]
             REAL
         }
-        
-        public static string URI { get; set; }
+
+        public static ZoneType zone = ZoneType.REAL;
+        private static SubDomain subDomain;
+
+        public static string GetAddress()
+        {
+            if (subDomain == null)
+            {
+                subDomain = new SubDomain(zone);
+            }
+
+            return subDomain.GetAddress();
+        }
+
+        public static string GetNextAddress()
+        {
+            if (subDomain == null)
+            {
+                subDomain = new SubDomain(zone);
+            }
+
+            return subDomain.GetNextAddress();
+        }
+
+        public static void ResetAddress()
+        {
+            if (subDomain == null)
+            {
+                subDomain = new SubDomain(zone);
+            }
+
+            subDomain.ResetAddress();
+        }
 
         public static long CreateTransactionId()
         {
@@ -44,7 +72,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         public class API
         {
-            public const string VERSION = "v1.3.2";
+            public const string VERSION = "v1.3.4";
 
             public class Launching
             {
@@ -57,10 +85,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public const string GET_IMAGE_NOTICES = "getImageNotices";
                 }
             }
-
+            
             public class Gateway
             {
                 public const string PRODUCT_ID = "gateway";
+                public const string PRODUCT_ID_TOS = "tos";
 
                 public class ID
                 {
@@ -74,6 +103,9 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public const string ADD_MAPPING = "addMapping";
                     public const string ISSUE_SHORT_TERM_TICKET = "issueShortTermTicket";
                     public const string INTROSPECT_ACCESS_TOKEN = "introspectAccessToken";
+
+                    public const string QUERY_TERMS = "queryTerms";
+                    public const string UPDATE_TERMS = "updateTerms";
 
                     /// <summary>
                     /// HEALTH_CHECK is used only to check the Internet connection status on the WebGL platform.

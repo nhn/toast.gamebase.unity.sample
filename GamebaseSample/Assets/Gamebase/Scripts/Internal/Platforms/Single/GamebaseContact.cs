@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
 using System.Collections.Generic;
 using Toast.Gamebase.LitJson;
 using UnityEngine;
@@ -7,7 +7,7 @@ namespace Toast.Gamebase.Internal.Single
 {
     public class GamebaseContact
     {
-        private class CsType
+        private static class CsType
         {
             public const string GAMEBASE = "GAMEBASE";
             public const string TOAST = "TOAST";
@@ -51,25 +51,17 @@ namespace Toast.Gamebase.Internal.Single
             }
 
             GetCsUrl(
-               configuration,
-               (url, error) =>
-               {
-                   if (Gamebase.IsSuccess(error) == true)
-                   {
-                       GamebaseLog.Debug(
-                           string.Format("URL : {0}", url),
-                           this);
+                configuration,
+                (url, error) =>
+                {
+                    if (Gamebase.IsSuccess(error) == true)
+                    {
+                        GamebaseLog.Debug(string.Format("CS URL : {0}", url), this);
+                        Application.OpenURL(url);
+                    }
 
-                       Application.OpenURL(url);
-                   }
-
-                   callback(error);
-               });
-        }
-
-        public void RequestContactURL(int handle)
-        {
-            RequestContactURL(null, handle);
+                    callback(error);
+                });
         }
 
         public void RequestContactURL(GamebaseRequest.Contact.Configuration configuration, int handle)
@@ -84,12 +76,7 @@ namespace Toast.Gamebase.Internal.Single
 
             if (GamebaseUnitySDK.IsInitialized == false)
             {
-                callback(
-                    null,
-                    new GamebaseError(
-                        GamebaseErrorCode.NOT_INITIALIZED,
-                        message: GamebaseStrings.NOT_INITIALIZED
-                        ));
+                callback(null, new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, message: GamebaseStrings.NOT_INITIALIZED));
                 return;
             }
 
@@ -99,9 +86,7 @@ namespace Toast.Gamebase.Internal.Single
                 {
                     if (Gamebase.IsSuccess(error) == true)
                     {
-                        GamebaseLog.Debug(
-                           string.Format("URL : {0}", url),
-                           this);
+                        GamebaseLog.Debug(string.Format("CS URL : {0}", url), this);
                     }
 
                     callback(url, error);
@@ -173,7 +158,17 @@ namespace Toast.Gamebase.Internal.Single
                     }
                 default:
                     {
-                        callback(GetDefaultCsUrl(configuration), null);
+                        GamebaseIndicatorReport.SendIndicatorData(
+                            GamebaseIndicatorReportType.LogType.COMMON,
+                            GamebaseIndicatorReportType.StabilityCode.GB_COMMON_WRONG_USAGE,
+                            GamebaseIndicatorReportType.LogLevel.ERROR,
+                            new Dictionary<string, string>()
+                            {
+                                { GamebaseIndicatorReportType.AdditionalKey.GB_FUNCTION_NAME, "GamebaseContact.OpenContact" },
+                                { GamebaseIndicatorReportType.AdditionalKey.GB_ERROR_LOG, string.Format("Invalid csType : {0}", launchingInfo.launching.app.customerService.type) }
+                            });
+
+                        callback(GetCustomCsUrl(configuration), null);
                         break;
                     }
             }
@@ -206,16 +201,7 @@ namespace Toast.Gamebase.Internal.Single
 
         private string GetToastCsUrlLogin(GamebaseRequest.Contact.Configuration configuration, string shortTermTicket)
         {
-            string url = launchingInfo.launching.app.customerService.url;
-            if (configuration != null && string.IsNullOrEmpty(configuration.additionalURL) == false)
-            {
-                url = string.Format(
-                    "{0}{1}",
-                    url,
-                    configuration.additionalURL);
-            }
-
-            string userName = GetUserName(configuration);
+            string url = AddAdditionalUrlToCsUrl(configuration);
 
             url = string.Format(
                 "{0}ticket={1}&purpose={2}&userId={3}&userName={4}&osCode={5}",
@@ -223,136 +209,66 @@ namespace Toast.Gamebase.Internal.Single
                 shortTermTicket,
                 ISSUE_SHORT_TERM_TICKET_PURPOSE,
                 GamebaseImplementation.Instance.GetUserID(),
-                userName,
-                UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.OsVersion)
-                );
+                GetUserNameInConfiguration(configuration),
+                UnityCompatibility.WebRequest.EscapeURL(GamebaseSystemInfo.OsVersion));
+            
+            url = AddAdditionalParametersToCsUrl(url, configuration);
 
-            if (configuration != null && configuration.extraData != null && configuration.extraData.Count > 0)
-            {
-                string extraData = JsonMapper.ToJson(configuration.extraData);
-                url = string.Format(
-                    "{0}&extraData={1}",
-                    url,
-                    UnityCompatibility.WebRequest.EscapeURL(extraData));
-            }
-
-            return url;
+            return AddExtraDataToCsUrl(url, configuration);
         }
 
         private string GetToastCsUrlNotLogin(GamebaseRequest.Contact.Configuration configuration)
         {
-            string url = launchingInfo.launching.app.customerService.url;
-            if (configuration != null && string.IsNullOrEmpty(configuration.additionalURL) == false)
-            {
-                url = string.Format(
-                    "{0}{1}",
-                    url,
-                    configuration.additionalURL);
-            }
-
-            string userName = GetUserName(configuration);
+            string url = AddAdditionalUrlToCsUrl(configuration);
 
             url = string.Format(
                 "{0}userName={1}&osCode={2}",
                 MakeBaseUrl(url),
-                userName,
-                UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.OsVersion)
+                GetUserNameInConfiguration(configuration),
+                UnityCompatibility.WebRequest.EscapeURL(GamebaseSystemInfo.OsVersion)
                 );
+            
+            url = AddAdditionalParametersToCsUrl(url, configuration);
 
-            if (configuration != null && configuration.extraData != null && configuration.extraData.Count > 0)
-            {
-                string extraData = JsonMapper.ToJson(configuration.extraData);
-                url = string.Format(
-                    "{0}&extraData={1}",
-                    url,
-                    UnityCompatibility.WebRequest.EscapeURL(extraData));
-            }
-
-            return url;
+            return AddExtraDataToCsUrl(url, configuration);
         }
 
         private string GetGamebaseCsUrl(GamebaseRequest.Contact.Configuration configuration, string shortTermTicket)
         {
-            string url = launchingInfo.launching.app.customerService.url;
-
-            if (configuration != null && string.IsNullOrEmpty(configuration.additionalURL) == false)
-            {
-                url = string.Format(
-                    "{0}{1}",
-                    url,
-                    configuration.additionalURL);
-            }
-
-            string userName = GetUserName(configuration);
+            string url = AddAdditionalUrlToCsUrl(configuration);
 
             if (string.IsNullOrEmpty(Gamebase.GetUserID()) == false)
             {
                 url = string.Format(
-                    "{0}ticket={1}&purpose={2}&userId={3}&userName={4}&storeCode={5}&clientVersion={6}&sdkVersion={7}&deviceModel={8}&osVersion={9}&deviceCountryCode={10}&usimCountryCode={11}",
+                    "{0}ticket={1}&purpose={2}&userId={3}&userName={4}&storeCode={5}&clientVersion={6}&sdkVersion={7}&deviceModel={8}&osVersion={9}&deviceCountryCode={10}&usimCountryCode={11}&osCode={12}",
                     MakeBaseUrl(url),
                     shortTermTicket,
                     ISSUE_SHORT_TERM_TICKET_PURPOSE,
                     GamebaseImplementation.Instance.GetUserID(),
-                    userName,
+                    GetUserNameInConfiguration(configuration),
                     UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.StoreCode),
                     UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.AppVersion),
                     UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.SDKVersion),
-                    UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.DeviceModel),
-                    UnityCompatibility.WebRequest.EscapeURL(GamebaseUnitySDK.OsVersion),
+                    UnityCompatibility.WebRequest.EscapeURL(GamebaseSystemInfo.DeviceModel),
+                    UnityCompatibility.WebRequest.EscapeURL(GamebaseSystemInfo.OsVersion),
                     UnityCompatibility.WebRequest.EscapeURL(GamebaseImplementation.Instance.GetCountryCodeOfDevice()),
-                    string.Empty
+                    string.Empty,
+                    UnityCompatibility.WebRequest.EscapeURL(GamebaseSystemInfo.Platform)
                     );
             }
+            
+            url = AddAdditionalParametersToCsUrl(url, configuration);
 
-            if (configuration != null && configuration.extraData != null && configuration.extraData.Count > 0)
-            {
-                string extraData = JsonMapper.ToJson(configuration.extraData);
-                url = string.Format(
-                    "{0}&extraData={1}",
-                    url,
-                    UnityCompatibility.WebRequest.EscapeURL(extraData));
-            }
-
-            return url;
+            return AddExtraDataToCsUrl(url, configuration);
         }
 
         private string GetCustomCsUrl(GamebaseRequest.Contact.Configuration configuration)
         {
-            string url = launchingInfo.launching.app.customerService.url;
+            string url = AddAdditionalUrlToCsUrl(configuration);
+            
+            url = AddAdditionalParametersToCsUrl(url, configuration);
 
-            if (configuration != null && string.IsNullOrEmpty(configuration.additionalURL) == false)
-            {
-                url = string.Format(
-                    "{0}{1}",
-                    url,
-                    configuration.additionalURL);
-            }
-
-            if (configuration != null && configuration.extraData != null && configuration.extraData.Count > 0)
-            {
-                string extraData = JsonMapper.ToJson(configuration.extraData);
-                url = string.Format(
-                    "{0}?extraData={1}",
-                    url,
-                    UnityCompatibility.WebRequest.EscapeURL(extraData));
-            }
-
-            return url;
-        }
-
-        private string GetDefaultCsUrl(GamebaseRequest.Contact.Configuration configuration)
-        {
-            GamebaseIndicatorReport.SendIndicatorData(
-                GamebaseIndicatorReportType.LogType.COMMON,
-                GamebaseIndicatorReportType.StabilityCode.GB_COMMON_WRONG_USAGE,
-                GamebaseIndicatorReportType.LogLevel.ERROR,
-                new Dictionary<string, string>()
-                {
-                    { GamebaseIndicatorReportType.AdditionalKey.GB_FUNCTION_NAME, "GamebaseContact.OpenContact" },
-                    { GamebaseIndicatorReportType.AdditionalKey.GB_ERROR_LOG, string.Format("Invalid csType : {0}", launchingInfo.launching.app.customerService.type) }
-                });
-
-            return GetCustomCsUrl(configuration);
+            return AddExtraDataToCsUrl(url, configuration);
         }
 
         private string MakeBaseUrl(string url)
@@ -372,16 +288,86 @@ namespace Toast.Gamebase.Internal.Single
             return baseUrl;
         }
 
-        private string GetUserName(GamebaseRequest.Contact.Configuration configuration)
+        private string GetUserNameInConfiguration(GamebaseRequest.Contact.Configuration configuration)
         {
-            string userName = string.Empty;
-
-            if (configuration != null && string.IsNullOrEmpty(configuration.userName) == false)
+            if (configuration == null)
             {
-                userName = UnityCompatibility.WebRequest.EscapeURL(configuration.userName);
+                return string.Empty;
             }
 
-            return userName;
+            if (string.IsNullOrEmpty(configuration.userName) == true)
+            {
+                return string.Empty;
+            }
+            
+            return UnityCompatibility.WebRequest.EscapeURL(configuration.userName);
+        }
+
+        private string AddAdditionalUrlToCsUrl(GamebaseRequest.Contact.Configuration configuration)
+        {
+            var url = launchingInfo.launching.app.customerService.url;
+
+            if (configuration == null)
+            {
+                return url;
+            }
+
+            if (string.IsNullOrEmpty(configuration.additionalURL) == true)
+            {
+                return url;
+            }
+
+            return string.Concat(url, configuration.additionalURL);
+        }
+
+        private string AddAdditionalParametersToCsUrl(string url, GamebaseRequest.Contact.Configuration configuration)
+        {
+            if (configuration == null)
+            {
+                return url;
+            }
+
+            var additionalParameters = configuration.additionalParameters;
+            if (additionalParameters == null || additionalParameters.Count == 0)
+            {
+                return url;
+            }
+
+            string urlParams = string.Empty;
+
+            foreach (KeyValuePair<string, string> additionalParameter in additionalParameters)
+            {
+                if (string.IsNullOrEmpty(additionalParameter.Key) == true || string.IsNullOrEmpty(additionalParameter.Value) == true)
+                {
+                    continue;
+                }
+
+                urlParams = string.Format(
+                    "{0}&{1}={2}",
+                    urlParams,
+                    UnityCompatibility.WebRequest.EscapeURL(additionalParameter.Key),
+                    UnityCompatibility.WebRequest.EscapeURL(additionalParameter.Value));
+            }
+
+            return string.Concat(url, urlParams);
+        }
+
+        private string AddExtraDataToCsUrl(string url, GamebaseRequest.Contact.Configuration configuration)
+        {
+            if (configuration == null)
+            {
+                return url;
+            }
+
+            if (configuration.extraData == null || configuration.extraData.Count == 0)
+            {
+                return url;
+            }
+
+            return string.Format(
+                "{0}&extraData={1}",
+                url,
+                UnityCompatibility.WebRequest.EscapeURL(JsonMapper.ToJson(configuration.extraData)));
         }
     }
 }

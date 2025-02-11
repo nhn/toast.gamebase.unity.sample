@@ -30,7 +30,15 @@ namespace Toast.Gamebase.Internal.Single
                     }
                 case GamebaseServerErrorCode.NOT_AUTHENTICATED:
                     {
-                        errorCode = GamebaseErrorCode.NOT_LOGGED_IN;
+                        if (apiId.Equals(Lighthouse.API.Presence.ID.HEARTBEAT, StringComparison.Ordinal) == true)
+                        {
+                            errorCode = GamebaseErrorCode.AUTH_INVALID_GAMEBASE_TOKEN;
+                        }
+                        else
+                        {
+                            errorCode = GamebaseErrorCode.NOT_LOGGED_IN;
+                        }
+
                         break;
                     }
                 case GamebaseServerErrorCode.UNKNOWN_SYSTEM:
@@ -59,7 +67,15 @@ namespace Toast.Gamebase.Internal.Single
                 //----------------------------------------
                 case GamebaseServerErrorCode.LIGHT_HOUSE_NOT_AUTHENTICATED:
                     {
-                        errorCode = GamebaseErrorCode.NOT_LOGGED_IN;
+                        if (apiId.Equals(Lighthouse.API.Presence.ID.HEARTBEAT, StringComparison.Ordinal) == true)
+                        {
+                            errorCode = GamebaseErrorCode.AUTH_INVALID_GAMEBASE_TOKEN;
+                        }
+                        else
+                        {
+                            errorCode = GamebaseErrorCode.NOT_LOGGED_IN;
+                        }
+
                         break;
                     }
                 case GamebaseServerErrorCode.LIGHT_HOUSE_NO_SUCH_REQUEST_API:
@@ -336,7 +352,21 @@ namespace Toast.Gamebase.Internal.Single
                         errorCode = GamebaseErrorCode.SERVER_INTERNAL_ERROR;
                         break;
                     }
-
+                case GamebaseServerErrorCode.CANNOT_FIND_DEPLOY_TERMS:
+                    {
+                        errorCode = GamebaseErrorCode.UI_TERMS_NOT_EXIST_IN_CONSOLE;
+                        break;
+                    }
+                case GamebaseServerErrorCode.CANNOT_FIND_DEFAULT_TERMS:
+                    {
+                        errorCode = GamebaseErrorCode.UI_TERMS_NOT_EXIST_FOR_DEVICE_COUNTRY;
+                        break;
+                    }
+                case GamebaseServerErrorCode.ILLEGAL_TERMS_SEQUENCE_NUMBER:
+                    {
+                        errorCode = GamebaseErrorCode.UI_TERMS_UNREGISTERED_SEQ;
+                        break;
+                    }
                 default:
                     {
                         errorCode = GamebaseErrorCode.UNKNOWN_ERROR;

@@ -15,7 +15,7 @@ namespace Toast.Gamebase.Internal.Single
 
         public IPurchaseAdapter adapter;
 
-        public bool CreateIDPAdapter(string moduleName)
+        public bool CreateIAPAdapter(string moduleName)
         {
             if (adapter != null)
             {

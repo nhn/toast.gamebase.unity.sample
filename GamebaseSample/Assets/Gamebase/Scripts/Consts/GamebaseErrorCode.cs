@@ -32,13 +32,13 @@
 
         public const int IOS_GAMECENTER_DENIED                              = 51; // <IOS ONLY>
 
-        public const int UNKNOWN_ERROR                                      = 999;
-
         //----------------------------------------
         //  Network (Socket)
         //----------------------------------------
         public const int SOCKET_RESPONSE_TIMEOUT                            = 101;
         public const int SOCKET_ERROR                                       = 110;
+
+        public const int SOCKET_UNKNOWN_ERROR                               = 999;
 
         //----------------------------------------
         //  Launching
@@ -57,6 +57,7 @@
         public const int AUTH_EXTERNAL_LIBRARY_INITIALIZATION_ERROR         = 3006;
         public const int AUTH_EXTERNAL_LIBRARY_ERROR                        = 3009;
         public const int AUTH_ALREADY_IN_PROGRESS_ERROR                     = 3010;
+        public const int AUTH_INVALID_GAMEBASE_TOKEN                        = 3011;
         // transferAccount
         public const int AUTH_TRANSFERACCOUNT_EXPIRED                       = 3041;
         public const int AUTH_TRANSFERACCOUNT_BLOCK                         = 3042;
@@ -74,6 +75,7 @@
         // idPLogin
         public const int AUTH_IDP_LOGIN_FAILED                              = 3201;
         public const int AUTH_IDP_LOGIN_INVALID_IDP_INFO                    = 3202;
+        public const int AUTH_IDP_LOGIN_EXTERNAL_AUTHENTICATION_REQUIRED    = 3203;
         // addMapping
         public const int AUTH_ADD_MAPPING_FAILED                            = 3301;
         public const int AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER    = 3302;
@@ -129,20 +131,34 @@
         public const int PUSH_UNKNOWN_ERROR                                 = 5999;
 
         //----------------------------------------
+        //  Logger
+        //----------------------------------------
+        public const int LOGGER_NOT_INITIALIZED                             = 6001;
+        
+        public const int LOGGER_EXTERNAL_LIBRARY_ERROR                      = 6048;
+        
+        public const int LOGGER_UNKNOWN_ERROR                               = 6049;
+        
+        //----------------------------------------
         //  UI
         //----------------------------------------  
-        public const int LOGGER_NOT_INITIALIZED                             = 6001;
-        public const int LOGGER_EXTERNAL_LIBRARY_ERROR                      = 6048;
-        public const int LOGGER_UNKNOWN_ERROR                               = 6049;
         public const int UI_IMAGE_NOTICE_TIMEOUT                            = 6901;
+        public const int UI_IMAGE_NOTICE_NOT_SUPPORTED_OS                   = 6902;
+        
         public const int UI_CONTACT_FAIL_INVALID_URL                        = 6911;
         public const int UI_CONTACT_FAIL_ISSUE_SHORT_TERM_TICKET            = 6912;
         public const int UI_CONTACT_FAIL_ANDROID_DUPLICATED_VIEW            = 6913;
+        
         public const int UI_TERMS_NOT_EXIST_IN_CONSOLE                      = 6921;
         public const int UI_TERMS_NOT_EXIST_FOR_DEVICE_COUNTRY              = 6922;
         public const int UI_TERMS_UNREGISTERED_SEQ                          = 6923;
         public const int UI_TERMS_ALREADY_IN_PROGRESS_ERROR                 = 6924;
         public const int UI_TERMS_ANDROID_DUPLICATED_VIEW                   = 6925;
+
+        public const int UI_COMMUNITY_FAIL_INVALID_URL                      = 6931;
+        public const int UI_COMMUNITY_FAIL_ISSUE_SHORT_TERM_TICKET          = 6932;
+        public const int UI_COMMUNITY_FAIL_ANDROID_DUPLICATED_VIEW          = 6933;
+
         public const int UI_UNKNOWN_ERROR                                   = 6999;
 
         //----------------------------------------
@@ -152,6 +168,7 @@
         public const int WEBVIEW_TIMEOUT                                    = 7002;
         public const int WEBVIEW_HTTP_ERROR                                 = 7003;
         public const int WEBVIEW_OPENED_NEW_BROWSER_BEFORE_CLOSE            = 7004; // <ANDROID ONLY>
+        
         public const int WEBVIEW_UNKNOWN_ERROR                              = 7999;
 
         //----------------------------------------
@@ -159,9 +176,14 @@
         //----------------------------------------
         public const int SERVER_INTERNAL_ERROR                              = 8001;
         public const int SERVER_REMOTE_SYSTEM_ERROR                         = 8002;
-
+        public const int SERVER_INVALID_RESPONSE                            = 8003;
         public const int SERVER_UNKNOWN_ERROR                               = 8999;
 
+        //----------------------------------------
+        //  Unknown error
+        //----------------------------------------
+        public const int UNKNOWN_ERROR                                      = 9999;
+        
         //----------------------------------------
         //  Platform specified errors (iOS)
         //----------------------------------------

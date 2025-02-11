@@ -86,16 +86,27 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         
         public void Initialize()
         {
-            if (string.IsNullOrEmpty(Lighthouse.URI) == true)
-            {
-                Lighthouse.URI = Lighthouse.ZoneType.REAL.GetEnumMemberValue();
-            }
-            socket.Initialize(Lighthouse.URI);
+            socket.Initialize(Lighthouse.GetAddress());
         }
 
         public IEnumerator Connect(GamebaseCallback.ErrorDelegate callback)
         {
-            yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Connect(callback));            
+            yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, InternetReachability((reachable) =>
+            {
+                if (reachable == true)
+                {
+                    GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Connect(callback));
+                }
+                else
+                {
+                    if (callback == null)
+                    {
+                        return;
+                    }
+
+                    callback(new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, Domain, GamebaseStrings.SOCKET_NO_INTERNET_CONNECTION));
+                }
+            }));
         }
 
         public void Disconnect()
@@ -163,8 +174,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 yield break;
             }
             GamebaseLog.Debug(string.Format("Send Count:{0}", requestQueueItem.retryCount), this);
-            GamebaseLog.Debug(string.Format("request:{0}", GamebaseJsonUtil.ToPrettyJsonString(requestQueueItem.requestVO)), this);
-         
+            GamebaseLog.Debug(string.Format("request:{0}", GamebaseJsonUtil.ToPretty(JsonMapper.ToJson(requestQueueItem.requestVO))), this);
+
             yield return GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, socket.Send(JsonMapper.ToJson(requestQueueItem.requestVO), (error) =>
             {
                 if (error == null)
@@ -275,17 +286,22 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
         private void RecvEvent(string response)
         {
-            GamebaseLog.Debug(GamebaseJsonUtil.ToPrettyJsonString(response), this);
+            GamebaseLog.Debug(GamebaseJsonUtil.ToPretty(response), this);
 
             ProtocolResponse protocol = JsonMapper.ToObject<ProtocolResponse>(response);
 
-            if (null != protocol.header.serverPush)
+            if (protocol.header.serverPush != null)
             {
                 ServerPush.Instance.OnServerPush(response);
                 return;
             }
-            
-            if(protocol.header.transactionId == requestQueueItem.requestVO.transactionId)
+
+            if (requestQueueItem == null || requestQueueItem.requestVO == null)
+            {
+                return;
+            }
+
+            if (protocol.header.transactionId == requestQueueItem.requestVO.transactionId)
             {                
                 if (requestQueueItem.callback != null)
                 {
@@ -342,11 +358,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 #else
             internetReachability = Gamebase.Network.IsConnected();
 #endif
-            
-            if (callback != null)
-            {
-                callback(internetReachability);
-            }
+            callback?.Invoke(internetReachability);
             yield return null;
         }
 
