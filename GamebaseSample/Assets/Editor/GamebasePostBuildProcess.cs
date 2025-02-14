@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_IOS
+
+using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using System.IO;
@@ -158,3 +160,4 @@ public class GamebasePostBuildProcess
         proj.AddCapability(target, PBXCapabilityType.PushNotifications);
     }
 }
+#endif
