@@ -1,0 +1,53 @@
+
+{
+    "activePlatform" : [
+        "Android",
+        "iOS"
+    ],
+    "selections"     : [
+        {
+            "platform" : "Android",
+            "adapter"  : "Payco"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "Payco"
+        },
+        {
+            "platform" : "Android",
+            "adapter"  : "Facebook"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "Facebook"
+        },
+        {
+            "platform" : "Android",
+            "adapter"  : "Google"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "Google"
+        },
+        {
+            "platform" : "Android",
+            "adapter"  : "IapGoogle"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "IapAppStore"
+        },
+        {
+            "platform" : "Android",
+            "adapter"  : "FCM"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "APNs"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "Gamecenter"
+        }
+    ]
+}

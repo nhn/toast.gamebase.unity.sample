@@ -1,9 +1,11 @@
 ﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
+using GamePlatform.Logger;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Toast.Gamebase.Internal.Single;
 using Toast.Gamebase.Internal.Single.Communicator;
 using Toast.Gamebase.LitJson;
-using Toast.Logger;
 using UnityEngine;
 
 namespace Toast.Gamebase.Internal
@@ -54,8 +56,6 @@ namespace Toast.Gamebase.Internal
         public const string GB_CARRIER = "GBCarrier";
         public const string GB_DEVICE_MODEL = "GBDeviceModel";
 
-
-
         public const string GB_EXCEPTION = "txtGBException";
         public const string GB_ERROR_CODE = "GBErrorCode";
         public const string GB_ERROR_DOMAIN = "GBErrorDomain";
@@ -70,14 +70,10 @@ namespace Toast.Gamebase.Internal
         public const string KEY_LAST_LOGGEDIN_IDP = "KEY_LAST_LOGGEDIN_IDP";
         public const string KEY_LAST_LOGGEDIN_USERID = "KEY_LAST_LOGGEDIN_USERID";
 
-        private const int APP_KEY_VERSION = 1;
-        private const int INIT_FAIL_COUNT = 5;
-
         public static LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability stability = new LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability();
         
         public static Dictionary<string, string> basicDataDictionary;
-
-        private static InstanceLogger logger;
+        private static readonly Queue<IndicatorItem> queue = new Queue<IndicatorItem>();
 
         private static string platform = string.Empty;
 
@@ -96,47 +92,86 @@ namespace Toast.Gamebase.Internal
 
             string filePath = Path.Combine(Application.streamingAssetsPath, "Gamebase/defaultstability.json");
 
-            GamebaseStringLoader lcalFileLoader = new GamebaseStringLoader();
-            lcalFileLoader.LoadStringFromFile(
-                filePath,
-                (jsonString) => 
+            var localFileLoader = new GamebaseStringLoader();
+            localFileLoader.LoadStringFromFile(filePath, (jsonString) => 
+            {
+                if (string.IsNullOrEmpty(jsonString) == false)
                 {
-                    if (string.IsNullOrEmpty(jsonString) == false)
+                    jsonString = GamebaseEncryptUtilHelper.DecryptDefaultStabilityEncryptedKey(jsonString);
+
+                    var stabilityDictionary = JsonMapper.ToObject<Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability>>(jsonString);
+                    if (stabilityDictionary != null)
                     {
-                        GamebaseLog.Debug(
-                            string.Format(
-                                "jsonString : {0}", 
-                                jsonString),
-                            typeof(GamebaseIndicatorReport));
-                        Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability> stabilityDictionary = JsonMapper.ToObject<Dictionary<string, LaunchingResponse.LaunchingInfo.Launching.TCGBClient.Stability>>(jsonString);
-                        if (stabilityDictionary != null)
+                        if(string.IsNullOrEmpty(GamebaseUnitySDK.ZoneType) == true)
                         {
-                            if(string.IsNullOrEmpty(GamebaseUnitySDK.ZoneType) == true)
-                            {
-                                GamebaseUnitySDK.ZoneType = "real";
-                            }
-
-                            GamebaseIndicatorReport.stability = stabilityDictionary[GamebaseUnitySDK.ZoneType.ToLower()];
+                            GamebaseUnitySDK.ZoneType = "real";
                         }
+
+                        GamebaseIndicatorReport.stability = stabilityDictionary[GamebaseUnitySDK.ZoneType.ToLower()];
                     }
+                }
 
-                    CreateBaseData();
-                    SetStability(stability);
-                    CreateInstanceLogger();
+                CreateBaseData();
+                SetStability(stability);
+                CreateInstanceLogger();
 
-                    callback();                    
-                });           
+                GamebaseJsonUtil.AddBlackList(LaunchingInfoHelper.GetSecurityBlacklist());
+
+                callback();
+
+                GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.CORE_TYPE, SendIndicatorInQueue());
+            });           
         }
 
         public static void SetLastLoggedInInfo(string idP, string userId)
         {
-            Dictionary<string, string> lastLoggedInInfoDictionary = new Dictionary<string, string>();
-            lastLoggedInInfoDictionary.Add(GB_LAST_LOGGEDIN_IDP, idP);
-            lastLoggedInInfoDictionary.Add(GB_LAST_LOGGEDIN_USER_ID, userId);
+            var lastLoggedInInfoDictionary = new Dictionary<string, string>
+            {
+                { GB_LAST_LOGGEDIN_IDP, idP },
+                { GB_LAST_LOGGEDIN_USER_ID, userId }
+            };
 
             MergeDictionary(ref basicDataDictionary, lastLoggedInInfoDictionary);
         }
-        
+
+        public class IndicatorItem
+        {
+            public string logType;
+            public string stabilityCode;
+            public string logLevel;
+            public Dictionary<string, string> customFields;
+            public GamebaseError error = null;
+            public bool isUserCanceled = false;
+            public bool isExternalLibraryError = false;
+        }
+
+        public static void AddIndicatorItem(IndicatorItem item)
+        {
+            queue.Enqueue(item);
+        }
+
+        private static IEnumerator SendIndicatorInQueue()
+        {
+            IndicatorItem item;
+
+            while (true)
+            {
+                if (queue.Count > 0)
+                {
+                    item = queue.Dequeue();
+                    SendIndicatorData(
+                        item.logType,
+                        item.stabilityCode,
+                        item.logLevel,
+                        item.customFields,
+                        item.error,
+                        item.isUserCanceled,
+                        item.isExternalLibraryError);
+                }
+                yield return new WaitForSecondsRealtime(0.1f);
+            }
+        }
+
         public static void SendIndicatorData(
             string logType,
             string stabilityCode,
@@ -156,9 +191,37 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            Dictionary<string, string> userFields =  MakeindicatorDictionary(stabilityCode, customFields, error, isUserCanceled, isExternalLibraryError);
-                        
-            logger.Log(logType, (ToastLogLevel)ConvertLogLevelToEnum(logLevel), stabilityCode, userFields);
+            GpLogLevel level = (GpLogLevel)ConvertLogLevelToEnum(logLevel);
+            Dictionary<string, string> userFields = GetUserField(stabilityCode, customFields, error, isUserCanceled, isExternalLibraryError);
+
+            switch (level)
+            {
+                case GpLogLevel.DEBUG:
+                    {
+                        GpLogger.Debug(stability.appKey, stabilityCode, userFields, logType);
+                        break;
+                    }
+                case GpLogLevel.INFO:
+                    {
+                        GpLogger.Info(stability.appKey, stabilityCode, userFields, logType);
+                        break;
+                    }
+                case GpLogLevel.WARN:
+                    {
+                        GpLogger.Warn(stability.appKey, stabilityCode, userFields, logType);
+                        break;
+                    }
+                case GpLogLevel.ERROR:
+                    {
+                        GpLogger.Error(stability.appKey, stabilityCode, userFields, logType);
+                        break;
+                    }
+                case GpLogLevel.FATAL:
+                    {
+                        GpLogger.Fatal(stability.appKey, stabilityCode, userFields, logType);
+                        break;
+                    }
+            }
         }
 
         public static LogLevel GetLogLevel()
@@ -166,14 +229,14 @@ namespace Toast.Gamebase.Internal
             return ConvertLogLevelToEnum(stability.logLevel);
         }
 
-        private static Dictionary<string, string> MakeindicatorDictionary(
+        private static Dictionary<string, string> GetUserField(
             string stabilityCode,
             Dictionary<string, string> customFields,
             GamebaseError error,
             bool isUserCanceled,
             bool isExternalLibraryError)
         {
-            Dictionary<string, string> indicatorDictionary = new Dictionary<string, string>();
+            var indicatorDictionary = new Dictionary<string, string>();
 
             if (string.IsNullOrEmpty(stabilityCode) == false)
             {
@@ -262,27 +325,33 @@ namespace Toast.Gamebase.Internal
 
         private static void CreateInstanceLogger()
         {
-            ToastServiceZone zone;
+            GamePlatform.Logger.ServiceZone zone;
             switch (GamebaseUnitySDK.ZoneType.ToLower())
             {
                 case "alpha":
                     {
-                        zone = ToastServiceZone.ALPHA;
+                        zone = GamePlatform.Logger.ServiceZone.ALPHA;
                         break;
                     }
                 case "beta":
                     {
-                        zone = ToastServiceZone.BETA;
+                        zone = GamePlatform.Logger.ServiceZone.ALPHA;
                         break;
                     }
                 default:
                     {
-                        zone = ToastServiceZone.REAL;
+                        zone = GamePlatform.Logger.ServiceZone.REAL;
                         break;
                     }
             }
 
-            logger = new InstanceLogger(stability.appKey, zone);
+            var param = new GpLoggerParams.Initialization(stability.appKey)
+            {
+                serviceZone = zone
+            };
+
+            GpLogger.Initialize(param, false);
+
         }
 
         private static void CreateBaseData()
@@ -298,7 +367,7 @@ namespace Toast.Gamebase.Internal
                 { GB_SERVER_API_VERSION, Lighthouse.API.VERSION },
                 { GB_LAST_LOGGEDIN_IDP, ""},
                 { GB_LAST_LOGGEDIN_USER_ID, ""},
-                { GB_GUEST_UUID, GamebaseUnitySDK.UUID },
+                { GB_GUEST_UUID, GamebaseSystemInfo.UUID },
                 { GB_DEVICE_LANGUAGE_CODE, Gamebase.GetDeviceLanguageCode() },
                 { GB_DISPLAY_LANGUAGE_CODE, Gamebase.GetDisplayLanguageCode() },
                 { GB_COUNTRY_CODE_USIM, string.Empty },

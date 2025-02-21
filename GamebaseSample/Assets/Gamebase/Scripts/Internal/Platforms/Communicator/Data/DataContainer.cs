@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Toast.Gamebase.Internal.Single.Communicator;
 
 namespace Toast.Gamebase.Internal
 {

@@ -2,7 +2,8 @@
 {
     public class ProgressInfo
     {
-        public string downloadFileName;
+        public string title;
+        public string desc;
         public float progress;
     }
 }

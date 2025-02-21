@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS
 using System;
 using System.Collections.Generic;
 using Toast.Gamebase.LitJson;
@@ -13,6 +13,7 @@ namespace Toast.Gamebase.Internal.Mobile
             public const string AUTH_API_LOGIN_ADDITIONAL_INFO                  = "gamebase://loginWithAdditionalInfo";
             public const string AUTH_API_LOGIN_CREDENTIAL_INFO                  = "gamebase://loginWithCredentialInfo";
             public const string AUTH_API_LOGIN_FOR_LAST_LOGGED_IN_PROVIDER      = "gamebase://loginForLastLoggedInProvider";
+            public const string AUTH_API_LOGIN_FOR_LAST_LOGGED_IN_PROVIDER_ADDITIONAL_INFO = "gamebase://loginForLastLoggedInProviderWithAdditionalInfo";
             public const string AUTH_API_CHANGE_LOGIN                           = "gamebase://changeLoginWithForcingMappingTicket";
             public const string AUTH_API_LOGOUT                                 = "gamebase://logout";
             public const string AUTH_API_ADD_MAPPING                            = "gamebase://addMapping";
@@ -55,6 +56,7 @@ namespace Toast.Gamebase.Internal.Mobile
             DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_LOGIN_ADDITIONAL_INFO,                DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>);
             DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_LOGIN_CREDENTIAL_INFO,                DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>, OnLogin);
             DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_LOGIN_FOR_LAST_LOGGED_IN_PROVIDER,    DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>);
+            DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_LOGIN_FOR_LAST_LOGGED_IN_PROVIDER_ADDITIONAL_INFO, DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>);
             DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_CHANGE_LOGIN,                         DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>);
             DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_ADD_MAPPING,                          DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>);
             DelegateManager.AddDelegate(GamebaseAuth.AUTH_API_ADD_MAPPING_CREDENTIAL_INFO,          DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Auth.AuthToken>, OnAddMapping);
@@ -124,6 +126,22 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
+        public virtual void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, int handle)
+        {
+            var vo = new NativeRequest.Auth.LoginForLastLoggedInProviderWithAdditionalInfo
+            {
+                additionalInfo = additionalInfo
+            };
+
+            string jsonData = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebaseAuth.AUTH_API_LOGIN_FOR_LAST_LOGGED_IN_PROVIDER_ADDITIONAL_INFO,
+                    handle: handle,
+                    jsonData: JsonMapper.ToJson(vo)
+                ));
+            messageSender.GetAsync(jsonData);
+        }
+        
         virtual public void ChangeLogin(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, int handle)
         {
             string jsonData = JsonMapper.ToJson(

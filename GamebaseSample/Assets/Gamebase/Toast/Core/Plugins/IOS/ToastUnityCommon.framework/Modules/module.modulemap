@@ -1,6 +1,0 @@
-framework module ToastUnityCommon {
-  umbrella header "ToastUnityCommon.h"
-
-  export *
-  module * { export * }
-}

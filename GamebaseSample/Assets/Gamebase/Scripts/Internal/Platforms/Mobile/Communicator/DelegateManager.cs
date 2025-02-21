@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal.Mobile
@@ -47,14 +48,25 @@ namespace Toast.Gamebase.Internal.Mobile
                 return;
             }
             
-            if(typeof(string) == typeof(T))
+            if (typeof(T) == typeof(string))
             {
                 callback((T)(object)message.jsonData, message.GetGamebaseError());
                 return;
             }
 
-            var vo = JsonMapper.ToObject<T>(message.jsonData);
+            if (typeof(T) == typeof(bool))
+            {
+                bool result;
+                if (bool.TryParse(message.jsonData, out result) == false)
+                {
+                    throw new InvalidCastException();
+                }
+                
+                callback((T)(object)result, message.GetGamebaseError());
+                return;
+            }
 
+            var vo = JsonMapper.ToObject<T>(message.jsonData);
             callback(vo, message.GetGamebaseError());
         }
 
@@ -71,12 +83,24 @@ namespace Toast.Gamebase.Internal.Mobile
                 return;
             }
 
-            if (typeof(string) == typeof(T))
+            if (typeof(T) == typeof(string))
             {
                 callback((T)(object)message.jsonData);
                 return;
             }
 
+            if (typeof(T) == typeof(bool))
+            {
+                bool result;
+                if (bool.TryParse(message.jsonData, out result) == false)
+                {
+                    throw new InvalidCastException();
+                }
+                
+                callback((T)(object)result);
+                return;
+            }
+            
             var vo = JsonMapper.ToObject<T>(message.jsonData);
 
             callback(vo);

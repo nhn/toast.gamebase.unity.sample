@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Toast.Gamebase.Internal
 {
-    public class AdapterFactory
+    public static class AdapterFactory
     {
         public static T CreateAdapter<T>(string adapterName)
         {
-            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().
-                SelectMany(selector => selector.GetTypes()).
-                Where(predicate => typeof(T).IsAssignableFrom(predicate));
-            
-            foreach (Type type in types)
+            var assembly = AppDomain.CurrentDomain.Load("Assembly-CSharp");
+            var type = assembly.GetTypes().SingleOrDefault((t) =>
             {
-                if (type.Name.ToLower() == adapterName.ToLower())
-                {
-                    return (T)Activator.CreateInstance(type);
-                }
+                return t.Name.Equals(adapterName, StringComparison.OrdinalIgnoreCase);
+            });
+
+            if (type == null)
+            {
+                return default(T);
             }
 
-            return default(T);
+            return (T)Activator.CreateInstance(type);
         }
     }
 }

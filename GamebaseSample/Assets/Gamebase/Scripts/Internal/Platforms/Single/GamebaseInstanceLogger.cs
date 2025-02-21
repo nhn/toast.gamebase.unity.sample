@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Toast.Logger;
+﻿using GamePlatform.Logger;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Toast.Gamebase.Internal
@@ -13,25 +13,32 @@ namespace Toast.Gamebase.Internal
             get { return instance; }
         }
 
-        private InstanceLogger logger;
         private bool isInitialized;
+
+        private string appKey;
 
         public void Initialize(string appKey, string zone)
         {
             isInitialized = true;
+            this.appKey = appKey;
 
-            ToastServiceZone zoneType = ToastServiceZone.REAL;
+            GamePlatform.Logger.ServiceZone zoneType = GamePlatform.Logger.ServiceZone.REAL;
 
             if (zone.ToLower().Equals("beta") == true)
             {
-                zoneType = ToastServiceZone.BETA;
+                zoneType = GamePlatform.Logger.ServiceZone.ALPHA;
             }
             else if (zone.ToLower().Equals("alpha") == true)
             {
-                zoneType = ToastServiceZone.ALPHA;
+                zoneType = GamePlatform.Logger.ServiceZone.ALPHA;
             }
 
-            logger = new InstanceLogger(appKey, zoneType);
+            var param = new GpLoggerParams.Initialization(appKey)
+            {
+                serviceZone = zoneType
+            };
+
+            GpLogger.Initialize(param, false);
         }
 
         public void Debug(string logType, string message, IDictionary<string, string> userFields = null)
@@ -42,7 +49,7 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            logger.Debug(logType, message, MakeFields(userFields));
+            GpLogger.Debug(appKey, message, MakeFields(userFields), logType);
         }
 
         public void Info(string logType, string message, IDictionary<string, string> userFields = null)
@@ -53,7 +60,7 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            logger.Info(logType, message, MakeFields(userFields));
+            GpLogger.Info(appKey, message, MakeFields(userFields), logType);
         }
 
         public void Warn(string logType, string message, IDictionary<string, string> userFields = null)
@@ -64,7 +71,7 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            logger.Warn(logType, message, MakeFields(userFields));
+            GpLogger.Warn(appKey, message, MakeFields(userFields), logType);
         }
 
         public void Error(string logType, string message, IDictionary<string, string> userFields = null)
@@ -75,7 +82,7 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            logger.Error(logType, message, MakeFields(userFields));
+            GpLogger.Error(appKey, message, MakeFields(userFields), logType);
         }
 
         public void Fatal(string logType, string message, IDictionary<string, string> userFields = null)
@@ -86,14 +93,14 @@ namespace Toast.Gamebase.Internal
                 return;
             }
 
-            logger.Fatal(logType, message, MakeFields(userFields));
+            GpLogger.Fatal(appKey, message, MakeFields(userFields), logType);
         }
 
         public Dictionary<string, string> MakeFields(IDictionary<string, string> userFields)
         {
             return new Dictionary<string, string>(userFields)
             {
-                {"GBPlatform", GamebaseUnitySDK.Platform},
+                {"GBPlatform", GamebaseSystemInfo.Platform},
                 {"GBProjectAppID", GamebaseUnitySDK.AppID},
                 {"GBAppClientVersion", GamebaseUnitySDK.AppVersion},
                 {"GBLaunchingZone", GamebaseUnitySDK.ZoneType.ToLower()},
@@ -103,7 +110,7 @@ namespace Toast.Gamebase.Internal
                 {"GBServerStaticsStoreCode", GamebaseUnitySDK.StoreCode},
                 {"GBInternalReportVersion", "v1"},
                 {"GBLastLoggedInIDP", Gamebase.GetLastLoggedInProvider()},
-                {"GBGuestUUID", GamebaseUnitySDK.UUID},            
+                {"GBGuestUUID", GamebaseSystemInfo.UUID},            
                 {"GBDeviceLanguageCode", Gamebase.GetDeviceLanguageCode()},
                 {"GBDisplayLanguageCode", Gamebase.GetDisplayLanguageCode()},
                 {"GBCountryCodeUSIM", Gamebase.GetCountryCodeOfUSIM()},

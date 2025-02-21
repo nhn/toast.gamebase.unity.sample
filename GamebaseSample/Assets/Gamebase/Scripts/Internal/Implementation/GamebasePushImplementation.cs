@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR && UNITY_ANDROID
+#if !UNITY_EDITOR && UNITY_ANDROID
 using Toast.Gamebase.Internal.Mobile.Android;
 #elif !UNITY_EDITOR && UNITY_IOS
 using Toast.Gamebase.Internal.Mobile.IOS;
@@ -72,6 +72,13 @@ namespace Toast.Gamebase.Internal
         {
             GamebaseGameInformationReport.Instance.AddApiName();
             return push.GetNotificationOptions();
+        }
+
+        public void QueryNotificationAllowed(GamebaseCallback.GamebaseDelegate<bool> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            push.QueryNotificationAllowed(handle);
         }
     }
 }

@@ -77,7 +77,31 @@ namespace GamebaseSample
         {
             switch (message.category)
             {
+                case GamebaseEventCategory.LOGGED_OUT:
+                    {
+
+                        GamebaseResponse.Event.GamebaseEventLoggedOutData loggedData = GamebaseResponse.Event.GamebaseEventLoggedOutData.From(message.data);
+                        if (loggedData != null)
+                        {
+                            // There was a problem with the access token.
+                            // Call login again.
+                        }
+
+                        break;
+                    }
+
+                case GamebaseEventCategory.IDP_REVOKED:
+                    {
+                        GamebaseResponse.Event.GamebaseEventIdPRevokedData idPRevokedData = GamebaseResponse.Event.GamebaseEventIdPRevokedData.From(message.data);
+                        if (idPRevokedData != null)
+                        {
+                            CheckIdpRevoked(idPRevokedData);
+                        }
+                        break;
+                    }
+
                 case GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT:
+                case GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT_MESSAGE_RECEIVED:
                 case GamebaseEventCategory.SERVER_PUSH_TRANSFER_KICKOUT:
                     {
                         GamebaseResponse.Event.GamebaseEventServerPushData serverPushData = GamebaseResponse.Event.GamebaseEventServerPushData.From(message.data);
@@ -172,12 +196,56 @@ namespace GamebaseSample
             }
         }
 
+        private void CheckIdpRevoked(GamebaseResponse.Event.GamebaseEventIdPRevokedData idPRevokedData)
+        {
+            switch (idPRevokedData.code)
+            {
+                case GamebaseIdPRevokedCode.WITHDRAW:
+                    {
+                        // Call Withdraw API.
+                        Gamebase.Withdraw((error) => { });
+                        break;
+                    }
+                case GamebaseIdPRevokedCode.OVERWRITE_LOGIN_AND_REMOVE_MAPPING:
+                    {
+                        // You must call RemoveMapping after calling overwrite login.
+                        foreach (var idp in idPRevokedData.authMappingList)
+                        {
+                            var additional = new Dictionary<string, object>();
+                            additional.Add(GamebaseAuthProviderCredential.IGNORE_ALREADY_LOGGED_IN, true);
+
+                            Gamebase.Login(idp, additional, (authToken, loginError) =>
+                            {
+                                if (Gamebase.IsSuccess(loginError) == true)
+                                {
+                                    Gamebase.RemoveMapping(idPRevokedData.idPType, (mappingError) => { });
+                                }
+                            });
+                        }
+                        break;
+                    }
+                case GamebaseIdPRevokedCode.REMOVE_MAPPING:
+                    {
+                        // Call RemoveMapping API.
+                        Gamebase.RemoveMapping(idPRevokedData.idPType, (error) => { });
+                        break;
+                    }
+            }
+        }
         void CheckServerPush(string category, GamebaseResponse.Event.GamebaseEventServerPushData data)
         {
             if (category.Equals(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT) == true)
             {
                 Gamebase.Util.ShowToast(
                     string.Format(TEXT_ENTER_MESSAGE, "APP_KICKOUT"),
+                    GamebaseUIToastType.TOAST_LENGTH_LONG);
+
+                EndSession();
+            }
+            if (category.Equals(GamebaseEventCategory.SERVER_PUSH_APP_KICKOUT_MESSAGE_RECEIVED) == true)
+            {
+                Gamebase.Util.ShowToast(
+                    string.Format(TEXT_ENTER_MESSAGE, "APP_KICKOUT_MESSAGE_RECEIVED"),
                     GamebaseUIToastType.TOAST_LENGTH_LONG);
 
                 EndSession();

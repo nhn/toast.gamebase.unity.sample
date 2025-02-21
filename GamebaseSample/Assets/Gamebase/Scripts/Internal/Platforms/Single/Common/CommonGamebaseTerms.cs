@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
 
-using System.Collections.Generic;
+using Toast.Gamebase.Internal.Single.Communicator;
+using Toast.Gamebase.LitJson;
 
 namespace Toast.Gamebase.Internal.Single
 {
@@ -12,8 +13,11 @@ namespace Toast.Gamebase.Internal.Single
         {
             get
             {
-                if (string.IsNullOrEmpty(domain))
+                if (string.IsNullOrEmpty(domain) == true)
+                {
                     return typeof(CommonGamebase).Name;
+                }
+                    
 
                 return domain;
             }
@@ -23,19 +27,94 @@ namespace Toast.Gamebase.Internal.Single
             }
         }
 
-        public void ShowTermsView(int handle)
+        public void ShowTermsView(GamebaseRequest.Terms.GamebaseTermsConfiguration configuration, int handle)
         {
             GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer>>(handle));
         }
-
+        
         public void UpdateTerms(GamebaseRequest.Terms.UpdateTermsConfiguration configuration, int handle)
         {
-            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(handle));
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.ErrorDelegate>(handle);
+            GamebaseCallbackHandler.UnregisterCallback(handle);
+
+            if (configuration == null)
+            {
+                callback?.Invoke(new GamebaseError(GamebaseErrorCode.INVALID_PARAMETER, Domain));
+                return;
+            }
+
+            if (GamebaseUnitySDK.IsInitialized == false)
+            {
+                callback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
+                return;
+            }
+
+            var requestVo = TermsMessage.GetUpdateTermsMessage(configuration);
+
+            if (requestVo == null)
+            {
+                callback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
+                return;
+            }
+
+            WebSocket.Instance.Request(requestVo, (response, error) =>
+            {
+                if (error != null)
+                {
+                    callback?.Invoke(error);
+                    return;
+                }
+
+                var vo = JsonMapper.ToObject<TermsResponse.UpdateTerms>(response);
+                if (vo.header.isSuccessful == false)
+                {
+                    error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVo.transactionId, requestVo.apiId, vo.header, Domain);
+                }
+
+                callback?.Invoke(error);
+            });
         }
 
         public void QueryTerms(int handle)
         {
-            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Terms.QueryTermsResult>>>(handle));
+            var callback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<GamebaseResponse.Terms.QueryTermsResult>>(handle);
+            GamebaseCallbackHandler.UnregisterCallback(handle);
+
+            if (GamebaseUnitySDK.IsInitialized == false)
+            {
+                callback?.Invoke(null, new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
+                return;
+            }
+
+            var requestVo = TermsMessage.GetQueryTermsMessage();
+            WebSocket.Instance.Request(requestVo, (response, error) =>
+            {
+                if (error != null)
+                {
+                    callback?.Invoke(null, error);
+                    return;
+                }
+
+                var vo = JsonMapper.ToObject<TermsResponse.QueryTerms>(response);
+                GamebaseResponse.Terms.QueryTermsResult queryTermsResult = null;
+
+                if (vo.header.isSuccessful == true)
+                {
+                    queryTermsResult = JsonMapper.ToObject<GamebaseResponse.Terms.QueryTermsResult>(JsonMapper.ToJson(vo.terms));
+                }
+                else
+                {
+                    error = GamebaseErrorUtil.CreateGamebaseErrorByServerErrorCode(requestVo.transactionId, requestVo.apiId, vo.header, Domain);
+                }
+
+                callback?.Invoke(queryTermsResult, error);
+            });
+        }
+        
+        public bool IsShowingTermsView()
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+            return false;
         }
     }
 }

@@ -1,129 +1,86 @@
 ﻿using NhnCloud.GamebaseTools.SettingTool.Data;
+using NhnCloud.GamebaseTools.SettingTool.ThirdParty;
 using NhnCloud.GamebaseTools.SettingTool.Util;
 using System;
 using System.Collections;
 using System.IO;
-using UnityEditor;
+using System.Reflection;
 using UnityEngine;
 
 namespace NhnCloud.GamebaseTools.SettingTool
 {
     public class GamebaseInfo : IDisposable
     {
-        private SettingToolCallback.DataDelegate<bool> changeGamebaseSdkDownloadStatus;
-
-        private bool _hasGamebaseSdk;
-
-        public bool HasGamebaseSdk
+        public static GamebaseVersion GetInstalledVersion()
         {
-            get
-            {
-                return _hasGamebaseSdk;
-            }
-            set
-            {
-                if (_hasGamebaseSdk != value)
-                {
-                    _hasGamebaseSdk = value;
-                    DataManager.SetData(DataKey.HAS_GAMEBASE_SDK, value);
-                }
-            }
+            return DataManager.GetData<GamebaseVersion>(DataKey.INSTALLED_VERSION);
         }
-
+        
         public static string GetCurrentVersion(string platform)
         {
-            if (EditorPrefs.HasKey(platform) == true)
+            var installedVersion = GetInstalledVersion();
+            switch (platform)
             {
-                return EditorPrefs.GetString(platform);
+                case SettingToolStrings.TEXT_UNITY:
+                    return installedVersion.unity;
+                
+                case SettingToolStrings.TEXT_ANDROID:
+                    return installedVersion.android;
+                
+                case SettingToolStrings.TEXT_IOS:
+                    return installedVersion.ios;
             }
-            else
-            {
-                return string.Empty;
-            }
+            
+            return installedVersion.unity;
         }
-
+        
         public void Dispose()
         {
             EditorCoroutines.StopAllCoroutines(this);
         }
 
-        public void Initialize(SettingToolCallback.DataDelegate<bool> changeGamebaseSdkDownloadStatus)
+        public void Initialize()
         {
-            this.changeGamebaseSdkDownloadStatus = changeGamebaseSdkDownloadStatus;
-            HasGamebaseSdk = CheckHasGamebaseSdk();
-
-            EditorCoroutines.StartCoroutine(CheckGamebaseSdkExists(), this);
         }
 
-        public bool CheckHasGamebaseSdk()
+        public bool CheckInstalledGamebaseSdk()
         {
-            var gamebaseSdkPath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).gamebaseSdk.path;
+            var data = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO);
+            if (data == null)
+            {
+                return false;
+            }
+
+            var gamebaseSdkPath = data.gamebaseSdk.path;
+
             if (string.IsNullOrEmpty(gamebaseSdkPath) == true)
             {
                 throw new Exception("FileInfo data of Gamebase SDK is null.");
             }
 
             SettingToolLog.Debug(string.Format("Directory.Exists:{0}", Directory.Exists(gamebaseSdkPath)), GetType(), "CheckHasGamebaseSdk");
-
+ 
             return Directory.Exists(gamebaseSdkPath);
         }
 
         /// <summary>
-        /// 1. User deleted GamebaseSDK directory when SettingTool is opened.
-        /// 2. User deleted GamebaseSDK directory when SettingTool is closed.
-        /// 3. Click RemoveButton.
+        /// 1. When the setting tool is initialized.
+        /// 2. User deleted GamebaseSDK directory when SettingTool is opened.
         /// </summary>
-        public void ClearCurrentVersion()
+        public void ClearInstallVersion()
         {
-            ClearDataInEditorPrefs(EditorPrefsKey.UNITY_CURRENT_VERSION);
-            ClearDataInEditorPrefs(EditorPrefsKey.ANDROID_CURRENT_VERSION);
-            ClearDataInEditorPrefs(EditorPrefsKey.IOS_CURRENT_VERSION);
+            SaveInstallVersion(string.Empty, string.Empty, string.Empty);
         }
 
-        /// <summary>
-        /// Click DownloadButton.
-        /// </summary>
-        public void SetCurrentVersion()
+        public void SaveInstallVersion(string unityVersion, string androidVersion, string iosVersion)
         {
-            var data = DataManager.GetData<SettingToolResponse.Version>(DataKey.VERSION);
-            if (data == null)
-            {
-                SettingToolLog.Warn("Version data of Gamebase SDK is null.", typeof(GamebaseInfo), "SetCurrentVersion");
-                return;
-            }
-
-            AddDataInEditorPrefs(EditorPrefsKey.UNITY_CURRENT_VERSION, data.unity.newest);            
-            AddDataInEditorPrefs(EditorPrefsKey.ANDROID_CURRENT_VERSION, data.android.newest);
-            AddDataInEditorPrefs(EditorPrefsKey.IOS_CURRENT_VERSION, data.ios.newest);
-        }
-
-        private IEnumerator CheckGamebaseSdkExists()
-        {
-            if (HasGamebaseSdk != CheckHasGamebaseSdk())
-            {
-                HasGamebaseSdk = CheckHasGamebaseSdk();
-                changeGamebaseSdkDownloadStatus(HasGamebaseSdk);
-            }
-
-            yield return new WaitForSecondsRealtime(1);
-
-            EditorCoroutines.StartCoroutine(CheckGamebaseSdkExists(), this);
-        }
-
-        private void AddDataInEditorPrefs(string key, string data)
-        {
-            if (EditorPrefs.HasKey(key) == false)
-            {
-                EditorPrefs.SetString(key, data);
-            }
-        }
-
-        private void ClearDataInEditorPrefs(string key)
-        {
-            if (EditorPrefs.HasKey(key) == true)
-            {
-                EditorPrefs.DeleteKey(key);
-            }
+            var data = new SettingToolResponse.InstalledVersion();
+            data.unity = unityVersion;
+            data.android = androidVersion;
+            data.ios = iosVersion;
+            
+            string filePath = DataManager.GetData<SettingToolResponse.LocalFileInfo>(DataKey.LOCAL_FILE_INFO).installedVersion.path;
+            File.WriteAllText(filePath, JsonMapper.ToJson(data));
         }
     }
 }

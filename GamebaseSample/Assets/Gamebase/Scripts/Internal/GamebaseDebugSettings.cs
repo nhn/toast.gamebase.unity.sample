@@ -1,4 +1,6 @@
-﻿namespace Toast.Gamebase.Internal
+﻿using GamePlatform.Logger;
+
+namespace Toast.Gamebase.Internal
 {
     public sealed class GamebaseDebugSettings
     {
@@ -69,10 +71,13 @@
             get { return instance; }
         }
 
+        private readonly RemoteSetting logSetting;
         private bool isDebugMode = false;
         
         private GamebaseDebugSettings()
         {
+            logSetting = new RemoteSetting();
+
             Gamebase.AddObserver((data) => 
             {
                 if(data.type.Equals(GamebaseObserverType.LAUNCHING) == true)
@@ -94,9 +99,7 @@
                 isDebugMode = value;
             }
         }
-                
-        private RemoteSetting logSetting                = new RemoteSetting();
-
+        
         public void SetDebugMode(bool isDebugMode)
         {
             IsDebugMode = isDebugMode;
@@ -115,7 +118,7 @@
             var forceRemoteSettings = launchingInfo.launching.tcgbClient.forceRemoteSettings;
             if (forceRemoteSettings != null)
             {
-                GamebaseLog.Debug(GamebaseJsonUtil.ToPrettyJsonString(forceRemoteSettings), this);
+                GamebaseLog.Debug(GamebaseJsonUtil.ToPretty(forceRemoteSettings), this);
 
                 logSetting.Initialize(forceRemoteSettings.log.policy, forceRemoteSettings.log.indicator);
                 

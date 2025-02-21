@@ -4,6 +4,7 @@
     {
         public const string GUEST           = "guest";
         public const string GOOGLE          = "google";
+        public const string GPGS_V2         = "gpgs_v2";
         public const string GAMECENTER      = "iosgamecenter";
         public const string FACEBOOK        = "facebook";
         public const string PAYCO           = "payco";
@@ -14,5 +15,6 @@
         public const string HANGAME         = "hangame";
         public const string WEIBO           = "weibo";
         public const string KAKAOGAME       = "kakaogame";
+        public const string STEAM           = "steam";
     }
 }

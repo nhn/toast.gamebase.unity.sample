@@ -10,6 +10,7 @@
 #import <GamebasePlugin/DelegateManager.h>
 #import <GamebasePlugin/EngineMessage.h>
 #import <GamebasePlugin/NativeMessage.h>
+#import <GamebasePlugin/GamebaseEngine.h>
 #import <GamebasePlugin/TCGBJsonUtil.h>
 #import <GamebasePlugin/TCGBPluginData.h>
 #import <GamebasePlugin/TCGBViewControllerManager.h>

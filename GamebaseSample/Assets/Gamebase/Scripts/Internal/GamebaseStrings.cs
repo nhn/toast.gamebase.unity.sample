@@ -25,7 +25,6 @@
         public const string NOT_SUPPORTED_UNITY_STANDALONE_WIN                  = "Not supported on UnityStandalone of Windows";
         public const string NOT_SUPPORTED_UNITY_STANDALONE_OSX                  = "Not supported on UnityStandalone of OSX";
         public const string NOT_SUPPORTED_UNITY_WEBGL                           = "Not supported on UnityWebGL";
-        public const string UNKNOWN_ERROR                                       = "Unknown error";
         public const string ALREADY_LOGGED_IN                                   = "You are already logged in";
         public const string LOCALIZED_STRING_NOT_FOUND                          = "The localizedstring file not found";
         public const string LOCALIZED_STRING_LOAD_FAILED                        = "Failed to load the localizedstring";
@@ -42,7 +41,10 @@
         public const string REMOVE_SERVER_PUSH_FAILED                           = "Failed to remove serverPush";
         public const string ADD_EVENT_HANDLER_FAILED                            = "Failed to add eventHandler";
         public const string REMOVE_EVENT_HANDLER_FAILED                         = "Failed to remove eventHandler";
+        public const string SERVER_INVALID_RESPONSE                             = "This is invalid server response value";
 
+        public const string UNKNOWN_ERROR                                       = "Unknown error";
+        
         //----------------------------------------
         //  Network (Socket)
         //----------------------------------------
@@ -52,6 +54,7 @@
         public const string SOCKET_ERROR                                        = "Socket error";
         public const string SOCKET_SEND_FAIL                                    = "Send failed.";
         public const string SOCKET_NO_INTERNET_CONNECTION                       = "No internet connection";
+        public const string SOCKET_UNKNOWN_ERROR                                = "Socket unknown error";
 
         //----------------------------------------
         //  Launching
@@ -70,6 +73,7 @@
         public const string AUTH_EXTERNAL_LIBRARY_INITIALIZATION_ERROR          = "Failed to initialize external library.";
         public const string AUTH_EXTERNAL_LIBRARY_ERROR                         = "External library error";
         public const string AUTH_ALREADY_IN_PROGRESS_ERROR                      = "Previous authentication process is not finished yet";
+        public const string AUTH_INVALID_GAMEBASE_TOKEN                         = "You have been logged out because your Gamebase Access Token is not valid. Please try logging in again.";
 
         public const string AUTH_TRANSFERKEY_EXPIRED                            = "TransferKey has been expired";
         public const string AUTH_TRANSFERKEY_CONSUMED                           = "TransferKey has already been used";
@@ -80,6 +84,7 @@
         public const string AUTH_TOKEN_LOGIN_INVALID_LAST_LOGGED_IN_IDP         = "Invalid last logged in provider";
         public const string AUTH_IDP_LOGIN_FAILED                               = "IdP login failed";
         public const string AUTH_IDP_LOGIN_INVALID_IDP_INFO                     = "Invalid IdP information";
+        public const string AUTH_IDP_LOGIN_EXTERNAL_AUTHENTICATION_REQUIRED     = "You must first log in to the IdP";
         public const string AUTH_ADD_MAPPING_FAILED                             = "Mapping failed";
         public const string AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER     = "Already mapped to other member";
         public const string AUTH_ADD_MAPPING_ALREADY_HAS_SAME_IDP               = "Already has same IdP";
@@ -132,6 +137,7 @@
         public const string LOGGER_NOT_INITIALIZED                              = "Logger not initialized.";
         public const string LOGGER_EXTERNAL_LIBRARY_ERROR                       = "Logger external library error";
         public const string LOGGER_UNKNOWN_ERROR                                = "Logger unknown error";
+        
         public const string UI_CONTACT_FAIL_INVALID_URL                         = "Service center URL generation failed.";
         public const string UI_CONTACT_FAIL_ISSUE_SHORT_TERM_TICKET             = "Failed to create ShortTermTicket.";
         public const string UI_CONTACT_FAIL_ANDROID_DUPLICATED_VIEW             = "Service center is already open.";
@@ -141,5 +147,10 @@
         public const string UI_TERMS_UNREGISTERED_SEQ                           = "The unregistered terms Seq value.";
         public const string UI_TERMS_ALREADY_IN_PROGRESS_ERROR                  = "Terms API is already in progress.";
         public const string UI_TERMS_ANDROID_DUPLICATED_VIEW                    = "The terms and conditions web view is already open.";
+        public const string UI_SYSTEM_POPUP_BUTTON_SETTING_ERROR                = "Check the system popup button settings";
+
+        public const string UI_COMMUNITY_FAIL_INVALID_URL                       = "Community URL generation failed.";
+        public const string UI_COMMUNITY_FAIL_ISSUE_SHORT_TERM_TICKET           = "Failed to create ShortTermTicket.";
+        public const string UI_COMMUNITY_FAIL_ANDROID_DUPLICATED_VIEW           = "Community is already open.";
     }
 }

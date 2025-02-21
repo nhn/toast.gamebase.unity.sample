@@ -6,11 +6,15 @@ using Toast.Gamebase.Internal;
 
 namespace Toast.Gamebase.Inspector
 {
+#pragma warning disable 0618
     [CustomEditor(typeof(GamebaseUnitySDKSettings))]
+#pragma warning restore 0618
     public class GamebaseUnityPluginInspector : Editor
     {
+#pragma warning disable 0618
         GamebaseUnitySDKSettings settings = null;
-
+#pragma warning restore 0618
+        
         #region style
         private GUIStyle foldoutStyle = null;
         private GUIStyle versionStyle = null;
@@ -31,7 +35,8 @@ namespace Toast.Gamebase.Inspector
         private bool iosFoldout = true;
         private bool androidFoldout = true;
         private bool webglFoldout = true;
-        private bool standaloneFoldout = true;
+        private bool standaloneWindowsFoldout = true;
+        private bool standaloneMacOsFoldout = true;
         private GUIContent storeContent = null;
         private GUIContent fcmContent = null;
         #endregion
@@ -46,7 +51,9 @@ namespace Toast.Gamebase.Inspector
 
         private void OnEnable()
         {
+#pragma warning disable 0618
             settings = target as GamebaseUnitySDKSettings;
+#pragma warning restore 0618
 
             CreateStyle();
 
@@ -165,7 +172,7 @@ namespace Toast.Gamebase.Inspector
 
             appSettingsFoldout = EditorGUILayout.Foldout(appSettingsFoldout, "App Settings", foldoutStyle);
 
-            if (true == appSettingsFoldout)
+            if (appSettingsFoldout)
             {
                 settings.appID = EditorGUILayout.TextField(appIdContent, settings.appID);
                 settings.appVersion = EditorGUILayout.TextField(appVersionContent, settings.appVersion);
@@ -183,13 +190,13 @@ namespace Toast.Gamebase.Inspector
 
             platformFoldout = EditorGUILayout.Foldout(platformFoldout, "Platform Settings", foldoutStyle);
 
-            if (true == platformFoldout)
+            if (platformFoldout)
             {
                 EditorGUI.indentLevel = 1;
 
                 iosFoldout = EditorGUILayout.Foldout(iosFoldout, "iOS", platformStyle);
 
-                if (true == iosFoldout)
+                if (iosFoldout)
                 {
                     settings.storeCodeIOS = EditorGUILayout.TextField(storeContent, settings.storeCodeIOS);
                 }
@@ -198,7 +205,7 @@ namespace Toast.Gamebase.Inspector
 
                 androidFoldout = EditorGUILayout.Foldout(androidFoldout, "Android", platformStyle);
 
-                if (true == androidFoldout)
+                if (androidFoldout)
                 {
                     settings.storeCodeAndroid = EditorGUILayout.TextField(storeContent, settings.storeCodeAndroid);
                     settings.fcmSenderId = EditorGUILayout.TextField(fcmContent, settings.fcmSenderId);
@@ -208,22 +215,31 @@ namespace Toast.Gamebase.Inspector
 
                 webglFoldout = EditorGUILayout.Foldout(webglFoldout, "WebGL", platformStyle);
 
-                if (true == webglFoldout)
+                if (webglFoldout)
                 {
                     settings.storeCodeWebGL = EditorGUILayout.TextField(storeContent, settings.storeCodeWebGL);
                 }
 
                 EditorGUILayout.Space();
 
-                standaloneFoldout = EditorGUILayout.Foldout(standaloneFoldout, "Standalone", platformStyle);
+                standaloneWindowsFoldout = EditorGUILayout.Foldout(standaloneWindowsFoldout, "Windows", platformStyle);
 
-                if (true == standaloneFoldout)
+                if (standaloneWindowsFoldout)
                 {
-                    settings.storeCodeStandalone = EditorGUILayout.TextField(storeContent, settings.storeCodeStandalone);
+                    settings.storeCodeStandaloneWindows = EditorGUILayout.TextField(storeContent, settings.storeCodeStandaloneWindows);
                     settings.useWebViewLogin = EditorGUILayout.BeginToggleGroup(useWebViewLoginContent, settings.useWebViewLogin);
                     EditorGUILayout.EndToggleGroup();
                 }
+                
+                EditorGUILayout.Space();
 
+                standaloneMacOsFoldout = EditorGUILayout.Foldout(standaloneMacOsFoldout, "macOS", platformStyle);
+
+                if (standaloneMacOsFoldout)
+                {
+                    settings.storeCodeStandaloneMacOS = EditorGUILayout.TextField(storeContent, settings.storeCodeStandaloneMacOS);
+                }
+                
                 EditorGUI.indentLevel = 0;
             }
         }
@@ -235,7 +251,7 @@ namespace Toast.Gamebase.Inspector
 
             popupFoldout = EditorGUILayout.Foldout(popupFoldout, "Popup Settings", foldoutStyle);
 
-            if (true == popupFoldout)
+            if (popupFoldout)
             {
                 settings.enablePopup = EditorGUILayout.BeginToggleGroup(popupContent, settings.enablePopup);
 
@@ -245,9 +261,6 @@ namespace Toast.Gamebase.Inspector
                 EditorGUILayout.EndToggleGroup();
 
                 settings.enableBanPopup = EditorGUILayout.BeginToggleGroup(banPopupContent, settings.enableBanPopup);
-                EditorGUILayout.EndToggleGroup();
-
-                settings.enableKickoutPopup = EditorGUILayout.BeginToggleGroup(kickoutPopupContent, settings.enableKickoutPopup);
                 EditorGUILayout.EndToggleGroup();
 
                 EditorGUI.indentLevel = 0;

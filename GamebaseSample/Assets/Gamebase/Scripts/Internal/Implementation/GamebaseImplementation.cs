@@ -8,7 +8,6 @@ using Toast.Gamebase.Internal.Single.WebGL;
 using Toast.Gamebase.Internal.Single.Standalone;
 #endif
 
-using System.Collections.Generic;
 using System;
 using Toast.Gamebase.LitJson;
 using System.Text;
@@ -70,7 +69,7 @@ namespace Toast.Gamebase.Internal
 
             var sb = new StringBuilder();
             sb.AppendLine(string.Format("Gamebase VERSION:{0}", GamebaseUnitySDK.SDKVersion));
-            sb.AppendLine(string.Format("Gamebase Configuration:{0}", GamebaseJsonUtil.ToPrettyJsonString(configuration)));
+            sb.AppendLine(string.Format("Gamebase Configuration:{0}", GamebaseJsonUtil.ToPretty(configuration)));
             GamebaseLog.Debug(string.Format("{0}", sb), this);
             
             InitializeUnitySDK();
@@ -128,6 +127,12 @@ namespace Toast.Gamebase.Internal
             GamebaseGameInformationReport.Instance.AddApiName();
             return sdk.GetAccessToken();
         }
+        
+        public void RequestLastLoggedInProvider(GamebaseCallback.GamebaseDelegate<string> callback) {
+            GamebaseGameInformationReport.Instance.AddApiName();    
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            sdk.RequestLastLoggedInProvider(handle);
+        }   
 
         public string GetLastLoggedInProvider()
         {
@@ -219,7 +224,6 @@ namespace Toast.Gamebase.Internal
             configuration.enablePopup                       = GamebaseUnitySDK.EnablePopup;
             configuration.enableLaunchingStatusPopup        = GamebaseUnitySDK.EnableLaunchingStatusPopup;
             configuration.enableBanPopup                    = GamebaseUnitySDK.EnableBanPopup;
-            configuration.enableKickoutPopup                = GamebaseUnitySDK.EnableKickoutPopup;
 #pragma warning disable 0618
             configuration.fcmSenderId                       = GamebaseUnitySDK.FcmSenderId;
 #pragma warning restore 0618
@@ -239,7 +243,6 @@ namespace Toast.Gamebase.Internal
             GamebaseUnitySDK.EnablePopup                    = configuration.enablePopup;
             GamebaseUnitySDK.EnableLaunchingStatusPopup     = configuration.enableLaunchingStatusPopup;
             GamebaseUnitySDK.EnableBanPopup                 = configuration.enableBanPopup;
-            GamebaseUnitySDK.EnableKickoutPopup             = configuration.enableKickoutPopup;
 #pragma warning disable 0618
             GamebaseUnitySDK.FcmSenderId                    = configuration.fcmSenderId;
 #pragma warning restore 0618

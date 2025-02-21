@@ -1,4 +1,4 @@
-﻿namespace Toast.Gamebase.Internal
+namespace Toast.Gamebase.Internal
 {
     internal interface IGamebase
     {
@@ -8,6 +8,7 @@
         string GetSDKVersion();
         string GetUserID();
         string GetAccessToken();
+        void RequestLastLoggedInProvider(int handle);
         string GetLastLoggedInProvider();        
         string GetDeviceLanguageCode();
         string GetCarrierCode();

@@ -46,7 +46,6 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
         private static readonly AdvertisementImplementation instance = new AdvertisementImplementation();
                 
         private AdvertisementConfigurations advertisementConfigurations;
-        private EditorWindow window;
         private Action<string, string> selectAdvertisementInfoCallback;
         private string languageCode;
 
@@ -55,10 +54,6 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
         private Dictionary<string, Texture2D> textureDict = new Dictionary<string, Texture2D>();
         private List<AdvertisementData> drawAdvertisementList = new List<AdvertisementData>();
         private int advertisementIndex= 0;
-
-        private Rect drawRect;
-        private Rect darkRect;
-        private Rect grayRect;
 
         private Texture2D bgTextureDark;
         private Texture2D bgTextureGray;
@@ -84,7 +79,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
             bgTextureGray.Apply();
         }
 
-        public void Initialize(EditorWindow window, Rect drawRect, AdvertisementConfigurations advertisementConfigurations, string languageCode)
+        public void Initialize(AdvertisementConfigurations advertisementConfigurations, string languageCode)
         {
             lastTimeSinceStartup = 0;
             elapseTime = 0;
@@ -93,23 +88,9 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
             textureDict.Clear();
             drawAdvertisementList.Clear();
 
-            this.drawRect = drawRect;
-            this.darkRect = new Rect(
-                drawRect.x - OFFSET_DARK, 
-                drawRect.y - OFFSET_DARK, 
-                drawRect.width + OFFSET_DARK * 2, 
-                drawRect.height + OFFSET_DARK * 2);
-            this.grayRect = new Rect(
-                drawRect.x - OFFSET_GRAY,
-                drawRect.y - OFFSET_GRAY,
-                drawRect.width + OFFSET_GRAY * 2,
-                drawRect.height + OFFSET_GRAY * 2);
-
             this.advertisementConfigurations = advertisementConfigurations;
             this.languageCode = languageCode;
             
-            this.window = window;
-
             LoadAdvertisement(
                 () =>
                 {
@@ -120,8 +101,8 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
                             LoadTexture();
                             MakeAdvertisementList();
                             EditorApplication.update += Update;
-                            AssetDatabase.Refresh();
-                            window.Repaint();
+                            //AssetDatabase.Refresh();
+                            //window.Repaint();
                             isInitialize = true;
                         });
                 });           
@@ -138,7 +119,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
             MakeAdvertisementList();
         }
 
-        public void Draw()
+        public void Draw(Rect drawRect)
         {
             var advertisementData = GetAdvertisementData();
             if(advertisementData == null)
@@ -151,11 +132,24 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
             {
                 return;
             }
-
+            
             if (advertisementConfigurations.isActiveBG == true)
             {
-                GUI.DrawTexture(darkRect, bgTextureDark);
-                GUI.DrawTexture(grayRect, bgTextureGray);
+                var darkRect = new Rect(
+                    drawRect.x - OFFSET_DARK, 
+                    drawRect.y - OFFSET_DARK, 
+                    drawRect.width + OFFSET_DARK * 2, 
+                    drawRect.height + OFFSET_DARK * 2);
+                var grayRect = new Rect(
+                    drawRect.x - OFFSET_GRAY,
+                    drawRect.y - OFFSET_GRAY,
+                    drawRect.width + OFFSET_GRAY * 2,
+                    drawRect.height + OFFSET_GRAY * 2);
+                
+                if(bgTextureDark != null)
+                    GUI.DrawTexture(darkRect, bgTextureDark);
+                if(bgTextureGray != null)
+                    GUI.DrawTexture(grayRect, bgTextureGray);
             }
 
             if (GUI.Button(drawRect, "") == true)
@@ -172,7 +166,6 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
         
         public void OnDestroy()
         {
-            window = null;
             EditorApplication.update -= Update;
         }
         
@@ -352,7 +345,7 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
 
         private Texture2D LoadTexture(string file)
         {            
-            Texture2D texture = new Texture2D((int)drawRect.width, (int)drawRect.height);
+            Texture2D texture = new Texture2D(1, 1);
             texture.LoadImage(File.ReadAllBytes(file));         
             return texture;
         }
@@ -379,11 +372,12 @@ namespace NhnCloud.GamebaseTools.SettingTool.Util.Ad.Internal
                 advertisementIndex %= drawAdvertisementList.Count;
 
                 MakeAdvertisementList();
-
+/*
                 if (window != null)
                 {
                     window.Repaint();
                 }
+                */
             }
         }
 

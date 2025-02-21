@@ -216,16 +216,21 @@ namespace Toast.Gamebase.Internal.Single
                     var launchingStatusCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.DataDelegate<GamebaseResponse.Launching.LaunchingStatus>>(scheduleHandle);
                     if (null != launchingStatusCallback)
                     {
-                        var vo = new GamebaseResponse.Launching.LaunchingStatus();
-                        vo.code = launchingStatus.launching.status.code;
-                        vo.message = launchingStatus.launching.status.message;
+                        var vo = new GamebaseResponse.Launching.LaunchingStatus
+                        {
+                            code = launchingStatus.launching.status.code,
+                            message = launchingStatus.launching.status.message
+                        };
 
                         launchingStatusCallback(vo);
-                    }                    
-                    
-                    var observerMessage = new GamebaseResponse.SDK.ObserverMessage();
-                    observerMessage.type = GamebaseObserverType.LAUNCHING;
-                    observerMessage.data = new System.Collections.Generic.Dictionary<string, object>();
+                    }
+
+                    var observerMessage = new GamebaseResponse.SDK.ObserverMessage
+                    {
+                        type = GamebaseObserverType.LAUNCHING,
+                        data = new System.Collections.Generic.Dictionary<string, object>()
+                    };
+
                     observerMessage.data.Add("code", launchingStatus.launching.status.code);
                     observerMessage.data.Add("message", launchingStatus.launching.status.message);
                     GamebaseObserverManager.Instance.OnObserverEvent(observerMessage);
@@ -257,9 +262,11 @@ namespace Toast.Gamebase.Internal.Single
                 observerData.message = (string)messageData;
             }
 
-            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage();
-            eventMessage.category = string.Format("observer{0}", GamebaseStringUtil.Capitalize(message.type));
-            eventMessage.data = JsonMapper.ToJson(observerData);
+            GamebaseResponse.Event.GamebaseEventMessage eventMessage = new GamebaseResponse.Event.GamebaseEventMessage
+            {
+                category = string.Format("observer{0}", GamebaseStringUtil.Capitalize(message.type)),
+                data = JsonMapper.ToJson(observerData)
+            };
 
             GamebaseEventHandlerManager.Instance.OnEventHandler(eventMessage);
         }
@@ -282,13 +289,7 @@ namespace Toast.Gamebase.Internal.Single
         public static bool IsPlayable()
         {
             var status = Gamebase.Launching.GetLaunchingStatus();
-            // 200 ~ 299 playable
-            if (200 <= status && 300 > status)
-            {
-                return true;
-            }
-
-            return false;
+            return GamebaseUtil.IsLaunchingPlayable(status);
         }
 
         public float GetStatusElaspedTime()

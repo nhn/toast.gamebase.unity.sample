@@ -45,10 +45,11 @@ namespace Toast.Gamebase.Internal.Single
 
         public void ShowWebView(
             string url,
-            GamebaseRequest.Webview.GamebaseWebViewConfiguration configuration = null,
+            GamebaseRequest.Webview.Configuration configuration = null,
             GamebaseCallback.ErrorDelegate closeCallback = null,
             List<string> schemeList = null,
-            GamebaseCallback.GamebaseDelegate<string> schemeEvent = null)
+            GamebaseCallback.GamebaseDelegate<string> schemeEvent = null,
+            GamebaseCallback.VoidDelegate callback = null)
         {
             if (adapter == null)
             {
@@ -59,13 +60,22 @@ namespace Toast.Gamebase.Internal.Single
                 return;
             }
 
-            adapter.ShowWebView(url, configuration, closeCallback, schemeList, schemeEvent);
-            int height = WebViewConst.TITLEBAR_DEFAULT_HIGHT;
-            if (configuration != null)
+            //--------------------------------------------------
+            //
+            //  override callback.
+            //
+            //--------------------------------------------------
+            adapter.ShowWebView(url, configuration, closeCallback, schemeList, schemeEvent, () =>
             {
-                height = configuration.barHeight;
-            }
-            adapter.SetWebViewRect(height, new Rect(0, 0, Screen.width, Screen.height));
+                int height = WebViewConst.TITLEBAR_DEFAULT_HIGHT;
+                if (configuration != null)
+                {
+                    height = configuration.barHeight;
+                }
+                adapter.SetWebViewRect(height, new Rect(0, 0, Screen.width, Screen.height));
+
+                callback?.Invoke();
+            });
         }
 
         public void ShowLoginWebView(

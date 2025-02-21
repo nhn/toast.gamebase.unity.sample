@@ -126,7 +126,7 @@ namespace Toast.Gamebase.Internal
                 }
                 else
                 {
-                    GamebaseLog.Debug(string.Format("error:{0}", GamebaseJsonUtil.ToPrettyJsonString(adapterError)), this);
+                    GamebaseLog.Debug(string.Format("error:{0}", GamebaseJsonUtil.ToPretty(adapterError)), this);
                 }
 
                 callback(credentialInfo, adapterError);
@@ -178,23 +178,10 @@ namespace Toast.Gamebase.Internal
 
         public bool IsSupportedIDP(string providerName)
         {
-#if UNITY_EDITOR
-            return providerName == GamebaseAuthProvider.GUEST || 
-                   providerName == GamebaseAuthProvider.FACEBOOK ||
-                   providerName == "ongame";
+#if UNITY_EDITOR || UNITY_WEBGL || UNITY_STANDALONE
+            return providerName == GamebaseAuthProvider.GUEST;
 #else
-    #if UNITY_ANDROID
-            return providerName == GamebaseAuthProvider.FACEBOOK;
-    #elif UNITY_IOS
-            return providerName == GamebaseAuthProvider.FACEBOOK;
-    #elif UNITY_WEBGL
-            return providerName == GamebaseAuthProvider.GUEST || 
-                   providerName == GamebaseAuthProvider.FACEBOOK || 
-                   providerName =="ongame";
-    #elif UNITY_STANDALONE
-            return providerName == GamebaseAuthProvider.GUEST ||
-                   providerName == "ongame";
-    #endif
+            return false;
 #endif
         }
 
