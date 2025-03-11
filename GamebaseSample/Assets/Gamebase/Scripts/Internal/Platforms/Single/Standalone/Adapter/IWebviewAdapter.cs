@@ -28,7 +28,7 @@ namespace Toast.Gamebase.Internal.Single
         void SetTitleVisible(bool isTitleVisible);
         void SetTitleText(string title);
         void SetTitleBarColor(Color bgColor);
-        void SetTitleBarButton(bool isBackButtonVisible, string backButtonName, string homeButtonName);
+        void SetTitleBarButton(bool isBackButtonVisible, string backButtonName, string homeButtonName, Color? tintColor = null);
         void SetWebViewRect(int titleBarHeight, Rect rect);
         void SetBgColor(Color bgColor);
     }

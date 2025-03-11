@@ -85,6 +85,15 @@ namespace Toast.Gamebase
 
             /// <summary>
             /// Android only
+            /// Set whether to attempt to log in again if GPGS automatic login is denied.
+            /// <para/>true: : If GPGS automatic login is denied, attempts to log in to GPGS only once during Gamebase initialization.
+            /// <para/>false: : If GPGS automatic login is denied, no further attempts to log in to GPGS will be made.
+            /// <para/>Default: true
+            /// </summary>
+            public bool enableGPGSSignInCheck = true;
+            
+            /// <summary>
+            /// Android only
             /// Set the type of push.
             /// </summary>
             public string pushType;
@@ -340,6 +349,12 @@ namespace Toast.Gamebase
 
                 /// Color of Navigation Bar
                 public GamebaseColor navigationColor = GamebaseColor.RGB255(18, 93, 230);
+
+                /// Color of Navigation Bar Title
+                public GamebaseColor navigationTitleColor = GamebaseColor.RGB255(255, 255, 255);
+                
+                /// Color of Navigation Bar Icon Tint
+                public GamebaseColor navigationIconTintColor = null;
 
                 /// <summary>
                 /// Height of Navigation Bar

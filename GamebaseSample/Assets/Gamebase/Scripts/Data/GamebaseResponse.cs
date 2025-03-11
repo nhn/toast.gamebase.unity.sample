@@ -449,6 +449,8 @@ namespace Toast.Gamebase
                         /// Customer service information.
                         /// </summary>
                         public CustomerService customerService;
+
+                        public TermsService termsService;
                         
                         public class AccessInfo
                         {
@@ -537,6 +539,12 @@ namespace Toast.Gamebase
                             /// Customer center contact.
                             /// </summary>
                             public string accessInfo;
+                        }
+
+                        public class TermsService
+                        {
+                            public bool showTermsFlag;
+                            public string termsUrl;
                         }
                     }
 
