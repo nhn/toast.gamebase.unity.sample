@@ -49,6 +49,12 @@ namespace Toast.Gamebase.Internal.Single
             return GamebaseAppTrackingAuthorizationStatus.UNKNOWN;
         }
 
+        public virtual string GetIdfa()
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+            return "";
+        }
+
         protected string GetDictionaryValue(Dictionary<string, string> dictionary, string key)
         {
             string value = string.Empty;
@@ -57,6 +63,16 @@ namespace Toast.Gamebase.Internal.Single
                 value = dictionary[key];
             }
             return value;
+        }
+
+        public void GetAgeSignal(int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+        }
+
+        public void GetAgeRangeService(int ageGates, int? threshold2, int? threshold3, int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
         }
     }
 }

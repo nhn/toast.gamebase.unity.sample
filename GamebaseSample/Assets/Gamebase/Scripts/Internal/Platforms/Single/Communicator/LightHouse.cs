@@ -82,6 +82,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 {
                     public const string GET_LAUNCHING = "getLaunching";
                     public const string GET_LAUNCHING_STATUS = "getLaunchingStatus";
+                    public const string GET_GAME_NOTICES = "getGameNotices";
                     public const string GET_IMAGE_NOTICES = "getImageNotices";
                 }
             }
@@ -101,11 +102,18 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public const string LOGOUT = "logout";
                     public const string REMOVE_MAPPING = "removeMapping";
                     public const string ADD_MAPPING = "addMapping";
+                    public const string ADD_MAPPING_FORCIBLY = "addMappingForcibly";
+                    
                     public const string ISSUE_SHORT_TERM_TICKET = "issueShortTermTicket";
+                    public const string ISSUE_SHORT_TERM_TICKET_WITHOUT_LOGIN = "issueShortTermTicketWithoutLogin";
                     public const string INTROSPECT_ACCESS_TOKEN = "introspectAccessToken";
 
                     public const string QUERY_TERMS = "queryTerms";
                     public const string UPDATE_TERMS = "updateTerms";
+
+                    public const string REQUEST_BROWSER_LOGIN_TICKET = "issueSessionTicket";
+                    public const string REQUEST_BROWSER_LOGIN_TICKET_CANCEL = "deleteSessionTicket";
+                    public const string REQUEST_BROWSER_LOGIN_RESULT = "exchangeSession";
 
                     /// <summary>
                     /// HEALTH_CHECK is used only to check the Internet connection status on the WebGL platform.

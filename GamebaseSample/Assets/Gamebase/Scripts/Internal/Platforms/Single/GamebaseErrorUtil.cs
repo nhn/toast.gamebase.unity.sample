@@ -110,7 +110,12 @@ namespace Toast.Gamebase.Internal.Single
                     }
                 case GamebaseServerErrorCode.GATEWAY_INVALID_ACCESS_TOKEN:
                     {
-                        errorCode = GamebaseErrorCode.AUTH_TOKEN_LOGIN_INVALID_TOKEN_INFO;
+                        // [Gamebase-Client/2460]
+                        if (HasForceLogoutFeature(apiId)) {
+                            errorCode = GamebaseErrorCode.AUTH_INVALID_GAMEBASE_TOKEN;
+                        } else {
+                            errorCode = GamebaseErrorCode.AUTH_AUTHENTICATION_SERVER_ERROR;
+                        }
                         break;
                     }
                 case GamebaseServerErrorCode.GATEWAY_PRODUCT_DATA_NOT_FOUND:
@@ -194,7 +199,8 @@ namespace Toast.Gamebase.Internal.Single
                         {
                             errorCode = GamebaseErrorCode.AUTH_IDP_LOGIN_FAILED;
                         }
-                        else if (apiId.Equals(Lighthouse.API.Gateway.ID.ADD_MAPPING, StringComparison.Ordinal) == true)
+                        else if (apiId.Equals(Lighthouse.API.Gateway.ID.ADD_MAPPING, StringComparison.Ordinal) == true ||
+                                 apiId.Equals(Lighthouse.API.Gateway.ID.ADD_MAPPING_FORCIBLY, StringComparison.Ordinal) == true)
                         {
                             errorCode = GamebaseErrorCode.AUTH_ADD_MAPPING_FAILED;
                         }
@@ -397,6 +403,22 @@ namespace Toast.Gamebase.Internal.Single
             }
 
             return traceError.traceError != null;
+        }
+        
+        private static bool HasForceLogoutFeature(string apiId)
+        {
+            if (string.IsNullOrEmpty(apiId))
+            {
+                return false;
+            }
+
+            // [Gamebase-Client/1566]
+            // 강제 로그아웃은 heartbeat, withdraw, addMapping, addMappingForcibly에서 발생.
+            // withdraw, addMapping, addMappingForcibly의 공통점 : 성공시 gbToken이 변경될 수 있음.
+            return apiId.Equals(Lighthouse.API.Presence.ID.HEARTBEAT, StringComparison.Ordinal) == true ||
+                   apiId.Equals(Lighthouse.API.Gateway.ID.WITHDRAW, StringComparison.Ordinal) == true ||
+                   apiId.Equals(Lighthouse.API.Gateway.ID.ADD_MAPPING, StringComparison.Ordinal) == true ||
+                   apiId.Equals(Lighthouse.API.Gateway.ID.ADD_MAPPING_FORCIBLY, StringComparison.Ordinal) == true;
         }
 
         private static void CreateGamebaseErrorByTraceErrorRecursion(GamebaseError gamebaseError, CommonResponse.Header.TraceError traceError)

@@ -127,6 +127,15 @@ namespace Toast.Gamebase.Internal
             {
                 GamebaseLog.Warn(GamebaseStrings.UI_SYSTEM_POPUP_BUTTON_SETTING_ERROR, typeof(GamebaseWindowsMessageBox));
             }
+            else if(info.Buttons.Count == 1)
+            {
+                OK = info.Buttons[0];
+            }
+            else if(info.Buttons.Count == 2)
+            {
+                OK = info.Buttons[0];
+                Cancel = info.Buttons[1];
+            }
 
             int result = MessageBox(GetActiveWindow(), info.Message, info.Title, messageBoxType);
 

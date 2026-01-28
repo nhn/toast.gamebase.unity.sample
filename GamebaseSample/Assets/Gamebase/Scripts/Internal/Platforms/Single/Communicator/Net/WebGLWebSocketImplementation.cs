@@ -2,11 +2,17 @@
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Text;
-using Toast.Gamebase.WebSocketSharp;
 using UnityEngine;
 
 namespace Toast.Gamebase.Internal.Single.Communicator
 {
+    public enum WebGLSocketState : ushort
+    {
+        Connecting,
+        Open,
+        Closing,
+        Closed,
+    }
     public class WebGLWebSocketImplementation : IWebSocket
     {
         private const int DEFAULT_NATIVE_REF = -1;
@@ -53,7 +59,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             float waitTime = 0;
             while (
-                (SocketState(nativeRef) == (int)WebSocketState.Connecting) &&
+                (SocketState(nativeRef) == (int)WebGLSocketState.Connecting) &&
                 IsConnected() == false &&
                 string.IsNullOrEmpty(GetErrorMessage()) == true &&
                 waitTime < CommunicatorConfiguration.connectionTimeout)
@@ -91,7 +97,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             if (DEFAULT_NATIVE_REF != nativeRef)
             {
-                if ((int)WebSocketState.Open == SocketState(nativeRef))
+                if ((int)WebGLSocketState.Open == SocketState(nativeRef))
                 {
                     callback(null);
                     yield break;
@@ -206,7 +212,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 return false;
             }
 
-            return SocketState(nativeRef) == (int)WebSocketState.Open;
+            return SocketState(nativeRef) == (int)WebGLSocketState.Open;
         }
 
         public string GetErrorMessage()

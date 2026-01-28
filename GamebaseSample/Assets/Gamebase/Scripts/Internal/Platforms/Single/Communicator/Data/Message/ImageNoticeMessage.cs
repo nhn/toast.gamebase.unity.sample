@@ -3,7 +3,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 {
     public static class ImageNoticeMessage
     {
-        public static WebSocketRequest.RequestVO GetImageNoticesMessage()
+        public static WebSocketRequest.RequestVO GetImageNoticesMessage(GamebaseRequest.ImageNotice.Configuration configuration)
         {
             var vo = new ImageNoticeRequest.ReqImageNoticeInfoVO();
             vo.parameter.osCode = GamebaseSystemInfo.Platform;
@@ -13,6 +13,15 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             vo.parameter.deviceLanguage = GamebaseSystemInfo.DeviceLanguageCode;
             vo.parameter.deviceCountryCode = GamebaseSystemInfo.CountryCode;            
             vo.parameter.usimCountryCode = "ZZ";
+            if (configuration?.categoryNames != null)
+            {
+                vo.parameter.categoryNames = configuration.categoryNames.ToArray();
+                vo.parameter.filterCategory = true;
+            }
+            else
+            {
+                vo.parameter.filterCategory = false;
+            }
 
             var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Launching.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {

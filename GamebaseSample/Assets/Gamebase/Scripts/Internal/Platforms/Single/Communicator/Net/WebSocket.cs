@@ -1,4 +1,4 @@
-﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
+#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -62,6 +62,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             public int retryCount;
             public int retryLimits = 5;
             public int index;
+            public bool isDone;
 
             public RequestQueueItem(int index, WebSocketRequest.RequestVO requestVO, GamebaseCallback.GamebaseDelegate<string> callback)
             {
@@ -69,7 +70,14 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 this.callback = callback;
 
                 this.index = index;
-                retryCount = 0;                
+                retryCount = 0;
+                isDone = false;
+            }
+            
+            public void SetResult(string response, GamebaseError error)
+            {
+                callback?.Invoke(response, error);
+                isDone = true;
             }
         }
 
@@ -131,24 +139,27 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             return item;
         }        
 
-        public void Request(WebSocketRequest.RequestVO vo, GamebaseCallback.GamebaseDelegate<string> callback)
+        public WebSocketOperation Request(WebSocketRequest.RequestVO vo, GamebaseCallback.GamebaseDelegate<string> callback)
         {
+            var requestItem = new RequestQueueItem(itemLength++, vo, (result, error)=>
+            {
+                callback?.Invoke(result, error);
+            });
+            
             GamebaseCoroutineManager.StartCoroutine(GamebaseGameObjectManager.GameObjectType.WEBSOCKET_TYPE, InternetReachability((reachable) =>
             {
                 if (reachable == true)
                 {
-                    RequestEnqueue(new RequestQueueItem(itemLength++, vo, callback));
+                    RequestEnqueue(requestItem);
                 }
                 else
                 {
-                    if (callback == null)
-                    {
-                        return;
-                    }
-
-                    callback(string.Empty, new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, domain: Domain, transactionId: vo.transactionId, message: GamebaseStrings.SOCKET_NO_INTERNET_CONNECTION));
+                    var error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, domain: Domain, transactionId: vo.transactionId, message: GamebaseStrings.SOCKET_NO_INTERNET_CONNECTION);
+                    callback?.Invoke(string.Empty, error);
                 }
             }));
+
+            return new WebSocketOperation(requestItem);
         }
 
         private IEnumerator Send()
@@ -163,7 +174,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     transactionId = requestQueueItem.requestVO.transactionId
                 };
 
-                requestQueueItem.callback(string.Empty, error);
+                requestQueueItem.SetResult(string.Empty, error);
                 requestQueueItem = null;
                 yield break;
             }
@@ -184,7 +195,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 }                    
                 
                 error.transactionId = requestQueueItem.requestVO.transactionId;
-                requestQueueItem.callback(string.Empty, error);                
+                requestQueueItem.SetResult(string.Empty, error);
             }));
 
             socket.SetPollingInterval(PollingIntervalType.SHORT_INTERVAL);
@@ -250,7 +261,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                             transactionId = requestQueueItem.requestVO.transactionId
                         };
 
-                        requestQueueItem.callback(string.Empty, error);
+                        requestQueueItem.SetResult(string.Empty, error);
                         requestQueueItem = null;
                     }
                 }                    
@@ -303,10 +314,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             if (protocol.header.transactionId == requestQueueItem.requestVO.transactionId)
             {                
-                if (requestQueueItem.callback != null)
-                {
-                    requestQueueItem.callback(response, null);
-                }
+                requestQueueItem.SetResult(response, null);
                 isTimeOutCheck = false;                
                 requestQueueItem = null;
                 socket.SetPollingInterval(PollingIntervalType.LONG_INTERVAL);

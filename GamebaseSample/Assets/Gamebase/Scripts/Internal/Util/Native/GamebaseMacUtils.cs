@@ -1,5 +1,6 @@
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -14,12 +15,12 @@ namespace Toast.Gamebase.Internal
 
         string IGamebaseNativeUtils.TwoLetterCountryCode
         {
-            get { return GamebaseCultureUtil.GetTwoLetterCountryCode((int)NativeBridge.GetWindowsLocaleCode()); }
+            get { return NativeBridge.GetRegionCode(); }
         }
 
         string IGamebaseNativeUtils.TwoLetterIsoCode
         {
-            get { return GamebaseCultureUtil.GetTwoLetterIsoCode((int)NativeBridge.GetWindowsLocaleCode()); }
+            get { return NativeBridge.GetLanguageCode(); }
         }
 
         bool IGamebaseNativeUtils.IsNetworkConnected
@@ -42,6 +43,33 @@ namespace Toast.Gamebase.Internal
             [DllImport(BUNDLE_NAME)]
             public static extern bool IsInternetConnection();
         
+            [DllImport(BUNDLE_NAME)]
+            private static extern IntPtr _GetRegionCode();
+
+            public static string GetRegionCode()
+            {
+                IntPtr result = _GetRegionCode();
+
+                string region = IntPtr.Zero != result ? Marshal.PtrToStringAnsi(result) : "";
+                if(string.IsNullOrEmpty(region))
+                    region = "ZZ";
+                
+                return region;
+            }
+            
+            [DllImport(BUNDLE_NAME)]
+            private static extern IntPtr _GetLanguageCode();
+            
+            public static string GetLanguageCode()
+            {
+                IntPtr result = _GetLanguageCode();
+                string language = IntPtr.Zero != result ? Marshal.PtrToStringAnsi(result) : "";
+                if(string.IsNullOrEmpty(language))
+                    language = "zz";
+                
+                return language;
+            }
+            
             [DllImport(BUNDLE_NAME)]
             public static extern uint GetWindowsLocaleCode();
         }

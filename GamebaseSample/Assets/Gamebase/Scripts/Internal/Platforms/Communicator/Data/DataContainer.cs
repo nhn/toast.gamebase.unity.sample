@@ -5,31 +5,36 @@ namespace Toast.Gamebase.Internal
 {
     public static class DataContainer
     {
-        private static Dictionary<string, BaseVO> VODictionary = new Dictionary<string, BaseVO>();
+        private static Dictionary<string, object> dataDictionary = new Dictionary<string, object>();
 
         public static T GetData<T>(string key)
         {
-            if (VODictionary.ContainsKey(key))
-                return (T)Convert.ChangeType(VODictionary[key], typeof(T));
+            if (dataDictionary.TryGetValue(key, out object value))
+            {
+                if (value is T castingValue)
+                {
+                    return castingValue;
+                }
+            }
 
             return default(T);
         }
 
-        public static void SetData(string key, BaseVO vo)
+        public static void SetData(string key, object vo)
         {
-            if (VODictionary.ContainsKey(key))
+            if (dataDictionary.ContainsKey(key))
             {
-                VODictionary[key] = vo;
+                dataDictionary[key] = vo;
                 return;
             }
 
-            VODictionary.Add(key, vo);
+            dataDictionary.Add(key, vo);
         }
 
         public static void RemoveData(string key)
         {
-            if (VODictionary.ContainsKey(key))
-                VODictionary.Remove(key);
+            if (dataDictionary.ContainsKey(key))
+                dataDictionary.Remove(key);
         }
     }
 }

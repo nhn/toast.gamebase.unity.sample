@@ -547,10 +547,34 @@ namespace Toast.Gamebase
             }
         }
 
-        public static class ImageNotice
+        public static class GameNotice
         {
+            /// <summary>
+            /// Configuration for game notice APIs.
+            /// </summary>
             public class Configuration
             {
+                /// <summary>
+                /// Notice category names.
+                /// <para/>Notices are filtered and displayed only if they belong to these categories.
+                /// </summary>
+                public List<string> categoryNames;
+            }
+        }
+        
+        public static class ImageNotice
+        {
+            /// <summary>
+            /// Configuration for image notice APIs.
+            /// </summary>
+            public class Configuration
+            {
+                /// <summary>
+                /// Notice category names.
+                /// <para/>Notices are filtered and displayed only if they belong to these categories.
+                /// </summary>
+                public List<string> categoryNames;
+                
                 /// Color of Background Bar
                 /// <para/>Default: GamebaseColor.RGB255(0, 0, 0, 128)
                 /// </summary>

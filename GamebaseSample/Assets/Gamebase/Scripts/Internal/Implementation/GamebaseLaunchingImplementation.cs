@@ -57,7 +57,7 @@ namespace Toast.Gamebase.Internal
             ((Single.CommonGamebaseLaunching)launching).GetLaunchingInfo(handle);
         }
 
-        public void RequestLaunchingStatus(int handle)
+        public void RequestLaunchingStatus(int handle = -1)
         {
             ((Single.CommonGamebaseLaunching)launching).RequestLaunchingStatus(handle);
         }

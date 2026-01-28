@@ -7,7 +7,7 @@ public static class LaunchingInfoHelper
 {
     private static LaunchingResponse.LaunchingInfo GetLaunchingInfo()
     {
-        return DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
+        return DataContainer.GetData<LaunchingResponse.LaunchingInfo>(PlatformKey.Launching.LAUNCHING_INFO);
     }
 
     public static LaunchingResponse.LaunchingInfo.Launching.App.IDP GetIdPInfo(string idPName)
@@ -32,11 +32,6 @@ public static class LaunchingInfoHelper
     public static string GetIdPAdditional(string idPName)
     {
         return GetIdPInfo(idPName)?.additional;
-    }
-
-    public static string GetGamebaseUrl()
-    {
-        return GetLaunchingInfo()?.launching.app.loginUrls.gamebaseUrl;
     }
 
     public static LaunchingResponse.LaunchingInfo.Launching.App.IDP.LoginWebView GetLoginWebView(string idPName)
@@ -69,17 +64,18 @@ public static class LaunchingInfoHelper
     /// </summary>
     public static List<string> GetSecurityBlacklist()
     {
-        if (GetLaunchingInfo()?.launching.tcgbClient.stability.securityBlacklist == null)
+        var securityBlacklist = GetLaunchingInfo()?.launching?.tcgbClient?.stability?.securityBlacklist;
+        if (securityBlacklist != null)
         {
-            return new List<string> {
-                GamebaseAuthProviderCredential.ACCESS_TOKEN,
-                GamebaseAuthProviderCredential.GAMEBASE_ACCESS_TOKEN,
-                GamebaseAuthProviderCredential.ACCESS_TOKEN_SECRET,
-                GamebaseAuthProviderCredential.AUTHORIZATION_CODE,
-                GamebaseAuthProviderCredential.CODE_VERIFIER,
-            };
+            return securityBlacklist;
         }
-
-        return GetLaunchingInfo()?.launching.tcgbClient.stability.securityBlacklist;
+        
+        return new List<string> {
+            GamebaseAuthProviderCredential.ACCESS_TOKEN,
+            GamebaseAuthProviderCredential.GAMEBASE_ACCESS_TOKEN,
+            GamebaseAuthProviderCredential.ACCESS_TOKEN_SECRET,
+            GamebaseAuthProviderCredential.AUTHORIZATION_CODE,
+            GamebaseAuthProviderCredential.CODE_VERIFIER,
+        };
     }
 }

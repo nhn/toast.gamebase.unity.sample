@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR && UNITY_ANDROID
+#if !UNITY_EDITOR && UNITY_ANDROID
 using Toast.Gamebase.Internal.Mobile.Android;
 #elif !UNITY_EDITOR && UNITY_IOS
 using Toast.Gamebase.Internal.Mobile.IOS;
@@ -43,16 +43,22 @@ namespace Toast.Gamebase.Internal
             auth.Login(providerName, GetLoginCallbackHandle(callback));
         }
 
+        public void Login(string providerName, Dictionary<string, object> additionalInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName("LoginWithAdditionalInfo");
+            auth.Login(providerName, additionalInfo, GetLoginCallbackHandle(callback));
+        }
+
         public void Login(Dictionary<string, object> credentialInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
         {
             GamebaseGameInformationReport.Instance.AddApiName("LoginWithCredentialInfo");
             auth.Login(credentialInfo, GetLoginCallbackHandle(callback));
         }
 
-        public void Login(string providerName, Dictionary<string, object> additionalInfo, GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
+        public void CancelLoginWithExternalBrowser()
         {
-            GamebaseGameInformationReport.Instance.AddApiName("LoginWithAdditionalInfo");
-            auth.Login(providerName, additionalInfo, GetLoginCallbackHandle(callback));
+            GamebaseGameInformationReport.Instance.AddApiName();
+            auth.CancelLoginWithExternalBrowser();
         }
 
         public void LoginForLastLoggedInProvider(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Auth.AuthToken> callback)
@@ -147,9 +153,14 @@ namespace Toast.Gamebase.Internal
 
         public void Logout(GamebaseCallback.ErrorDelegate callback)
         {
+            Logout(null, callback);
+        }
+
+        public void Logout(Dictionary<string, object> additionalInfo, GamebaseCallback.ErrorDelegate callback)
+        {
             GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
-            auth.Logout(handle);
+            auth.Logout(additionalInfo, handle);
         }
 
         public void Withdraw(GamebaseCallback.ErrorDelegate callback)
@@ -237,13 +248,6 @@ namespace Toast.Gamebase.Internal
             GamebaseGameInformationReport.Instance.AddApiName();
             return auth.GetBanInfo();
         }
-
-        public void IssueShortTermTicket( GamebaseCallback.GamebaseDelegate<string> callback)
-        {
-            GamebaseGameInformationReport.Instance.AddApiName();
-            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
-            auth.IssueShortTermTicket(handle);
-        }       
     }
 }
  

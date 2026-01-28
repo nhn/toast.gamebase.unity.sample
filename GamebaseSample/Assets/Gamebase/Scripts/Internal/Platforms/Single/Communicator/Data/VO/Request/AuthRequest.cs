@@ -19,14 +19,14 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     public string accessToken;
                     public string accessTokenSecret;
                     public string authorizationCode;
+                    public string codeVerifier;
                     /// <summary>
                     /// Only Unity Standalone
                     /// Google
                     /// </summary>
                     public string redirectUri;
                     public string clientId;
-                    public string clientSecret;
-                    public Dictionary<string, string> extraParams;
+                    public Dictionary<string, string> extraParams = new();
                     public string idPCode;
                     /// <summary>
                     /// 웹로그인시 회원에서 내려주는 로그인 session 값.
@@ -59,6 +59,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 {
                     public string idPCode;
                     public string accessToken;
+                    public string subCode;
+                    public Dictionary<string, string> extraParams;
                 }
 
                 public IDPInfo idPInfo;
@@ -80,6 +82,72 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             {
                 parameter = new Parameter();
                 payload = new Payload();
+            }
+        }
+        
+        public class AddMappingVO : BaseVO
+        {
+            public class Parameter
+            {
+                public string userId;
+                public bool forcing;
+            }
+
+            public Parameter parameter;
+
+            public AddMappingVO()
+            {
+                parameter = new Parameter();
+            }
+        }
+        
+        public class AddMappingForciblyVO : BaseVO
+        {
+            public class Parameter
+            {
+                public string userId;
+                public string forcingMappingKey;
+                public string mappedUserId;
+            }
+            
+            public class Payload
+            {
+                public class TokenInfo
+                {
+                    public string idPCode;
+                    public string accessToken;
+                }
+
+                public TokenInfo tokenInfo;
+
+                public Payload()
+                {
+                    tokenInfo = new TokenInfo();
+                }
+            }
+
+            public Parameter parameter;
+
+            public AddMappingForciblyVO()
+            {
+                parameter = new Parameter();
+            }
+        }
+        
+        public class RemoveMappingVO : BaseVO
+        {
+            public class Parameter
+            {
+                public string userId;
+                public string idPCode;
+                public string accessToken;
+            }
+
+            public Parameter parameter;
+
+            public RemoveMappingVO()
+            {
+                parameter = new Parameter();
             }
         }
 

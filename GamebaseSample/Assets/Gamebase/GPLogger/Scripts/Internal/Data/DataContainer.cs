@@ -68,9 +68,12 @@ namespace GamePlatform.Logger.Internal
                 return default(T);
             }
 
-            if (data.ContainsKey(key) == true)
+            if (data.TryGetValue(key, out object value))
             {
-                return (T)Convert.ChangeType(data[key], typeof(T));
+                if (value is T castingValue)
+                {
+                    return castingValue;
+                }
             }
 
             return default(T);

@@ -11,7 +11,6 @@
         public const string MACOS = "MAC";
         public const string WEBGL = "WEB";
         public const string GALAXY = "GALAXY";
-        public const string AMAZON = "AMAZON";
         public const string HUAWEI = "HUAWEI";
         public const string MYCARD = "MYCARD";
     }

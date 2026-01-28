@@ -14,8 +14,6 @@
 
 @implementation TCGBUnityInterface
 
-static bool _startUnityScheduled = false;
-
 + (void)load {
     UnityRegisterAppDelegateListener([TCGBUnityInterface sharedUnityInterface]);
 }
@@ -46,6 +44,8 @@ static bool _startUnityScheduled = false;
 - (instancetype)init {
     if (self = [super init]) {
         _adapterInstance = [NSMutableDictionary dictionary];
+        
+        [self setupViewController];
     }
     
     return self;
@@ -71,12 +71,6 @@ static bool _startUnityScheduled = false;
 }
 
 - (void)didBecomeActive:(NSNotification*)notification {
-    if (!_startUnityScheduled)
-    {
-        _startUnityScheduled = true;
-        [self performSelector: @selector(setupViewController) withObject: nil afterDelay: 0];
-    }
-    
     if ([TCGBGamebase appID] != nil) {
         [TCGBGamebase applicationDidBecomeActive:[UIApplication sharedApplication]];
     }
