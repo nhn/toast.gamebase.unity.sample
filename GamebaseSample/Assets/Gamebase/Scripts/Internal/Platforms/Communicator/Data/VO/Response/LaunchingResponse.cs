@@ -94,6 +94,12 @@ namespace Toast.Gamebase.Internal
                         public string accessInfo;
                     }
 
+                    public class TermsService
+                    {
+                        public bool showTermsFlag;
+                        public string termsUrl;
+                    }
+
                     public AccessInfo accessInfo;
                     public Dictionary<string, IDP> idP;
                     public Install install;
@@ -103,6 +109,7 @@ namespace Toast.Gamebase.Internal
                     public string typeCode;
                     public LoginUrls loginUrls;
                     public CustomerService customerService;
+                    public TermsService termsService;
                 }
 
                 public class Maintenance

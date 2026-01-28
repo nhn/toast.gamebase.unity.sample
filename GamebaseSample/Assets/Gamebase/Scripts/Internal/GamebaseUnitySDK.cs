@@ -2,7 +2,7 @@
 {
     public static class GamebaseUnitySDK
     {
-        public const string SDK_VERSION = "2.69.0";
+        public const string SDK_VERSION = "2.70.1";
 
         public static bool IsInitialized { get; set; }
         public static string SDKVersion { get { return SDK_VERSION; } }

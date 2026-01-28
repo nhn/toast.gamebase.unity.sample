@@ -23,3 +23,11 @@
 - (NSDictionary *)toJSONDictionary;
 - (NSArray *)toJSONArray;
 @end
+
+@interface NSMutableDictionary (JSON)
+- (void)recursivelyRemoveNulls;
+@end
+
+@interface NSMutableArray (JSON)
+- (void)recursivelyRemoveNulls;
+@end
