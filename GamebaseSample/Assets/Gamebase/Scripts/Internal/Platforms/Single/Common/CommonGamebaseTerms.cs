@@ -48,14 +48,14 @@ namespace Toast.Gamebase.Internal.Single
                 callback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, Domain));
                 return;
             }
-
-            var requestVo = TermsMessage.GetUpdateTermsMessage(configuration);
-
-            if (requestVo == null)
+            
+            if (string.IsNullOrEmpty(Gamebase.GetUserID()))
             {
                 callback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_LOGGED_IN, Domain));
                 return;
             }
+
+            var requestVo = TermsMessage.GetUpdateTermsMessage(configuration);
 
             WebSocket.Instance.Request(requestVo, (response, error) =>
             {

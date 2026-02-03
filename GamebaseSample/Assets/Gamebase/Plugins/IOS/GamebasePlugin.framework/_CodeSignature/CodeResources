@@ -10,7 +10,7 @@
 		</data>
 		<key>Headers/EngineMessage.h</key>
 		<data>
-		hT+yWW2XTNSXfJOnWxWCAWwjRMU=
+		xqyewtJciJ0xFz4Hop2BMNGu3lM=
 		</data>
 		<key>Headers/GamebaseEngine.h</key>
 		<data>
@@ -22,11 +22,11 @@
 		</data>
 		<key>Headers/NativeMessage.h</key>
 		<data>
-		e0NqQ1gCHIrWypWJ2V5FX8uClgk=
+		9SxrLpyDajvG2lXONoD3J2vwItc=
 		</data>
 		<key>Headers/TCGBCallback.h</key>
 		<data>
-		+bSWbwdsFjRCTYu9DATN1w9fnDA=
+		ahwGuj8JzGwDzUQjJnl//XEqNvM=
 		</data>
 		<key>Headers/TCGBJsonUtil.h</key>
 		<data>
@@ -34,7 +34,7 @@
 		</data>
 		<key>Headers/TCGBPluginData.h</key>
 		<data>
-		5sXSSC4+Fkg30Hk8mgtM7VC5mkE=
+		mCHRqePRlNabRu4/fWHAFG0wWX4=
 		</data>
 		<key>Headers/TCGBViewControllerManager.h</key>
 		<data>
@@ -42,7 +42,7 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		WrARJPelg9xUxi3UkEiIQzvEdww=
+		5bCr0vK64+jLWOlWO3m2cjehsk8=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -57,10 +57,6 @@
 	<dict>
 		<key>Headers/DelegateManager.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			IoonKXAyrPmB5qHKEdBjteOVui8=
-			</data>
 			<key>hash2</key>
 			<data>
 			fv/CzIUvoUFa/nD66wl6sMFqNI2+GBGpuq418JmIskE=
@@ -68,21 +64,13 @@
 		</dict>
 		<key>Headers/EngineMessage.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			hT+yWW2XTNSXfJOnWxWCAWwjRMU=
-			</data>
 			<key>hash2</key>
 			<data>
-			PzlpJytuTYplnmvN5IzrVLb9oXlwhXGHRBul6aRpdqs=
+			RvKPrz4gzERFqLhghUCtT0Z9BB0V3TFEz2rasRtsexc=
 			</data>
 		</dict>
 		<key>Headers/GamebaseEngine.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			UJ1DrrrLGAQyRhgqe09iJseq1pQ=
-			</data>
 			<key>hash2</key>
 			<data>
 			ycYNX7K56epdwEurgAu7bvGiEdPr9qAgylUqQdpC/3c=
@@ -90,10 +78,6 @@
 		</dict>
 		<key>Headers/GamebasePlugin.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			xuSjtymgPlaNTtIwL96/3R6PXIM=
-			</data>
 			<key>hash2</key>
 			<data>
 			xoTGInoKMlJaOaLt6lqwv8vkL2EE1UYT1KR5UAO32h8=
@@ -101,32 +85,20 @@
 		</dict>
 		<key>Headers/NativeMessage.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			e0NqQ1gCHIrWypWJ2V5FX8uClgk=
-			</data>
 			<key>hash2</key>
 			<data>
-			BWzv2/YisM8Ht8jqIc4693OHQ4DjsK4WHaz3+brCyYk=
+			y7xCbWg1qoOYWuT/gBBwBMP6u3Wjr0SPe/sJqO8i37s=
 			</data>
 		</dict>
 		<key>Headers/TCGBCallback.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			+bSWbwdsFjRCTYu9DATN1w9fnDA=
-			</data>
 			<key>hash2</key>
 			<data>
-			P6AbduFb9i0t+KpQkumtWtavn/3fkL9UIl7j/no/DyI=
+			ZNNiusDubAp+erIWVdEO/HjtbJ6S8lJgGQ6A2rKH+Bk=
 			</data>
 		</dict>
 		<key>Headers/TCGBJsonUtil.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			ux3wfEOKf9dzohayZ6wnolWMU5o=
-			</data>
 			<key>hash2</key>
 			<data>
 			ST6tVK4KemF0KMS7mFMaCYUB9cVrtsFmBJYcGvD2qOk=
@@ -134,21 +106,13 @@
 		</dict>
 		<key>Headers/TCGBPluginData.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			5sXSSC4+Fkg30Hk8mgtM7VC5mkE=
-			</data>
 			<key>hash2</key>
 			<data>
-			1HSR9RFXF4rUcQW9mVJ5eFwv7aEMa+aI2pLcWvd1RNQ=
+			OJUQz+mTnL02mI88eJkIM/OsXTJwYmhnF9Si/GO9JA0=
 			</data>
 		</dict>
 		<key>Headers/TCGBViewControllerManager.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			GE0DDZhyCHBXy6jnQpJAH56QPBI=
-			</data>
 			<key>hash2</key>
 			<data>
 			OEEEh7ImReqBH2fqPD8UnXu9RVmXvMjfByLKxT4wPZA=
@@ -156,10 +120,6 @@
 		</dict>
 		<key>Modules/module.modulemap</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			nui74BOHizFhP65jH1QwWGvGTsA=
-			</data>
 			<key>hash2</key>
 			<data>
 			+HY8X/YKz10i4tD8PuXkret6ARkX3kKWE5owi3BDlyQ=
@@ -167,10 +127,6 @@
 		</dict>
 		<key>PrivacyInfo.xcprivacy</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			AsGWXTZZNiiA2K0mG3kTPcRZ83U=
-			</data>
 			<key>hash2</key>
 			<data>
 			oOieiiHwPwrN8Jcb7UfQIsN5K/r7ZuKQ3AfMZT8usiw=

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Toast.Gamebase.LitJson;
+using Toast.Gamebase.Internal.Single.Communicator;
 
 namespace Toast.Gamebase.Internal.Single.Standalone
 {
@@ -33,25 +34,8 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                 {
                     closeCallback(error);
                 }
-
-                Dictionary<string, string> data = new Dictionary<string, string>()
-                        {
-                            { GamebaseIndicatorReportType.AdditionalKey.GB_URL, url },
-                            { GamebaseIndicatorReportType.AdditionalKey.GB_EXCEPTION, JsonMapper.ToJson(error) }
-                        };
-
-                if(configuration != null)
-                {
-                    data.Add(GamebaseIndicatorReportType.AdditionalKey.GB_WEBVIEW_CONFIGURATION, JsonMapper.ToJson(configuration));
-                }
-
-                GamebaseIndicatorReport.SendIndicatorData(
-                        GamebaseIndicatorReportType.LogType.WEBVIEW,
-                        GamebaseIndicatorReportType.StabilityCode.GB_WEBVIEW_OPEN_FAILED,
-                        GamebaseIndicatorReportType.LogLevel.ERROR,
-                        data
-                        );
-
+                
+                GamebaseIndicatorReport.WebView.OpenFailed(url, configuration, error);
                 return;
             }
 
@@ -74,7 +58,12 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                 return;
             }
 
-            WebviewAdapterManager.Instance.ShowWebView(url, configuration, closeCallback, schemeList, schemeEvent);
+            WebViewRequest.Configuration webviewConfig = new WebViewRequest.Configuration();
+            if (configuration != null)
+            {
+                webviewConfig.SetGamebaseRequest(configuration);
+            }
+            WebviewAdapterManager.Instance.ShowWebView(url, webviewConfig, closeCallback, schemeList, schemeEvent);
         }
 
         public override void CloseWebView()

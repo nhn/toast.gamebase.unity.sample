@@ -28,6 +28,29 @@ namespace Toast.Gamebase.Internal.Mobile.IOS
             }
             
         }
+
+        override public string GetIdfa()
+        {
+            string jsonData = JsonMapper.ToJson(new UnityMessage(GamebaseUtil.UTIL_API_IDFA));
+            return messageSender.GetSync(jsonData);
+        }
+
+        override public void GetAgeRangeService(int ageGates, int? threshold2, int? threshold3, int handle)
+        {
+            var vo          = new NativeRequest.Util.AgeRange();
+            vo.ageGates     = ageGates;
+            vo.threshold2   = threshold2;
+            vo.threshold3   = threshold3;
+
+            string jsonData     = JsonMapper.ToJson(
+                new UnityMessage(
+                    GamebaseUtil.UTIL_API_GET_AGE_RANGE,
+                    handle: handle,
+                    jsonData: JsonMapper.ToJson(vo)
+                ));
+            
+            messageSender.GetAsync(jsonData);
+        }
     }
 }
 #endif

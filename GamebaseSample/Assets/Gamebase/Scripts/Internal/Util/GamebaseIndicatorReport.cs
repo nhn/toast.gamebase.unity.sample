@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Toast.Gamebase.Internal
 {
-    public sealed class GamebaseIndicatorReport
+    public partial class GamebaseIndicatorReport
     {
         public enum LogLevel
         {
@@ -25,6 +25,7 @@ namespace Toast.Gamebase.Internal
         private static class Platform
         {
             public const string WINDOWS = "WINDOWS";
+            public const string MACOS = "MACOS";
             public const string WEB = "WEB";
             public const string IOS = "IOS";
             public const string ANDROID = "ANDROID";
@@ -59,6 +60,7 @@ namespace Toast.Gamebase.Internal
         public const string GB_EXCEPTION = "txtGBException";
         public const string GB_ERROR_CODE = "GBErrorCode";
         public const string GB_ERROR_DOMAIN = "GBErrorDomain";
+        public const string GB_EXCEPTION_ID = "GBExceptionID";
         public const string GB_DETAIL_ERROR_CODE = "GBDetailErrorCode";
         public const string GB_DETAIL_ERROR_MESSAGE = "GBDetailErrorMessage";
         public const string GB_IS_USER_CANCELED = "GBIsUserCanceled";
@@ -86,8 +88,10 @@ namespace Toast.Gamebase.Internal
             platform = Platform.IOS;
 #elif UNITY_WEBGL
             platform = Platform.WEB;
-#elif UNITY_STANDALONE
+#elif UNITY_STANDALONE_WIN
             platform = Platform.WINDOWS;
+#elif UNITY_STANDALONE_OSX
+            platform = Platform.MACOS;
 #endif
 
             string filePath = Path.Combine(Application.streamingAssetsPath, "Gamebase/defaultstability.json");
@@ -172,7 +176,7 @@ namespace Toast.Gamebase.Internal
             }
         }
 
-        public static void SendIndicatorData(
+        private static void SendIndicatorData(
             string logType,
             string stabilityCode,
             string logLevel,
@@ -249,6 +253,8 @@ namespace Toast.Gamebase.Internal
 
                 indicatorDictionary.Add(GB_ERROR_CODE, error.code.ToString());
                 indicatorDictionary.Add(GB_ERROR_DOMAIN, error.domain);
+                if(string.IsNullOrEmpty(error.transactionId) == false)
+                    indicatorDictionary.Add(GB_EXCEPTION_ID, error.transactionId.Replace("-", ""));
 
                 if (error.error != null)
                 {

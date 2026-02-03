@@ -42,6 +42,7 @@ namespace Toast.Gamebase.Internal
         }
 
         private HashSet<string> usedApiList = new HashSet<string>();
+        private int usedApiCount = 0;
 
         public void AddApiName([System.Runtime.CompilerServices.CallerMemberName] string apiName = "")
         {
@@ -82,14 +83,16 @@ namespace Toast.Gamebase.Internal
 
         private void SaveUsedApiList()
         {
-            if (usedApiList == null || usedApiList.Count == 0)
+            if (usedApiList == null || usedApiList.Count == 0 || usedApiList.Count == usedApiCount)
             {
                 return;
             }
 
+            usedApiCount = usedApiList.Count;
             List<string> data = new List<string>(usedApiList);
 
             PlayerPrefs.SetString(GAMEBASE_KEY_USED_API_LIST, JsonMapper.ToJson(data));
+            PlayerPrefs.Save();
         }
 
         private string LoadUsedApiList()
@@ -106,5 +109,15 @@ namespace Toast.Gamebase.Internal
         {
             SaveUsedApiList();
         }
+
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS
+        private void OnApplicationPause(bool isPaused)
+        {
+            if (isPaused)
+            {
+                SaveUsedApiList();
+            }
+        }
+#endif
     }
 }

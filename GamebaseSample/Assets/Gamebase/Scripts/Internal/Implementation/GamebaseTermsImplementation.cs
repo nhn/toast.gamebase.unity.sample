@@ -36,24 +36,28 @@ namespace Toast.Gamebase.Internal
         
         public void ShowTermsView(GamebaseRequest.Terms.GamebaseTermsConfiguration configuration, GamebaseCallback.GamebaseDelegate<GamebaseResponse.DataContainer> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             terms.ShowTermsView(configuration, handle);
         }
         
         public void UpdateTerms(GamebaseRequest.Terms.UpdateTermsConfiguration configuration, GamebaseCallback.ErrorDelegate callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             terms.UpdateTerms(configuration, handle);
         }
 
         public void QueryTerms(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Terms.QueryTermsResult> callback)
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             int handle = GamebaseCallbackHandler.RegisterCallback(callback);
             terms.QueryTerms(handle);
         }
 
         public bool IsShowingTermsView()
         {
+            GamebaseGameInformationReport.Instance.AddApiName();
             return terms.IsShowingTermsView();
         }
     }

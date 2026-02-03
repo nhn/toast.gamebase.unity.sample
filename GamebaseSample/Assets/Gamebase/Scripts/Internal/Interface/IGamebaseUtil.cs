@@ -10,5 +10,11 @@ namespace Toast.Gamebase.Internal
         void ShowAlert(Dictionary<string, string> parameters, GamebaseUtilAlertType alertType, int handle);
 
         GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus();
+
+        string GetIdfa();
+        
+        void GetAgeSignal(int handle);
+
+        void GetAgeRangeService(int ageGates, int? threshold2, int? threshold3, int handle);
     }
 }

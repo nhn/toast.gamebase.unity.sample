@@ -16,6 +16,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                 public string displayLanguage;
                 public string deviceCountryCode;
                 public string usimCountryCode;
+                public bool filterCategory = true;
+                public string[] categoryNames;
             }
 
             public Parameter parameter;

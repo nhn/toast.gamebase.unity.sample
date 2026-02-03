@@ -78,11 +78,11 @@ namespace Toast.Gamebase.Internal
         {
             logSetting = new RemoteSetting();
 
-            Gamebase.AddObserver((data) => 
+            Gamebase.AddEventHandler((message) =>
             {
-                if(data.type.Equals(GamebaseObserverType.LAUNCHING) == true)
+                if (message.category.Equals(GamebaseEventCategory.OBSERVER_LAUNCHING))
                 {
-                    var launchingInfo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
+                    var launchingInfo = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(PlatformKey.Launching.LAUNCHING_INFO);
                     SetRemoteSettings(launchingInfo);
                 }
             });
@@ -108,9 +108,7 @@ namespace Toast.Gamebase.Internal
 
         public void SetRemoteSettings(LaunchingResponse.LaunchingInfo launchingInfo)
         {
-            if(launchingInfo == null 
-                || launchingInfo.launching == null
-                || launchingInfo.launching.tcgbClient == null)
+            if(launchingInfo?.launching?.tcgbClient == null)
             {
                 return;
             }

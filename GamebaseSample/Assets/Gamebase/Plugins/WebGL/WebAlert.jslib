@@ -2,8 +2,8 @@ mergeInto(LibraryManager.library, {
 
 Alert: function(title, message)
 {
-	var alertTitle = Pointer_stringify(title);
-	var alertMessage = Pointer_stringify(message);
+	var alertTitle = UTF8ToString(title);
+	var alertMessage = UTF8ToString(message);
 
 	console.log("title = ", alertTitle, " message = ", alertMessage);
 
@@ -12,8 +12,8 @@ Alert: function(title, message)
 
 Confirm: function(title, message)
 {
-	var alertTitle = Pointer_stringify(title);
-	var alertMessage = Pointer_stringify(message);
+	var alertTitle = UTF8ToString(title);
+	var alertMessage = UTF8ToString(message);
 
 	console.log("title = ", alertTitle, " message = ", alertMessage);
 

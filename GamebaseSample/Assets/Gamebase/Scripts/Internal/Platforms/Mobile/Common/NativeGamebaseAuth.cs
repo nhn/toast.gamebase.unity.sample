@@ -104,6 +104,8 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
+        public virtual void CancelLoginWithExternalBrowser() => GamebaseErrorNotifier.FireNotSupportedAPI(this);
+
         virtual public void Login(Dictionary<string, object> credentialInfo, int handle)
         {
 
@@ -261,7 +263,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.GetAsync(jsonData);
         }
 
-        virtual public void Logout(int handle)
+        virtual public void Logout(Dictionary<string, object> additionalInfo, int handle)
         {
             string jsonData     = JsonMapper.ToJson(
                 new UnityMessage(
@@ -474,7 +476,7 @@ namespace Toast.Gamebase.Internal.Mobile
             GamebaseError error = message.GetGamebaseError();
             if (Gamebase.IsSuccess(error) == true)
             {
-                AuthAdapterManager.Instance.IDPLogoutAll();
+                AuthAdapterManager.Instance.IDPWithdrawAll();
             }
         }
 
@@ -587,11 +589,6 @@ namespace Toast.Gamebase.Internal.Mobile
                    jsonData: JsonMapper.ToJson(vo)
                    ));
             messageSender.GetAsync(jsonData);
-        }
-
-        public void IssueShortTermTicket(int handle)
-        {
-            GamebaseErrorNotifier.FireNotSupportedAPI(this, GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<string>>(handle));
         }
     }
 }

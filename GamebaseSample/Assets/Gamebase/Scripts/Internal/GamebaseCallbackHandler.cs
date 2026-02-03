@@ -4,7 +4,8 @@ namespace Toast.Gamebase.Internal
 {
     public class GamebaseCallbackHandler
     {
-        private static int handle = 0;
+        public const int HANDLE_NONE = 0;
+        private static int handle = 1;
         private static Dictionary<int, object> callbackDic = new Dictionary<int, object>();
 
         public static int RegisterCallback(object callback)

@@ -123,25 +123,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
                         if (heartbeatError.code == GamebaseErrorCode.BANNED_MEMBER)
                         {
-                            GamebaseIndicatorReport.SendIndicatorData(
-                                GamebaseIndicatorReportType.LogType.EVENT,
-                                GamebaseIndicatorReportType.StabilityCode.GB_EVENT_OBSERVER_BANNED_MEMBER,
-                                GamebaseIndicatorReportType.LogLevel.INFO,
-                                new Dictionary<string, string>()
-                                {
-                                        { GamebaseIndicatorReportType.AdditionalKey.GB_OBSERVER_DATA, JsonMapper.ToJson(observerData) }
-                                });
+                            GamebaseIndicatorReport.Event.ObserverBannedMember(observerData);
                         }
                         else if (heartbeatError.code == GamebaseErrorCode.INVALID_MEMBER)
                         {
-                            GamebaseIndicatorReport.SendIndicatorData(
-                                GamebaseIndicatorReportType.LogType.EVENT,
-                                GamebaseIndicatorReportType.StabilityCode.GB_EVENT_OBSERVER_INVALID_MEMBER,
-                                GamebaseIndicatorReportType.LogLevel.INFO,
-                                new Dictionary<string, string>()
-                                {
-                                        { GamebaseIndicatorReportType.AdditionalKey.GB_OBSERVER_DATA, JsonMapper.ToJson(observerData) }
-                                });
+                            GamebaseIndicatorReport.Event.ObserverInvalidMember(observerData);
                         }
 
                         if (GamebaseUnitySDK.EnablePopup == true)
@@ -156,17 +142,18 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                             message = heartbeatError.message,
                             extras = JsonMapper.ToJson(heartbeatError)
                         };
+                        
+                        var logoutAdditionalInfo = new Dictionary<string, object>()
+                        {
+                            { GamebaseAuthProviderCredential.SKIP_EXPIRE_GAMEBASE_TOKEN, true },
+                            { GamebaseAuthProviderCredential.SKIP_IDP_LOGOUT, true },
+                            { GamebaseAuthProviderCredential.IS_INTERNAL_CALL, true }
+                        };
+                        GamebaseAuthImplementation.Instance.Logout(logoutAdditionalInfo, null);
 
                         SendEventMessage(GamebaseEventCategory.LOGGED_OUT, JsonMapper.ToJson(loggedOutData));
-
-                        GamebaseIndicatorReport.SendIndicatorData(
-                            GamebaseIndicatorReportType.LogType.EVENT,
-                            GamebaseIndicatorReportType.StabilityCode.GB_EVENT_LOGGED_OUT,
-                            GamebaseIndicatorReportType.LogLevel.WARN,
-                            new Dictionary<string, string>()
-                            {
-                                { GamebaseIndicatorReportType.AdditionalKey.GB_EVENT_LOGGED_OUT_DATA, loggedOutData.extras }
-                            });
+                        
+                        GamebaseIndicatorReport.Event.Logedout(heartbeatError);
                     }
 
                     GamebaseLog.Debug(string.Format("Send heartbeat failed. error:{0}", GamebaseJsonUtil.ToPretty(heartbeatError)), this);

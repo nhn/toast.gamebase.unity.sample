@@ -9,11 +9,10 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public static WebSocketRequest.RequestVO GetQueryTermsMessage()
         {
             var vo = new TermsRequest.QueryTermsVO();
-            var loginInfoVO = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
-
-            if (loginInfoVO != null)
+            var authToken = DataContainer.GetData<GamebaseResponse.Auth.AuthToken>(PlatformKey.Auth.LOGIN_INFO);
+            if (authToken != null)
             {
-                vo.parameter.userId = loginInfoVO.member.userId;
+                vo.parameter.userId = authToken.member.userId;
             }
             
             vo.parameter.usimCountryCode = "ZZ";
@@ -33,14 +32,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         public static WebSocketRequest.RequestVO GetUpdateTermsMessage(GamebaseRequest.Terms.UpdateTermsConfiguration configuration)
         {
             var vo = new TermsRequest.UpdateTermsVO();
-            var loginInfoVO = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
-
-            if (loginInfoVO == null)
+            var authToken = DataContainer.GetData<GamebaseResponse.Auth.AuthToken>(PlatformKey.Auth.LOGIN_INFO);
+            if (authToken != null)
             {
-                return null;                
+                vo.parameter.userId = authToken.member.userId;                
             }
-
-            vo.parameter.userId = loginInfoVO.member.userId;
             vo.parameter.termsSeq = configuration.termsSeq;
             vo.payload.contents = configuration.contents;
 

@@ -67,5 +67,18 @@ namespace Toast.Gamebase.Internal
             GamebaseGameInformationReport.Instance.AddApiName();
             return util.GetAppTrackingAuthorizationStatus();
         }
+
+        public string GetIdfa()
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            return util.GetIdfa();
+        }
+
+        public void GetAgeSignal(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Util.AgeSignalResult> callback)
+        {
+            GamebaseGameInformationReport.Instance.AddApiName();
+            int handle = GamebaseCallbackHandler.RegisterCallback(callback);
+            util.GetAgeSignal(handle);
+        }
     }
 }

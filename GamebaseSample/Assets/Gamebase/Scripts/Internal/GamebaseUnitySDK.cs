@@ -1,8 +1,8 @@
-﻿namespace Toast.Gamebase.Internal
+namespace Toast.Gamebase.Internal
 {
     public static class GamebaseUnitySDK
     {
-        public const string SDK_VERSION = "2.70.1";
+        public const string SDK_VERSION = "2.79.0";
 
         public static bool IsInitialized { get; set; }
         public static string SDKVersion { get { return SDK_VERSION; } }

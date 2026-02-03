@@ -15,14 +15,6 @@
         },
         {
             "platform" : "Android",
-            "adapter"  : "Facebook"
-        },
-        {
-            "platform" : "iOS",
-            "adapter"  : "Facebook"
-        },
-        {
-            "platform" : "Android",
             "adapter"  : "Google"
         },
         {
@@ -48,6 +40,14 @@
         {
             "platform" : "iOS",
             "adapter"  : "Gamecenter"
+        },
+        {
+            "platform" : "Android",
+            "adapter"  : "Facebook"
+        },
+        {
+            "platform" : "iOS",
+            "adapter"  : "Facebook"
         }
     ]
 }

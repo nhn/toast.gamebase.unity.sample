@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 
 namespace Toast.Gamebase.Internal
@@ -6,15 +7,20 @@ namespace Toast.Gamebase.Internal
     {   
         public static string GetTwoLetterCountryCode(int locale)
         {
-            CultureInfo currentCulture = new CultureInfo(locale);
-            string currentCultureName = currentCulture.Name;
-            int index = currentCultureName.IndexOf('-');
-
             string countryCode = null;
-            
-            if (0 < index && index + 1 < currentCultureName.Length)
+            try
             {
-                countryCode = currentCultureName.Substring(index + 1);
+                CultureInfo currentCulture = new CultureInfo(locale);
+                string currentCultureName = currentCulture.Name;
+                int index = currentCultureName.IndexOf('-');
+            
+                if (0 < index && index + 1 < currentCultureName.Length)
+                {
+                    countryCode = currentCultureName.Substring(index + 1);
+                }
+            }
+            catch
+            {
             }
 
             return countryCode ?? "ZZ";
@@ -22,9 +28,16 @@ namespace Toast.Gamebase.Internal
         
         public static string GetTwoLetterIsoCode(int locale)
         {
-            CultureInfo currentCulture = new CultureInfo(locale);
+            string language = string.Empty;
+            try
+            {
+                CultureInfo currentCulture = new CultureInfo(locale);
+                language = currentCulture.TwoLetterISOLanguageName;
+            }
+            catch
+            {
+            }
             
-            string language = currentCulture.TwoLetterISOLanguageName;
             if (string.IsNullOrEmpty(language))
             {
                 language = "zz";

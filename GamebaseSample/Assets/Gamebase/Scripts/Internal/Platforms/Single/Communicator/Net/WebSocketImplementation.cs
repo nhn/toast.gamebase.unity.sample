@@ -113,11 +113,11 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             if (disconnectError != null)
             {
-                // Àß¸øµÈ µµ¸ŞÀÎÀÇ °æ¿ì ¼­ºê µµ¸ŞÀÎÀ¸·Î º¯°æÇÑ´Ù.
+                // ì˜ëª»ëœ ë„ë©”ì¸ì˜ ê²½ìš° ì„œë¸Œ ë„ë©”ì¸ìœ¼ë¡œ ë³€ê²½í•œë‹¤.
                 // ex)
-                //  1. Àß¸øµÈ Æ÷Æ® ¹øÈ£
+                //  1. ì˜ëª»ëœ í¬íŠ¸ ë²ˆí˜¸
                 //  2. 404
-                //  3. ¸ŞÀÎ µµ¸ŞÀÎ Àå¾Ö
+                //  3. ë©”ì¸ ë„ë©”ì¸ ì¥ì• 
                 if (disconnectError.code == 1006)
                 {
                     error = new GamebaseError(GamebaseErrorCode.SOCKET_ERROR, Domain, error: disconnectError);
@@ -130,19 +130,13 @@ namespace Toast.Gamebase.Internal.Single.Communicator
                     
                     if (string.IsNullOrEmpty(socketAdress) == true)
                     {
-                        // ¸¶Áö¸· ¼­ºê µµ¸ŞÀÎ. (µµ¸ŞÀÎ º¯°æ ¾ÈµÊ)
-                        // ¿À·ù ÄÚµå¸¦ Àü´ŞÇÏ°í ÁöÇ¥¸¦ Àü¼ÛÇÑ´Ù.
-                        GamebaseIndicatorReport.AddIndicatorItem(new GamebaseIndicatorReport.IndicatorItem
-                        {
-                            logType = GamebaseIndicatorReportType.LogType.NETWORK,
-                            stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_NETWORK_DOMAIN_CONNECTION_FAILED,
-                            logLevel = GamebaseIndicatorReportType.LogLevel.ERROR,
-                            error = error
-                        });
+                        // ë§ˆì§€ë§‰ ì„œë¸Œ ë„ë©”ì¸. (ë„ë©”ì¸ ë³€ê²½ ì•ˆë¨)
+                        // ì˜¤ë¥˜ ì½”ë“œë¥¼ ì „ë‹¬í•˜ê³  ì§€í‘œë¥¼ ì „ì†¡í•œë‹¤.
+                        GamebaseIndicatorReport.Network.DomainConnectionFailed(error);
                     }
                     else
                     {
-                        // ¼­ºê µµ¸ŞÀÎ º¯°æ ÈÄ Àç¿¬°áÀ» ½ÃµµÇÑ´Ù.
+                        // ì„œë¸Œ ë„ë©”ì¸ ë³€ê²½ í›„ ì¬ì—°ê²°ì„ ì‹œë„í•œë‹¤.
                         Close();
                         changeDomain = true;
 
@@ -154,17 +148,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             if (error == null && changeDomain == true)
             {
-                GamebaseIndicatorReport.AddIndicatorItem(new GamebaseIndicatorReport.IndicatorItem
-                {
-                    logType = GamebaseIndicatorReportType.LogType.NETWORK,
-                    stabilityCode = GamebaseIndicatorReportType.StabilityCode.GB_NETWORK_CHANGE_DOMAIN_SUCCESS,
-                    logLevel = GamebaseIndicatorReportType.LogLevel.INFO,
-                    customFields = new Dictionary<string, string>()
-                    {
-                        { GamebaseIndicatorReportType.AdditionalKey.GB_DOMAIN, Lighthouse.GetAddress() }
-                    }
-                });
-
+                GamebaseIndicatorReport.Network.ChangeDomainSuccess(Lighthouse.GetAddress());
+                
                 changeDomain = false;
             }
 
