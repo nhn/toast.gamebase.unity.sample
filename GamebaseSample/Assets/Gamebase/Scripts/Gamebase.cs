@@ -673,6 +673,35 @@ namespace Toast.Gamebase
         }
 
         /// <summary>
+        /// Cancels the ongoing external browser login process.
+        /// </summary>
+        /// <remarks>
+        /// 1. Cancels the in-progress external browser login. (Ignored if no login is in progress or already completed)
+        /// 2. The cancellation result is handled in the Login method callback. (GamebaseErrorCode.AUTH_LOGIN_CANCEL_FAILED)
+        /// 3. This method is asynchronous as it's a cancellation request.
+        /// </remarks>
+        /// <example> 
+        /// Example Usage : 
+        /// <code>
+        ///     Gamebase.Login(GamebaseAuthProvider.XXX, (authToken, error) =>
+        ///     {
+        ///         if (!Gamebase.IsSuccess(error) && error.code == GamebaseErrorCode.AUTH_LOGIN_CANCEL_FAILED)
+        ///         {
+        ///             // TODO: Handle the cancellation...
+        ///         }
+        ///     });
+        ///     
+        ///     ...
+        ///     
+        ///     Gamebase.CancelLoginWithExternalBrowser();
+        /// </code>
+        /// </example>
+        public static void CancelLoginWithExternalBrowser()
+        {
+            GamebaseAuthImplementation.Instance.CancelLoginWithExternalBrowser();
+        }
+
+        /// <summary>
         /// This game interface allows authentication to be made with SDK provided by IdP, before login to Gamebase with provided access token.
         /// @since Added 1.4.0.
         /// </summary>
@@ -2340,6 +2369,7 @@ namespace Toast.Gamebase
             /// }
             /// </code>
             /// </example>
+            [Obsolete("As of release 2.45.0, use Gamebase.Purchase.RequestItemListPurchasable instead.")]
             public static void RequestItemListAtIAPConsole(GamebaseCallback.GamebaseDelegate<List<GamebaseResponse.Purchase.PurchasableItem>> callback)
             {
                 GamebasePurchaseImplementation.Instance.RequestItemListAtIAPConsole(callback);
@@ -3020,6 +3050,108 @@ namespace Toast.Gamebase
             public static GamebaseAppTrackingAuthorizationStatus GetAppTrackingAuthorizationStatus()
             {
                 return GamebaseUtilImplementation.Instance.GetAppTrackingAuthorizationStatus();
+            }
+
+            /// <summary>
+            /// Gets the idfa on the device. (Ios Only)
+            /// @since Added 2.64.0.
+            /// </summary>
+            /// <returns>The idfa currently on the device.</returns>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleGetIdfa()
+            /// {
+            /// #if UNITY_IOS
+            ///     string idfa = Gamebase.Util.GetIdfa(); Ios only
+            /// #endif
+            /// }
+            /// </code>
+            /// </example>           
+            public static string GetIdfa()
+            {
+                return GamebaseUtilImplementation.Instance.GetIdfa();
+            }
+            
+            /// <summary>
+            /// Gets the AgeSignal on the device. (Android Only)
+            /// @since Added 2.67.0.
+            /// </summary>
+            /// <returns>The AgeSignal currently on the device.</returns>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void GetAgeSignal()
+            /// {
+            /// #if UNITY_ANDROID
+            ///     Gamebase.Util.GetAgeSignal((data, error) => // Android only
+            ///     {
+            ///         if (Gamebase.IsSuccess(error) == true)
+            ///         {
+            ///             if(data.userStatus.HasValue == false)
+            ///             {
+            ///                 // Not legally applicable (null)
+            ///             }
+            ///             else
+            ///             {
+            ///                 GamebaseAgeSignalsVerificationStatus userStatus = (GamebaseAgeSignalsVerificationStatus)data.userStatus.Value;
+            ///                 switch (userStatus)
+            ///                 {
+            ///                 case GamebaseAgeSignalsVerificationStatus.VERIFIED:
+            ///                      // Age 18 or older
+            ///                      break;
+            ///                  case GamebaseAgeSignalsVerificationStatus.SUPERVISED:
+            ///                      // Under supervision
+            ///                  
+            ///                      // Determine age range
+            ///                      //data.ageLower.Value;;
+            ///                      //data.ageUpper.Value;;
+            ///                      break;
+            ///                 case GamebaseAgeSignalsVerificationStatus.SUPERVISED_APPROVAL_PENDING:
+            ///                      // Under supervision
+            ///                   
+            ///                      // Determine age range
+            ///                      // data.ageLower.Value;;
+            ///                      // data.ageUpper.Value;;
+            ///                   
+            ///                      // Date of the most recently approved significant change
+            ///                      // data.mostRecentApprovalDate;
+            ///                   
+            ///                      // Installation ID ? used to notify about app approval revocation
+            ///                      // data.installId;
+            ///                      break;
+            ///                 case GamebaseAgeSignalsVerificationStatus.SUPERVISED_APPROVAL_DENIED:
+            ///                      // Parent or guardian has denied one or more significant changes
+            ///                   
+            ///                      // Determine age range
+            ///                      // data.ageLower.Value;;
+            ///                      // data.ageUpper.Value;;
+            ///
+            ///                      // Date of the most recently approved significant change
+            ///                      // data.mostRecentApprovalDate;
+            ///
+            ///                      // Installation ID ? used to notify about app approval revocation
+            ///                      // data.installId;
+            ///                      break;
+            ///                 case GamebaseAgeSignalsVerificationStatus.UNKNOWN:
+            ///                      // The user is not verified or supervised in the relevant jurisdiction or region.
+            ///                      // To receive age signals from Google Play, prompt the user to visit the Play Store and resolve their status.
+            ///                      break;
+            ///                 }
+            ///             }
+            ///         }
+            ///        else
+            ///        {
+            ///             // Failed to get AgeSignal.
+            ///        }
+            ///     });
+            ///  #endif
+            /// }
+            /// </code>
+            /// </example>           
+            public static void GetAgeSignal(GamebaseCallback.GamebaseDelegate<GamebaseResponse.Util.AgeSignalResult> callback)
+            {
+                GamebaseUtilImplementation.Instance.GetAgeSignal(callback);
             }
         }
 
@@ -3740,6 +3872,107 @@ namespace Toast.Gamebase
                 GamebaseAuthImplementation.Instance.CancelTemporaryWithdrawal(callback);
             }
         }
+        
+        /// <summary>
+        /// This class provides functionality related to game notices.
+        /// @since Added 2.71.0.
+        /// </summary>
+        public static class GameNotice
+        {
+            /// <summary>
+            /// Open game notice web pages.            
+            /// @since Added 2.71.0.
+            /// </summary>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleOpenGameNotice()
+            /// {
+            ///     Gamebase.GameNotice.OpenGameNotice(
+            ///         (error) =>
+            ///         {
+            ///             // Called when the entire gameNotice is closed.
+            ///         });
+            /// }
+            /// </code>
+            /// </example>
+            public static void OpenGameNotice(GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseGameNoticeImplementation.Instance.OpenGameNotice(null, callback);
+            }
+           
+            /// <summary>
+            /// Open game notice web pages.            
+            /// @since Added 2.79.0.
+            /// </summary>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleOpenGameNotice()
+            /// {
+            ///     var config = new GamebaseRequest.GameNotice.Configuration();
+            ///     config.categoryNames = new List<string> { "event", "maintenance" };
+            ///     Gamebase.GameNotice.OpenGameNotice(config,
+            ///         (error) =>
+            ///         {
+            ///             // Called when the entire gameNotice is closed.
+            ///         });
+            /// }
+            /// </code>
+            /// </example>
+            public static void OpenGameNotice(GamebaseRequest.GameNotice.Configuration configuration, GamebaseCallback.ErrorDelegate callback)
+            {
+                GamebaseGameNoticeImplementation.Instance.OpenGameNotice(configuration, callback);
+            }
+            
+            /// <summary>
+            /// Request game noticeInfo web pages.            
+            /// @since Added 2.79.0.
+            /// </summary>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleRequestGameNotice()
+            /// {
+            ///     Gamebase.GameNotice.RequestGameNoticeInfo(
+            ///         (gameNoticeInfo, error) =>
+            ///         {
+            ///             string url = gameNoticeInfo.url;
+            ///             long latestNoticeTimeMillis = gameNoticeInfo.latestNoticeTimeMillis;
+            ///         });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestGameNoticeInfo(GamebaseCallback.GamebaseDelegate<GameNoticeResponse.GameNoticeInfo> callback)
+            {
+                GamebaseGameNoticeImplementation.Instance.RequestGameNoticeInfo(null, callback);
+            }
+            
+            /// <summary>
+            /// Request game noticeInfo web pages.            
+            /// @since Added 2.79.0.
+            /// </summary>
+            /// <example> 
+            /// Example Usage : 
+            /// <code>
+            /// public void SampleRequestGameNotice()
+            /// {
+            ///     var config = new GamebaseRequest.GameNotice.Configuration();
+            ///     config.categoryNames = new List<string> { "event", "maintenance" };
+            ///     Gamebase.GameNotice.RequestGameNoticeInfo(config,
+            ///         (gameNoticeInfo, error) =>
+            ///         {
+            ///             string url = gameNoticeInfo.url;
+            ///             long latestNoticeTimeMillis = gameNoticeInfo.latestNoticeTimeMillis;
+            ///         });
+            /// }
+            /// </code>
+            /// </example>
+            public static void RequestGameNoticeInfo(GamebaseRequest.GameNotice.Configuration configuration, GamebaseCallback.GamebaseDelegate<GameNoticeResponse.GameNoticeInfo> callback)
+            {
+                GamebaseGameNoticeImplementation.Instance.RequestGameNoticeInfo(configuration, callback);
+            }
+        }
 
         /// <summary>
         /// This class provides functionality related to image notices.
@@ -3760,6 +3993,7 @@ namespace Toast.Gamebase
             /// public void SampleShowImageNotices()
             /// {
             ///     GamebaseRequest.ImageNotice.Configuration configuration = new GamebaseRequest.ImageNotice.Configuration();
+            ///     configuration.categoryNames = new List<string> { "event", "maintenance" };
             ///     configuration.colorR = 255;
             ///     configuration.colorG = 255;
             ///     configuration.colorB = 255;
@@ -3850,7 +4084,7 @@ namespace Toast.Gamebase
             /// Displays the terms and conditions set in the Gamebase console.
             /// @since Added 2.20.0.
             /// </summary>
-            public static class Terms
+        public static class Terms
         {
             /// <summary>
             /// Displays the terms and conditions window on the screen.

@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -69,6 +69,7 @@ namespace Toast.Gamebase.Internal.Single
                             DisplayLanguage.Instance.GetString("launching_update_required_title"),
                             status.message, 
                             launchingInfo.launching.app.install.url, 
+                            launchingInfo.launching.app.install.detailUrl,
                             DisplayLanguage.Instance.GetString("launching_update_now_label"));                        
 #endif
                         break;
@@ -114,7 +115,7 @@ namespace Toast.Gamebase.Internal.Single
             }
         }
 
-        public void ShowErrorPopup(GamebaseError error, BaseVO vo = null)
+        public void ShowErrorPopup(GamebaseError error)
         {
             if (true == Gamebase.IsSuccess(error))
             {
@@ -125,11 +126,15 @@ namespace Toast.Gamebase.Internal.Single
 
             switch (error.code)
             {
-                case GamebaseErrorCode.BANNED_MEMBER:              // 이용정지
+                case GamebaseErrorCode.BANNED_MEMBER: // 이용정지
+                {
+                    var banInfo = GamebaseResponse.Auth.BanInfo.From(error);
+                    if(banInfo != null)
                     {
-                        ShowBanPopup((AuthResponse.LoginInfo)vo);
-                        break;
+                        ShowBanPopup(banInfo);
                     }
+                    break;
+                }
                 case GamebaseErrorCode.LAUNCHING_UNREGISTERED_CLIENT:
                     {
                         GamebaseResponse.Launching.UpdateInfo updateInfo = GamebaseResponse.Launching.UpdateInfo.From(error);
@@ -141,8 +146,9 @@ namespace Toast.Gamebase.Internal.Single
                         ShowRequireUpdatePopup(
                             DisplayLanguage.Instance.GetString("launching_unregistered_client_version"),
                             updateInfo.message, 
-                            updateInfo.installUrl, 
-                            DisplayLanguage.Instance.GetString("common_ok_button"));
+                            updateInfo.installUrl,
+                            updateInfo.detailUrl,
+                            DisplayLanguage.Instance.GetString("launching_goto_store"));
                         break;
                     }
                 default:
@@ -171,7 +177,7 @@ namespace Toast.Gamebase.Internal.Single
                     {
                         if (GamebaseUnitySDK.EnableBanPopup == true)
                         {
-                            ShowKickOutPopup();
+                            ShowHeartbeatBanPopup();
                         }
                         break;
                     }
@@ -182,13 +188,13 @@ namespace Toast.Gamebase.Internal.Single
             }
         }
 
-        private void ShowKickOutPopup()
+        private void ShowHeartbeatBanPopup()
         {
-            GamebaseLog.Debug("ShowKickOutPopup", this);
+            GamebaseLog.Debug("ShowHeartbeatBanPopup", this);
             
             ShowSystemPopup(
                 GamebaseUtilAlertType.ALERT_OK,
-                DisplayLanguage.Instance.GetString("common_notice_title"),
+                DisplayLanguage.Instance.GetString("ban_title"),
                 DisplayLanguage.Instance.GetString("ban_user_message"),
                 string.Empty,
                 DisplayLanguage.Instance.GetString("common_close_button"),
@@ -223,7 +229,7 @@ namespace Toast.Gamebase.Internal.Single
 
             ServerPush.ServerPushMessage.ServerPushPopup.Message message = popup.messages[languageCode];
 
-            if(message == null)
+            if (message == null)
             {
                 return;
             }
@@ -263,7 +269,6 @@ namespace Toast.Gamebase.Internal.Single
                     DisplayLanguage.Instance.GetString("common_show_detail_message"),
                     (buttonID) =>
                     {
-                        
                         if (GamebaseUtilAlertButtonID.BUTTON_ONE == buttonID)
                         {
                             if (false == string.IsNullOrEmpty(launchingInfo.launching.notice.url))
@@ -282,7 +287,8 @@ namespace Toast.Gamebase.Internal.Single
             if (maintenanceInfo != null)
             {
                 StringBuilder msg = new StringBuilder();
-                msg.AppendLine(DisplayLanguage.Instance.GetString("launching_maintenance_message"));
+                
+                msg.AppendLine(UnityCompatibility.WebRequest.UnEscapeURL(maintenanceInfo.message));
 
                 if (maintenanceInfo.hideDate == false)
                 {
@@ -349,7 +355,7 @@ namespace Toast.Gamebase.Internal.Single
                 });
         }
                     
-        private void ShowRequireUpdatePopup(string title, string message, string url, string button)
+        private void ShowRequireUpdatePopup(string title, string message, string url, string detailURL, string button)
         {
             if (false == GamebaseUnitySDK.EnableLaunchingStatusPopup || false == GamebaseUnitySDK.EnablePopup)
             {
@@ -359,41 +365,70 @@ namespace Toast.Gamebase.Internal.Single
             StringBuilder msg = new StringBuilder();
             msg.Append(message);
 
-            ShowSystemPopup(
-                GamebaseUtilAlertType.ALERT_OK,
-                title,
-                msg.ToString(),
-                string.Empty,
-                button,
-                string.Empty,
-                (buttonID) =>
-                {
-                    if (GamebaseUtilAlertButtonID.BUTTON_ONE == buttonID)
+            if (string.IsNullOrEmpty(detailURL))
+            {
+                ShowSystemPopup(
+                    GamebaseUtilAlertType.ALERT_OK,
+                    title,
+                    msg.ToString(),
+                    string.Empty,
+                    button,
+                    string.Empty,
+                    (buttonID) =>
                     {
+                        if (GamebaseUtilAlertButtonID.BUTTON_ONE == buttonID)
+                        {
 #if !UNITY_WEBGL
-                        GamebaseWebviewImplementation.Instance.OpenWebBrowser(url);
-                        Application.Quit();
+                            GamebaseWebviewImplementation.Instance.OpenWebBrowser(url);
+                            Application.Quit();
 #endif
-                    }
-                });
+                        }
+                    });
+            }
+            else // Gamebase-Client/1593 : app.install.detailUrl이 있을 경우에만 '자세히 보기' 버튼 추가
+            {
+                ShowSystemPopup(
+                    GamebaseUtilAlertType.ALERT_OKCANCEL,
+                    title,
+                    msg.ToString(),
+                    DisplayLanguage.Instance.GetString("common_show_detail_button"),
+                    button,
+                    string.Empty,
+                    (buttonID) =>
+                    {
+                        if (GamebaseUtilAlertButtonID.BUTTON_ONE == buttonID)
+                        {
+#if !UNITY_WEBGL
+                            GamebaseWebviewImplementation.Instance.OpenWebBrowser(detailURL);
+                            GamebaseWebviewImplementation.Instance.OpenWebBrowser(url);
+#endif
+                        }
+                        else if (GamebaseUtilAlertButtonID.BUTTON_TWO == buttonID)
+                        {
+#if !UNITY_WEBGL
+                            GamebaseWebviewImplementation.Instance.OpenWebBrowser(url);
+                            Application.Quit();
+#endif
+                        }
+                    });
+            }
         }
 
-        private void ShowBanPopup(AuthResponse.LoginInfo vo)
+        private void ShowBanPopup(GamebaseResponse.Auth.BanInfo banInfo)
         {
             if (false == GamebaseUnitySDK.EnableBanPopup || false == GamebaseUnitySDK.EnablePopup)
             {
                 return;
             }
 
-            string messageString = UnityCompatibility.WebRequest.UnEscapeURL(vo.errorExtras.ban.message);
-
+            string messageString = UnityCompatibility.WebRequest.UnEscapeURL(banInfo.message);
 
             StringBuilder message = new StringBuilder();
             message.Append(DisplayLanguage.Instance.GetString("ban_user_message"));
             message.Append("\n\n");
             message.Append(DisplayLanguage.Instance.GetString("ban_user_id_label"));
             message.Append(" : ");
-            message.Append(vo.errorExtras.ban.userId);
+            message.Append(banInfo.userId);
             message.Append("\n");
             message.Append(DisplayLanguage.Instance.GetString("ban_reason_label"));
             message.Append(" : ");
@@ -401,11 +436,11 @@ namespace Toast.Gamebase.Internal.Single
             message.Append("\n");
             message.Append(DisplayLanguage.Instance.GetString("ban_date_label"));
             message.Append(" : ");
-            if (true == vo.errorExtras.ban.banType.Equals("TEMPORARY", StringComparison.Ordinal))
+            if (true == banInfo.banType.Equals("TEMPORARY", StringComparison.Ordinal))
             {
-                message.Append(new DateTime(1970, 1, 1).AddHours(9).AddMilliseconds(vo.errorExtras.ban.beginDate).ToString());
+                message.Append(new DateTime(1970, 1, 1).AddHours(9).AddMilliseconds(banInfo.beginDate).ToString());
                 message.Append(" ~ ");
-                message.Append(new DateTime(1970, 1, 1).AddHours(9).AddMilliseconds(vo.errorExtras.ban.endDate).ToString());
+                message.Append(new DateTime(1970, 1, 1).AddHours(9).AddMilliseconds(banInfo.endDate).ToString());
             }
             else
             {
@@ -414,22 +449,40 @@ namespace Toast.Gamebase.Internal.Single
 
             message.Append("\n\n");
             message.Append(DisplayLanguage.Instance.GetString("ban_detailpage_cs_guide_message"));
-            message.Append("\n\n");
-            message.Append(DisplayLanguage.Instance.GetString("ban_show_cs_message"));
-            ShowSystemPopup(
-                GamebaseUtilAlertType.ALERT_OKCANCEL,
-                DisplayLanguage.Instance.GetString("ban_title"),
-                message.ToString(),
-                DisplayLanguage.Instance.GetString("ban_cs_label"),
-                DisplayLanguage.Instance.GetString("common_close_button"),
-                string.Empty,
-                (buttonID) =>
-                {
-                    if (GamebaseUtilAlertButtonID.BUTTON_ONE == buttonID)
+            
+
+            if (string.IsNullOrEmpty(banInfo.csUrl) == false)
+            {
+                message.Append("\n\n");
+                message.Append(DisplayLanguage.Instance.GetString("ban_show_cs_message"));
+                
+                ShowSystemPopup(
+                    GamebaseUtilAlertType.ALERT_OKCANCEL,
+                    DisplayLanguage.Instance.GetString("ban_title"),
+                    message.ToString(),
+                    DisplayLanguage.Instance.GetString("ban_cs_label"),
+                    DisplayLanguage.Instance.GetString("common_close_button"),
+                    string.Empty,
+                    (buttonID) =>
                     {
-                        GamebaseWebviewImplementation.Instance.OpenWebBrowser(Gamebase.Launching.GetLaunchingInformations().launching.app.customerService.url);
-                    }
-                });
+                        if (GamebaseUtilAlertButtonID.BUTTON_ONE == buttonID)
+                        {
+                            GamebaseWebviewImplementation.Instance.OpenWebBrowser(banInfo.csUrl);
+                        }
+                    });
+            }
+            else
+            {
+                ShowSystemPopup(
+                    GamebaseUtilAlertType.ALERT_OKCANCEL,
+                    DisplayLanguage.Instance.GetString("ban_title"),
+                    message.ToString(),
+                    string.Empty,
+                    DisplayLanguage.Instance.GetString("common_close_button"),
+                    string.Empty,
+                    (buttonID) => { }
+                    );
+            }
         }
         
         private void ShowBlockedUserPopup(string message)

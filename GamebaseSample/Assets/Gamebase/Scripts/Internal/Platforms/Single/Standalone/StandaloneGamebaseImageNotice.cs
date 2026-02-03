@@ -55,12 +55,10 @@ namespace Toast.Gamebase.Internal.Single.Standalone
 
         private Dictionary<string, string> neverShowTodayState;
 
-        private WebSocketRequest.RequestVO requestVO;
-
         public StandaloneGamebaseImageNotice()
         {
             Domain = typeof(StandaloneGamebaseImageNotice).Name;
-            requestVO = ImageNoticeMessage.GetImageNoticesMessage();
+            
         }
 
         public override void ShowImageNotices(GamebaseRequest.ImageNotice.Configuration configuration, int closeHandle, int eventHandle)
@@ -83,19 +81,33 @@ namespace Toast.Gamebase.Internal.Single.Standalone
 
             eventCallback = GamebaseCallbackHandler.GetCallback<GamebaseCallback.GamebaseDelegate<string>>(eventHandle);
             GamebaseCallbackHandler.UnregisterCallback(eventHandle);
+            
+            if (GamebaseUnitySDK.IsInitialized == false)
+            {
+                closeCallback(new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, message: GamebaseStrings.NOT_INITIALIZED));
+                return;
+            }
 
-            RequestImageNoticeData();
+            RequestImageNoticeData(configuration);
         }
 
         public override void CloseImageNotices()
         {
             closeCallback = null;
             eventCallback = null;
+            
             WebviewAdapterManager.Instance.CloseWebView();
         }
 
-        private void RequestImageNoticeData()
+        private void RequestImageNoticeData(GamebaseRequest.ImageNotice.Configuration configuration)
         {
+            if (GamebaseUnitySDK.IsInitialized == false)
+            {
+                closeCallback?.Invoke(new GamebaseError(GamebaseErrorCode.NOT_INITIALIZED, message: GamebaseStrings.NOT_INITIALIZED));
+                return;
+            }
+            
+            WebSocketRequest.RequestVO requestVO = ImageNoticeMessage.GetImageNoticesMessage(configuration);
             WebSocket.Instance.Request(requestVO, (response, error) =>
             {
                 imageNotices = null;
@@ -112,7 +124,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                     return;
                 }
 
-                IsValidServerResponse(response, (responseError) =>
+                IsValidServerResponse(requestVO, response, (responseError) =>
                 {
                     if (Gamebase.IsSuccess(responseError))
                     {
@@ -157,11 +169,20 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                 return;
             }
 
-            var webviewRect = GetWebViewRect(TITLE_BAR_HEIGHT);
+            var webviewRect = GetWebViewRect(0);
+            
+            var configuration = new WebViewRequest.Configuration
+            {
+                barHeight = 0,
+                bgColor = bgColor,
+                viewRect = webviewRect,
+                isBackButtonVisible = false,
+                isNavigationBarVisible = false
+            };
 
             WebviewAdapterManager.Instance.ShowWebView(
                url,
-               null,
+               configuration,
                (error) =>
                {
                },
@@ -225,11 +246,6 @@ namespace Toast.Gamebase.Internal.Single.Standalone
                },
                () =>
                {
-                   WebviewAdapterManager.Instance.SetBgColor(bgColor);
-                   WebviewAdapterManager.Instance.SetWebViewRect(TITLE_BAR_HEIGHT, webviewRect);
-                   WebviewAdapterManager.Instance.SetTitleBarColor(bgColor);
-                   WebviewAdapterManager.Instance.SetTitleBarButton(false, null, null);
-                   WebviewAdapterManager.Instance.SetTitleVisible(false);
                });
         }
 
@@ -340,7 +356,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
             return neverShowTodayState.ContainsKey(imageNoticeId.ToString());
         }
 
-        private void IsValidServerResponse(string response, GamebaseCallback.ErrorDelegate callback)
+        private void IsValidServerResponse(WebSocketRequest.RequestVO requestVO, string response, GamebaseCallback.ErrorDelegate callback)
         {
             var vo = JsonMapper.ToObject<ImageNoticeResponse.ImageNotices>(response);
             
@@ -378,7 +394,7 @@ namespace Toast.Gamebase.Internal.Single.Standalone
 
         private bool HasImageNotice()
         {
-            return imageNotices.hasImageNotice;
+            return imageNotices != null && imageNotices.hasImageNotice;
         }
 
         private bool IsVaildType(string type)

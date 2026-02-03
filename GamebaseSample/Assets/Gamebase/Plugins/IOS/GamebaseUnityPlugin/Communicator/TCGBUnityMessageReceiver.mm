@@ -40,22 +40,14 @@ char* getSync(char* jsonString) {
     if(data != nil) {
         [TCGBUtil logDebugWithFormat:@"[TCGB][Plugin][UnityMessageReceiver] getSync jsonString : %@", [[TCGBJsonUtil sharedGamebaseJsonUtil] prettyJsonStringFromJsonString:data]];
     }
-    
-    NSDictionary* convertedDic = [data toJSONDictionary];
-    NSInvocation* invocation = [[DelegateManager sharedDelegateManager] getSyncDelegate:convertedDic[@"scheme"]];
+
+    EngineMessage* engineMessage = [[EngineMessage alloc]initWithJsonString:data];
+    NSInvocation* invocation = [[DelegateManager sharedDelegateManager] getSyncDelegate:engineMessage.scheme];
     
     void *invokeReturnChar;
     if (invocation) {
-        TCGBPluginData* pluginData =
-        [[TCGBPluginData alloc]initWithJsonData:data completion:^(NSString *jsonData, NativeMessage *message) {
-            
-            NSDictionary* convertedDic = [data toJSONDictionary];
-            
-            TCGBUnityMessage* sendMessage = [TCGBUnityMessage alloc];
-            sendMessage.gameObjectName = convertedDic[@"gameObjectName"];
-            sendMessage.responseMethodName = convertedDic[@"responseMethodName"];
-            
-           [[TCGBUnityMessageSender sharedUnityMessageSender] sendMessage:message gameObjectName:sendMessage.gameObjectName responseMethodName:sendMessage.responseMethodName];
+        TCGBPluginData* pluginData = [[TCGBPluginData alloc]initWithEngineMessage:engineMessage completion:^(EngineMessage *engineMessage, NativeMessage *message) {
+            [[TCGBUnityMessageSender sharedUnityMessageSender] sendMessage:message gameObjectName:engineMessage.gameObjectName responseMethodName:engineMessage.responseMethodName];
         }];
         
         [invocation setArgument:&pluginData atIndex:2];
@@ -84,20 +76,13 @@ void getAsync(char* jsonString) {
     if(data != nil) {
         [TCGBUtil logDebugWithFormat:@"[TCGB][Plugin][UnityMessageReceiver] getAsync jsonString : %@", [[TCGBJsonUtil sharedGamebaseJsonUtil] prettyJsonStringFromJsonString:data]];
     }
+
+    EngineMessage* engineMessage = [[EngineMessage alloc]initWithJsonString:data];
+    NSInvocation* invocation = [[DelegateManager sharedDelegateManager] getAsyncDelegate:engineMessage.scheme];
     
-    NSDictionary* convertedDic = [data toJSONDictionary];
-    NSInvocation* invocation = [[DelegateManager sharedDelegateManager] getAsyncDelegate:convertedDic[@"scheme"]];
     if (invocation) {
-        TCGBPluginData* pluginData =
-        [[TCGBPluginData alloc]initWithJsonData:data completion:^(NSString *jsonData, NativeMessage *message) {
-            
-            NSDictionary* convertedDic = [data toJSONDictionary];
-            
-            TCGBUnityMessage* sendMessage = [TCGBUnityMessage alloc];
-            sendMessage.gameObjectName = convertedDic[@"gameObjectName"];
-            sendMessage.responseMethodName = convertedDic[@"responseMethodName"];
-            
-            [[TCGBUnityMessageSender sharedUnityMessageSender] sendMessage:message gameObjectName:sendMessage.gameObjectName responseMethodName:sendMessage.responseMethodName];
+        TCGBPluginData* pluginData = [[TCGBPluginData alloc]initWithEngineMessage:engineMessage completion:^(EngineMessage *engineMessage, NativeMessage *message) {
+            [[TCGBUnityMessageSender sharedUnityMessageSender] sendMessage:message gameObjectName:engineMessage.gameObjectName responseMethodName:engineMessage.responseMethodName];
         }];
         
         [invocation setArgument:&pluginData atIndex:2];

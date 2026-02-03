@@ -68,12 +68,24 @@ namespace Toast.Gamebase.Internal
             GetAdapter(providerName).IDPLogout();
         }
 
-        public void IDPLogoutAll()
+        public void IDPLogoutAll(GamebaseCallback.ErrorDelegate callback = null)
         {
             foreach (KeyValuePair<string, IAuthAdapter> kvp in adapterDict)
             {
                 kvp.Value.IDPLogout();
             }
+            
+            callback?.Invoke(null);
+        }
+        
+        public void IDPWithdrawAll(GamebaseCallback.ErrorDelegate callback = null)
+        {
+            foreach (KeyValuePair<string, IAuthAdapter> kvp in adapterDict)
+            {
+                kvp.Value.IDPLogout();
+            }
+            
+            callback?.Invoke(null);
         }
 
         public class MethodName
@@ -81,6 +93,7 @@ namespace Toast.Gamebase.Internal
             public const string GET_IDP_NAME = "GET_IDP_NAME";
             public const string GET_IDP_USER_ID = "GET_IDP_USER_ID";
             public const string GET_IDP_ACCESS_TOKEN = "GET_IDP_ACCESS_TOKEN";
+            public const string GET_IDP_SESSION_ID = "GET_IDP_SESSION_ID";
             public const string GET_IDP_PROFILE = "GET_IDP_PROFILE";
         }
 
@@ -106,6 +119,8 @@ namespace Toast.Gamebase.Internal
                     return (T)Convert.ChangeType(GetIDPUserID(providerName), typeof(T));
                 case MethodName.GET_IDP_ACCESS_TOKEN:
                     return (T)Convert.ChangeType(GetIDPAccessToken(providerName), typeof(T));
+                case MethodName.GET_IDP_SESSION_ID:
+                    return (T)Convert.ChangeType(GetIDPSessionId(providerName), typeof(T));
                 case MethodName.GET_IDP_PROFILE:
                     return (T)Convert.ChangeType(GetAuthProviderProfile(providerName), typeof(T));
                 default:
@@ -148,6 +163,11 @@ namespace Toast.Gamebase.Internal
         {
             return GetAdapter(providerName).GetIDPAccessToken();
         }
+        
+        private string GetIDPSessionId(string providerName)
+        {
+            return GetAdapter(providerName).GetIDPSessionId();
+        }
 
         private GamebaseResponse.Auth.AuthProviderProfile GetAuthProviderProfile(string providerName)
         {
@@ -178,7 +198,7 @@ namespace Toast.Gamebase.Internal
 
         public bool IsSupportedIDP(string providerName)
         {
-#if UNITY_EDITOR || UNITY_WEBGL || UNITY_STANDALONE
+#if UNITY_WEBGL || UNITY_STANDALONE || UNITY_EDITOR
             return providerName == GamebaseAuthProvider.GUEST;
 #else
             return false;

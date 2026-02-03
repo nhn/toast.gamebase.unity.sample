@@ -3,7 +3,7 @@ $webSocketInstances: [],
 
 SocketCreate: function(url)
 {
-	var str = Pointer_stringify(url);
+	var str = UTF8ToString(url);
 	var socket = {
 		socket: new WebSocket(str),
 		error: null,
@@ -83,7 +83,7 @@ SocketSend: function (socketInstance, ptr)
 	if(!socket){
 		return;
 	}
-	var str = Pointer_stringify(ptr);
+	var str = UTF8ToString(ptr);
 	socket.socket.send (str);
 },
 

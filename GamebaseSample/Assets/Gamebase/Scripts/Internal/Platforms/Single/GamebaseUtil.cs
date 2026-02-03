@@ -6,17 +6,10 @@ namespace Toast.Gamebase.Internal.Single
 {
     public static class GamebaseUtil
     {
-        public static void IssueShortTermTicket(string purpose, int expiresin, string domain, GamebaseCallback.GamebaseDelegate<string> callback)
+        public static WebSocketOperation IssueShortTermTicket(string userID, string purpose, int expiresin, string domain, GamebaseCallback.GamebaseDelegate<string> callback)
         {
-            if (string.IsNullOrEmpty(Gamebase.GetUserID()) == true)
-            {
-                GamebaseLog.Warn("Not LoggedIn", typeof(GamebaseUtil), "IssueShortTermTicket");
-                return;
-            }
-
-            var requestVO = AuthMessage.GetIssueShortTermTicketMessage(purpose, expiresin);
-
-            WebSocket.Instance.Request(requestVO, (response, error) =>
+            var requestVO = AuthMessage.GetIssueShortTermTicketMessage(userID, purpose, expiresin);
+            return WebSocket.Instance.Request(requestVO, (response, error) =>
             {
                 if (error == null)
                 {

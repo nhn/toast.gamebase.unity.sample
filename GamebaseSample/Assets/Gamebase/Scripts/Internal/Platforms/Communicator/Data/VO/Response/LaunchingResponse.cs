@@ -49,6 +49,7 @@ namespace Toast.Gamebase.Internal
                     public class Install
                     {
                         public string url;
+                        public string detailUrl;
                     }
 
                     public class IDP
@@ -93,6 +94,17 @@ namespace Toast.Gamebase.Internal
                         public string url;
                         public string accessInfo;
                     }
+                    
+                    public class GameNotice
+                    {
+                        public string url;
+                    }
+
+                    public class TermsService
+                    {
+                        public bool showTermsFlag;
+                        public string termsUrl;
+                    }
 
                     public AccessInfo accessInfo;
                     public Dictionary<string, IDP> idP;
@@ -103,6 +115,8 @@ namespace Toast.Gamebase.Internal
                     public string typeCode;
                     public LoginUrls loginUrls;
                     public CustomerService customerService;
+                    public GameNotice gameNotice;
+                    public TermsService termsService;
                 }
 
                 public class Maintenance

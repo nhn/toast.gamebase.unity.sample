@@ -63,7 +63,20 @@ namespace Toast.Gamebase.Internal.Single
         /// 이용 정지 유저
         /// </summary>
         public const int BANNED_MEMBER                                  = -4010205;
-        
+
+        /// <summary>
+        /// 브라우저 로그인 중
+        /// </summary>
+        public const int BROWSER_LOGIN_IN_PROGRESS                      = -4090201;
+        /// <summary>
+        /// 유효한 로그인 페이지 브라우저가 없음
+        /// </summary>
+        public const int BROWSER_INVALID_REQUEST                        = -4010211;
+        /// <summary>
+        /// 브라우저 인증 실패(사용자 로그인 실패 등)
+        /// </summary>
+        public const int BROWSER_AUTHENTICATION_FAILED                  = -4010212;
+
         /// <summary>
         /// 내부 시스템 오류 발생
         /// </summary>

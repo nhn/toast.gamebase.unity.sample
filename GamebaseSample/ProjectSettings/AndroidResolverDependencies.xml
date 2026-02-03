@@ -1,11 +1,11 @@
 <dependencies>
   <packages>
-    <package>com.toast.android.gamebase:gamebase-adapter-auth-facebook:2.69.0</package>
-    <package>com.toast.android.gamebase:gamebase-adapter-auth-google:2.69.0</package>
-    <package>com.toast.android.gamebase:gamebase-adapter-auth-payco:2.69.0</package>
-    <package>com.toast.android.gamebase:gamebase-adapter-purchase-google:2.69.0</package>
-    <package>com.toast.android.gamebase:gamebase-adapter-push-fcm:2.69.0</package>
-    <package>com.toast.android.gamebase:gamebase-sdk:2.69.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-auth-facebook:2.79.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-auth-google:2.79.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-auth-payco:2.79.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-purchase-google:2.79.0</package>
+    <package>com.toast.android.gamebase:gamebase-adapter-push-fcm:2.79.0</package>
+    <package>com.toast.android.gamebase:gamebase-sdk:2.79.0</package>
   </packages>
   <files />
   <settings>

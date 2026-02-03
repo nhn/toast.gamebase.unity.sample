@@ -6,6 +6,7 @@ namespace Toast.Gamebase.Internal
     {
         void Login(string providerName, int handle);
         void Login(string providerName, Dictionary<string, object> additionalInfo, int handle);
+        void CancelLoginWithExternalBrowser();
         void Login(Dictionary<string, object> credentialInfo, int handle);
         void LoginForLastLoggedInProvider(int handle);
         void LoginForLastLoggedInProvider(Dictionary<string, object> additionalInfo, int handle);
@@ -21,7 +22,9 @@ namespace Toast.Gamebase.Internal
         void AddMappingForcibly(GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket, int handle);
 
         void RemoveMapping(string providerName, int handle);
-        void Logout(int handle);
+
+        void Logout(Dictionary<string, object> additionalInfo, int handle);
+        
         void Withdraw(int handle);
         void WithdrawImmediately(int handle);
         void RequestTemporaryWithdrawal(int handle);
@@ -37,6 +40,5 @@ namespace Toast.Gamebase.Internal
         string GetAuthProviderAccessToken(string providerName);
         GamebaseResponse.Auth.AuthProviderProfile GetAuthProviderProfile(string providerName);
         GamebaseResponse.Auth.BanInfo GetBanInfo();
-        void IssueShortTermTicket(int handle);
     }
 }

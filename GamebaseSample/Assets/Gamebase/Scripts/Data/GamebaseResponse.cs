@@ -1,10 +1,31 @@
+using GamePlatform.Logger.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Toast.Gamebase.LitJson;
 using UnityEngine;
+using static Toast.Gamebase.GamebaseResponse.Auth;
 
 namespace Toast.Gamebase
 {
+    public static class AuthTokenUtil
+    {
+        public static string ToJson(this AuthToken.Token token) => JsonUtility.ToJson(token, true);
+        
+        public static AuthToken.Token ToToken(this string serializedToken) => JsonUtility.FromJson<AuthToken.Token>(serializedToken);
+
+        public static Dictionary<string, object> ToCredentialInfo(this AuthToken.Token token)
+        {
+            return new Dictionary<string, object>
+            {
+                { GamebaseAuthProviderCredential.PROVIDER_NAME, token.sourceIdPCode },
+                { GamebaseAuthProviderCredential.GAMEBASE_ACCESS_TOKEN, token.accessToken },
+                { GamebaseAuthProviderCredential.SUB_CODE, token.subCode },
+                { GamebaseAuthProviderCredential.EXTRA_PARAMS, token.extraParams }
+            };
+        }
+    }
+
     public static class GamebaseResponse
     {
         public static class SDK
@@ -449,6 +470,10 @@ namespace Toast.Gamebase
                         /// Customer service information.
                         /// </summary>
                         public CustomerService customerService;
+
+                        public GameNotice gameNotice;
+                        
+                        public TermsService termsService;
                         
                         public class AccessInfo
                         {
@@ -516,6 +541,15 @@ namespace Toast.Gamebase
                             /// <para/>NHN Cloud Console > Game > Gamebase > App > Authentication Information > Additional Info 
                             /// </summary>
                             public string additional;
+
+                            public List<Channels> channels;
+                        }
+
+                        public class Channels
+                        {
+                            public string clientId;
+                            public string clientSecret;
+                            public string region;
                         }
 
                         public class CustomerService
@@ -537,6 +571,18 @@ namespace Toast.Gamebase
                             /// Customer center contact.
                             /// </summary>
                             public string accessInfo;
+                        }
+                        
+                        public class GameNotice
+                        {
+                            public string url;
+                            public long latestNoticeTimeMillis = -1L;
+                        }
+
+                        public class TermsService
+                        {
+                            public bool showTermsFlag;
+                            public string termsUrl;
                         }
                     }
 
@@ -778,6 +824,11 @@ namespace Toast.Gamebase
                 public class Token
                 {
                     /// <summary>
+                    /// The authentication information(source idPCode) received after login to IdP.
+                    /// </summary>
+                    public string sourceIdPCode;
+                    
+                    /// <summary>
                     /// The authentication information(access token) received after login to IdP.
                     /// </summary>
                     public string accessToken;
@@ -786,6 +837,26 @@ namespace Toast.Gamebase
                     /// The authentication information(access token secret) received after login to IdP.
                     /// </summary>
                     public string accessTokenSecret;
+                    
+                    /// <summary>
+                    /// The authentication information(subCode) received after login to IdP.
+                    /// </summary>
+                    public string subCode;
+                    
+                    /// <summary>
+                    /// The authentication information(extraParams) received after login to IdP.
+                    /// </summary>
+                    public Dictionary<string, string> extraParams;
+                    
+                    /// <summary>
+                    /// The authentication information(third idPCode) received after login to IdP.
+                    /// </summary>
+                    public string thirdIdPCode;
+                    
+                    /// <summary>
+                    /// The authentication information(expiresIn) received after login to IdP.
+                    /// </summary>
+                    public int expiresIn;
                 }
             }
 
@@ -959,7 +1030,17 @@ namespace Toast.Gamebase
                 /// Gamebase accessToken issued to the idP passed when calling addMapping.
                 /// </summary>
                 public string accessToken;
-                
+
+                /// <summary>
+                /// Gamebase subCode issued to the idP passed when calling addMapping.
+                /// </summary>
+                public string subCode;
+
+                /// <summary>
+                /// Gamebase extraParams issued to the idP passed when calling addMapping.
+                /// </summary>
+                public Dictionary<string, string> extraParams;
+
                 [Obsolete("As of release 2.9.0, use GamebaseResponse.Auth.ForcingMappingTicket.From instead.")]
                 public static ForcingMappingTicket MakeForcingMappingTicket(GamebaseError error)
                 {
@@ -1796,6 +1877,18 @@ namespace Toast.Gamebase
             /// JSON string type data
             /// </summary>
             public string data;
+        }
+
+        public static class Util
+        {
+            public class AgeSignalResult
+            {
+                public int? userStatus;
+                public int? ageLower;
+                public int? ageUpper;
+                public string installId;
+                public string mostRecentApprovalDate;
+            }
         }
 
         public static class Terms

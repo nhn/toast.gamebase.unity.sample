@@ -127,6 +127,13 @@ namespace Toast.Gamebase.Internal.Mobile
                 public string message;
                 public int duration;
             }
+            
+            public class AgeRange
+            {
+                public int ageGates;
+                public int? threshold2;
+                public int? threshold3;
+            }
         }
 
         public static class Terms

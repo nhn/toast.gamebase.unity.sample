@@ -1,4 +1,6 @@
-﻿using GamebaseSample;
+﻿#if UNITY_IOS
+
+using GamebaseSample;
 using System.Collections.Generic;
 using System.IO;
 
@@ -167,3 +169,5 @@ public class GamebasePlistManager
 		return false;
 	}
 }
+
+#endif

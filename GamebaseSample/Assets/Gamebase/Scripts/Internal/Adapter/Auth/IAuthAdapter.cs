@@ -11,6 +11,7 @@ namespace Toast.Gamebase.Internal
         string GetIDPName();
         string GetIDPUserID();
         string GetIDPAccessToken();
+        string GetIDPSessionId();
         GamebaseResponse.Auth.AuthProviderProfile GetIDPProfile();
     }
 }

@@ -270,7 +270,7 @@ namespace Toast.Gamebase.Internal.Mobile
             if (Gamebase.IsSuccess(error) == true)
             {
                 LaunchingResponse.LaunchingInfo launchingInfo = JsonMapper.ToObject<LaunchingResponse.LaunchingInfo>(message.jsonData);
-                DataContainer.SetData(VOKey.Launching.LAUNCHING_INFO, launchingInfo);
+                DataContainer.SetData(PlatformKey.Launching.LAUNCHING_INFO, launchingInfo);
             }
         }
     }

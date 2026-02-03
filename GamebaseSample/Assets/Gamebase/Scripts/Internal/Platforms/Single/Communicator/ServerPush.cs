@@ -65,7 +65,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             if (serverPush.logout == true)
             {
-                Gamebase.Logout(null);
+                GamebaseAuthImplementation.Instance.Logout(null);
             }
 
             if (serverPush.disconnect == true)

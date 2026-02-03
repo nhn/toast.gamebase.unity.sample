@@ -1,4 +1,4 @@
-﻿namespace Toast.Gamebase.Internal
+namespace Toast.Gamebase.Internal
 {
     public static class GamebaseStrings
     {
@@ -74,6 +74,7 @@
         public const string AUTH_EXTERNAL_LIBRARY_ERROR                         = "External library error";
         public const string AUTH_ALREADY_IN_PROGRESS_ERROR                      = "Previous authentication process is not finished yet";
         public const string AUTH_INVALID_GAMEBASE_TOKEN                         = "You have been logged out because your Gamebase Access Token is not valid. Please try logging in again.";
+        public const string AUTH_AUTHENTICATION_SERVER_ERROR                    = "An error occurred from the authentication server.";
 
         public const string AUTH_TRANSFERKEY_EXPIRED                            = "TransferKey has been expired";
         public const string AUTH_TRANSFERKEY_CONSUMED                           = "TransferKey has already been used";
@@ -85,6 +86,7 @@
         public const string AUTH_IDP_LOGIN_FAILED                               = "IdP login failed";
         public const string AUTH_IDP_LOGIN_INVALID_IDP_INFO                     = "Invalid IdP information";
         public const string AUTH_IDP_LOGIN_EXTERNAL_AUTHENTICATION_REQUIRED     = "You must first log in to the IdP";
+        public const string AUTH_IDP_LOGIN_SUPPORTED_BROWSER_NOT_FOUND          = "No supported browser was found.";
         public const string AUTH_ADD_MAPPING_FAILED                             = "Mapping failed";
         public const string AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER     = "Already mapped to other member";
         public const string AUTH_ADD_MAPPING_ALREADY_HAS_SAME_IDP               = "Already has same IdP";
@@ -152,5 +154,14 @@
         public const string UI_COMMUNITY_FAIL_INVALID_URL                       = "Community URL generation failed.";
         public const string UI_COMMUNITY_FAIL_ISSUE_SHORT_TERM_TICKET           = "Failed to create ShortTermTicket.";
         public const string UI_COMMUNITY_FAIL_ANDROID_DUPLICATED_VIEW           = "Community is already open.";
+        
+        public const string UI_GAME_NOTICE_FAIL_INVALID_URL                     = "The Game Notice URL generation failed.";
+        public const string UI_GAME_NOTICE_FAIL_ANDROID_DUPLICATED_VIEW         = "The webview of the Game Notice is already open.";
+        
+        //----------------------------------------
+        // Plugins
+        //----------------------------------------
+        public const string PLUGIN_NOT_INITIALIZED                              = "The Gamebase SDK Plugin is not initialized";
+        public const string PLUGIN_INVALID_ENGINE                               = "EngineData is invalid.";
     }
 }

@@ -6,8 +6,8 @@ namespace Toast.Gamebase.Internal.Single.Communicator
     {
         private readonly List<string> alphaList = new List<string>
         {
-            "wss://gslb-gamebase.alpha-nhncloudservice.com:11442/lh",
-            "wss://alpha-gslb-gamebase.nhngameplatform.com:11442/lh"
+            "wss://gslb-gamebase.alpha-nhncloudservice.com:11443/lh",
+            "wss://alpha-gslb-gamebase.nhngameplatform.com:11443/lh"
         };
 
         private readonly List<string> betaList = new List<string>

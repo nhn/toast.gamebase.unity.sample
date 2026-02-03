@@ -1,4 +1,4 @@
-﻿namespace Toast.Gamebase
+namespace Toast.Gamebase
 {
     public class GamebaseErrorCode
     {
@@ -58,6 +58,8 @@
         public const int AUTH_EXTERNAL_LIBRARY_ERROR                        = 3009;
         public const int AUTH_ALREADY_IN_PROGRESS_ERROR                     = 3010;
         public const int AUTH_INVALID_GAMEBASE_TOKEN                        = 3011;
+        public const int AUTH_AUTHENTICATION_SERVER_ERROR                   = 3012;
+        public const int AUTH_LOGIN_CANCEL_FAILED                           = 3013;
         // transferAccount
         public const int AUTH_TRANSFERACCOUNT_EXPIRED                       = 3041;
         public const int AUTH_TRANSFERACCOUNT_BLOCK                         = 3042;
@@ -76,6 +78,10 @@
         public const int AUTH_IDP_LOGIN_FAILED                              = 3201;
         public const int AUTH_IDP_LOGIN_INVALID_IDP_INFO                    = 3202;
         public const int AUTH_IDP_LOGIN_EXTERNAL_AUTHENTICATION_REQUIRED    = 3203;
+        public const int AUTH_IDP_LOGIN_SUPPORTED_BROWSER_NOT_FOUND         = 3204;
+        public const int AUTH_IDP_LOGIN_INVALID_REQUEST                     = 3205;
+        public const int AUTH_IDP_LOGIN_USER_FAILED                         = 3206;
+
         // addMapping
         public const int AUTH_ADD_MAPPING_FAILED                            = 3301;
         public const int AUTH_ADD_MAPPING_ALREADY_MAPPED_TO_OTHER_MEMBER    = 3302;
@@ -158,6 +164,9 @@
         public const int UI_COMMUNITY_FAIL_INVALID_URL                      = 6931;
         public const int UI_COMMUNITY_FAIL_ISSUE_SHORT_TERM_TICKET          = 6932;
         public const int UI_COMMUNITY_FAIL_ANDROID_DUPLICATED_VIEW          = 6933;
+        
+        public const int UI_GAME_NOTICE_FAIL_INVALID_URL                    = 6941;
+        public const int UI_GAME_NOTICE_FAIL_ANDROID_DUPLICATED_VIEW        = 6942;
 
         public const int UI_UNKNOWN_ERROR                                   = 6999;
 
@@ -193,6 +202,8 @@
         //----------------------------------------
         //  Platform specified errors (Unity)
         //----------------------------------------
-        public const int NATIVE_METHOD_CALL_EXCEPTION_IN_PLUGIN             = 12001;
+        public const int PLUGIN_NATIVE_METHOD_CALL_EXCEPTION               = 12001;
+        public const int PLUGIN_NOT_INITIALIZED                            = 12002;
+        public const int PLUGIN_INVALID_ENGINE                             = 12003;
     }
 }

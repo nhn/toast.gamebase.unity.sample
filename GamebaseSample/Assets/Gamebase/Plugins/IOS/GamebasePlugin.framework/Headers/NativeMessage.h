@@ -1,3 +1,5 @@
+#import "EngineMessage.h"
+
 @class TCGBError;
 
 @interface NativeMessage : NSObject {
@@ -14,7 +16,8 @@
 @property (nonatomic, strong) NSString* jsonData;
 @property (nonatomic, strong) NSString* extraData;
 
--(id)initWithMessage:(NSString*)scheme handle:(NSInteger)handle TCGBError:(TCGBError*)gamebaseError jsonData:(NSString*)jsonData extraData:(NSString*)extraData;
+-(instancetype)initWithMessage:(EngineMessage*)engineMessage TCGBError:(TCGBError*)gamebaseError jsonData:(NSString*)jsonData extraData:(NSString*)extraData;
+-(instancetype)initWithMessage:(NSString*)scheme handle:(NSInteger)handle TCGBError:(TCGBError*)gamebaseError jsonData:(NSString*)jsonData extraData:(NSString*)extraData;
 
 -(NSString*)toJsonString;
 @end

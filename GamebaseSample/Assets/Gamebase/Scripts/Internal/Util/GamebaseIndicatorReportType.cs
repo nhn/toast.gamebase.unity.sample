@@ -1,4 +1,4 @@
-﻿namespace Toast.Gamebase
+namespace Toast.Gamebase
 {
     public static class GamebaseIndicatorReportType
     {
@@ -30,9 +30,18 @@
             public const string GB_INIT_FAILED_MULTIPLE_TIMES = "GB_INIT_FAILED_MULTIPLE_TIMES";
             public const string GB_AUTH_LOGIN_SUCCESS = "GB_AUTH_LOGIN_SUCCESS";
             public const string GB_AUTH_LOGIN_FAILED = "GB_AUTH_LOGIN_FAILED";
-            public const string GB_AUTH_LOGIN_CANCELED = "GB_AUTH_LOGIN_CANCELED";
             public const string GB_AUTH_CREDENTIAL_LOGIN_SUCCESS = "GB_AUTH_CREDENTIAL_LOGIN_SUCCESS";
             public const string GB_AUTH_CREDENTIAL_LOGIN_FAILED = "GB_AUTH_CREDENTIAL_LOGIN_FAILED";
+            public const string GB_AUTH_INTERNAL_LOGOUT_SUCCESS = "GB_AUTH_INTERNAL_LOGOUT_SUCCESS";
+            public const string GB_AUTH_INTERNAL_LOGOUT_FAILED = "GB_AUTH_INTERNAL_LOGOUT_FAILED";
+            public const string GB_AUTH_LOGIN_CANCELED = "GB_AUTH_LOGIN_CANCELED";
+            public const string GB_AUTH_CHANGE_LOGIN_SUCCESS = "GB_AUTH_CHANGE_LOGIN_SUCCESS";
+            public const string GB_AUTH_CHANGE_LOGIN_FAILED = "GB_AUTH_CHANGE_LOGIN_FAILED";
+            public const string GB_AUTH_MAPPING_SUCCESS = "GB_AUTH_MAPPING_SUCCESS";
+            public const string GB_AUTH_MAPPING_FAILED = "GB_AUTH_MAPPING_FAILED";
+            public const string GB_AUTH_MAPPING_CANCELED = "GB_AUTH_MAPPING_CANCELED";
+            public const string GB_AUTH_MAPPING_FORCIBLY_SUCCESS = "GB_AUTH_MAPPING_FORCIBLY_SUCCESS";
+            public const string GB_AUTH_MAPPING_FORCIBLY_FAILED = "GB_AUTH_MAPPING_FORCIBLY_FAILED";
             public const string GB_AUTH_LOGOUT_SUCCESS = "GB_AUTH_LOGOUT_SUCCESS";
             public const string GB_AUTH_LOGOUT_FAILED = "GB_AUTH_LOGOUT_FAILED";
             public const string GB_AUTH_WITHDRAW_SUCCESS = "GB_AUTH_WITHDRAW_SUCCESS";
@@ -65,7 +74,11 @@
         {
             public const string GB_CONFIGURATION = "txtGBConfiguration";
             public const string GB_LOGIN_IDP = "GBLoginIDP";
+            public const string GB_MAPPING_IDP = "GBMappingIDP";
+            public const string GB_LOGIN_THIRD_IDP_CODE = "GBLoginThirdIDPCode";
+
             public const string GB_CREDENTIAL = "txtGBCredential";
+            public const string GB_FORCING_MAPPING_TICKET = "txtGBForcingMappingTicket";
             public const string GB_TCIAP_APP_KEY = "GBTCIapAppKey";
             public const string GB_ITEM_SEQ = "GBItemSeq";
             public const string GB_OBSERVER_DATA = "txtGBObserverData";
@@ -82,6 +95,7 @@
             public const string GB_WEBVIEW_CONFIGURATION = "txtGBWebViewConfiguration";
             public const string GB_URL = "GBURL";
             public const string GB_DOMAIN = "GBDomain";
+            public const string GB_PURCHASABLE_PAYLOAD = "GBPurchasePayload";
             public const string GB_PURCHASABLE_RECEIPT = "txtGBPurchasableReceipt";
             public const string GB_PRICE = "GBPrice";
         }
@@ -93,6 +107,7 @@
             public const string ADDMAPPING = "AddMapping";
             public const string WITHDRAW = "Withdraw";
             public const string TRANSFERACCOUNT = "TransferAccount";
+            public const string TEMPORARYWITHDRAW = "TemporaryWithdrawal";
         }
     }
 }

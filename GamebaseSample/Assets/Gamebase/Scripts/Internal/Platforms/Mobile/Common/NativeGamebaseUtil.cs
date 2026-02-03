@@ -12,6 +12,9 @@ namespace Toast.Gamebase.Internal.Mobile
             public const string UTIL_API_SHOW_ALERT                         = "gamebase://showAlert";
             public const string UTIL_API_SHOW_ALERT_EVENT                   = "gamebase://showAlertEvent";
             public const string UTIL_API_APP_TRACKING_AUTHORIZATION_STATUS  = "gamebase://appTrackingAuthorizationStatus";
+            public const string UTIL_API_IDFA                               = "gamebase://idfa";
+            public const string UTIL_API_GET_AGE_SIGNAL                     = "gamebase://getAgeSignal";
+            public const string UTIL_API_GET_AGE_RANGE                      = "gamebase://getAgeRange";
         }
 
         protected INativeMessageSender  messageSender           = null;
@@ -27,6 +30,7 @@ namespace Toast.Gamebase.Internal.Mobile
             messageSender.Initialize(CLASS_NAME);
 
             DelegateManager.AddDelegate(GamebaseUtil.UTIL_API_SHOW_ALERT_EVENT, DelegateManager.SendVoidDelegateOnce);
+            DelegateManager.AddDelegate(GamebaseUtil.UTIL_API_GET_AGE_SIGNAL, DelegateManager.SendGamebaseDelegateOnce<GamebaseResponse.Util.AgeSignalResult>);
         }
         
         virtual public void ShowToast(string message, GamebaseUIToastType type)
@@ -81,6 +85,22 @@ namespace Toast.Gamebase.Internal.Mobile
         {
             GamebaseErrorNotifier.FireNotSupportedAPI(this);
             return GamebaseAppTrackingAuthorizationStatus.UNKNOWN;
+        }
+
+        public virtual string GetIdfa()
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+            return "";
+        }
+        
+        virtual public void GetAgeSignal(int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
+        }
+
+        virtual public void GetAgeRangeService(int ageGates, int? threshold2, int? threshold3, int handle)
+        {
+            GamebaseErrorNotifier.FireNotSupportedAPI(this);
         }
     }
 }

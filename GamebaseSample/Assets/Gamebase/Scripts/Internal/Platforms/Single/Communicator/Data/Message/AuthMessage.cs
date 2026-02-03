@@ -1,6 +1,7 @@
 ﻿#if (UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL)
 using System;
 using System.Collections.Generic;
+using Toast.Gamebase.Internal.Auth;
 using Toast.Gamebase.LitJson;
 using UnityEngine;
 
@@ -12,85 +13,109 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         private const string SUB_CODE_WEB = "web";
         private const string AUTHORIZATION_PROTOCOL_X_OAUTH2 = "oauth2";
 
-        public static WebSocketRequest.RequestVO GetWebViewLoginMessage(
-            string providerName,
-            string session = null,
-            string authorizationCode = null,
-            string redirectUri = null,
-            string region = null)
+        public static AuthRequest.LoginVO.Payload GetIDPLoginPayload(IdPAuthContext idPAuthContext)
         {
-            var vo = GetIDPLoginMessage(providerName, string.Empty, authorizationCode, redirectUri);
-            var payload = JsonMapper.ToObject<AuthRequest.LoginVO.Payload>(vo.payload);
-
-            payload.idPInfo.session = session;
-
-            switch (providerName)
+            var launchingInfoVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(PlatformKey.Launching.LAUNCHING_INFO);
+            var idpDic = launchingInfoVO.launching.app.idP;
+            
+            var payload = new AuthRequest.LoginVO.Payload();
+      
+            payload.idPInfo.idPCode = idPAuthContext.idPCode;
+            payload.idPInfo.accessToken = idPAuthContext.accessToken;
+            payload.idPInfo.authorizationCode = idPAuthContext.authorizationCode;
+            payload.idPInfo.codeVerifier = idPAuthContext.codeVerifier;
+            payload.idPInfo.session = idPAuthContext.session;
+            payload.idPInfo.redirectUri = idPAuthContext.redirectUri;
+            
+            if (idpDic.ContainsKey(idPAuthContext.idPCode))
+            {
+                payload.idPInfo.clientId = idpDic[idPAuthContext.idPCode].clientId;
+            }
+            
+            switch (payload.idPInfo.idPCode)
             {
                 case GamebaseAuthProvider.APPLEID:
-                    {
-                        payload.idPInfo.subCode = SUB_CODE_SIGN_IN_WITH_APPLE_JS;
-                        break;
-                    }
-                case GamebaseAuthProvider.HANGAME:
-                    {
-                        payload.idPInfo.subCode = SUB_CODE_WEB;
-                        break;
-                    }
-                case GamebaseAuthProvider.LINE:
-                    {
-                        if (string.IsNullOrEmpty(region))
-                        {
-                            break;
-                        }
-
-                        payload.idPInfo.subCode = region;
-                        payload.idPInfo.clientId = LaunchingInfoHelper.GetClientIdForLineRegion(region);
-                        payload.idPInfo.extraParams = new Dictionary<string, string>() { { GamebaseAuthProviderCredential.CLIENT_ID, LaunchingInfoHelper.GetClientIdForLineRegion(region) } };
-
-                        break;
-                    }
+                {
+                    payload.idPInfo.subCode = SUB_CODE_SIGN_IN_WITH_APPLE_JS;
+                    break;
+                }
                 case GamebaseAuthProvider.TWITTER:
-                    {
-                        payload.idPInfo.authorizationProtocol = AUTHORIZATION_PROTOCOL_X_OAUTH2;
-                        break;
-                    }
+                {
+                    payload.idPInfo.authorizationProtocol = AUTHORIZATION_PROTOCOL_X_OAUTH2;
+                    break;
+                }
+                case GamebaseAuthProvider.HANGAME:
+                {
+                    payload.idPInfo.subCode = SUB_CODE_WEB;
+                    break;
+                }
+                case GamebaseAuthProvider.LINE:
+                {
+                    payload.idPInfo.subCode = idPAuthContext.subCode;
+                    var clientId = LaunchingInfoHelper.GetClientIdForLineRegion(idPAuthContext.subCode);
+                    payload.idPInfo.clientId = clientId;
+                    payload.idPInfo.extraParams = new Dictionary<string, string>() { { GamebaseAuthProviderCredential.CLIENT_ID, clientId } };
+
+                    break;
+                }
             }
 
+            payload.member.clientVersion = GamebaseUnitySDK.AppVersion;
+            payload.member.deviceCountryCode = GamebaseSystemInfo.CountryCode;
+            payload.member.deviceKey = GamebaseSystemInfo.DeviceKey;
+            payload.member.deviceModel = GamebaseSystemInfo.DeviceModel;
+            payload.member.osVersion = GamebaseSystemInfo.OsVersion;
+            payload.member.deviceLanguage = GamebaseSystemInfo.DeviceLanguageCode;
+            payload.member.displayLanguage = GamebaseUnitySDK.DisplayLanguageCode;
+            payload.member.network = Application.internetReachability.ToString();
+            payload.member.osCode = GamebaseSystemInfo.Platform;
+            payload.member.sdkVersion = GamebaseUnitySDK.SDKVersion;
+            payload.member.storeCode = launchingInfoVO.launching.app.storeCode;
+            payload.member.telecom = string.Empty;
+            payload.member.usimCountryCode = "ZZ";
+            payload.member.uuid = GamebaseSystemInfo.UUID;
 
-            vo.payload = JsonMapper.ToJson(payload);
-            return vo;
+            return payload;
+        }
+        
+        public static WebSocketRequest.RequestVO GetIDPLoginMessage(IdPAuthContext idPAuthContext, bool isLongTermGamebaseAccessToken = false)
+        {
+            var vo = new AuthRequest.LoginVO();
+            vo.parameter.appId = GamebaseUnitySDK.AppID;
+            vo.payload = GetIDPLoginPayload(idPAuthContext);
+
+            if (isLongTermGamebaseAccessToken)
+            {
+                vo.payload.idPInfo.extraParams.Add("useIntrospection", false.ToString().ToLower());
+            }
+            
+            var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.IDP_LOGIN,
+                parameters = vo.parameter,
+                payload = JsonMapper.ToJson(vo.payload)
+            };
+
+            return requestVO;
+        }
+        
+        public static WebSocketRequest.RequestVO GetIDPLoginMessage(Dictionary<string, object> credentialInfo)
+        {
+            return GetIDPLoginMessage(new IdPAuthContext(credentialInfo));
         }
 
-        public static WebSocketRequest.RequestVO GetIDPLoginMessage(
-            string providerName, 
-            string accessToken = null,
-            string authorizationCode = null,
-            string redirectUri = null)
+        public static WebSocketRequest.RequestVO GetTokenLoginMessage(string providerName, string accessToken, string subCode = null, Dictionary<string, string> extraParams = null)
         {
-            var launchingInfoVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(VOKey.Launching.LAUNCHING_INFO);
-            var idpDic = launchingInfoVO.launching.app.idP;
+            var launchingInfoVO = DataContainer.GetData<LaunchingResponse.LaunchingInfo>(PlatformKey.Launching.LAUNCHING_INFO);
 
             var vo = new AuthRequest.LoginVO();
             vo.parameter.appId = GamebaseUnitySDK.AppID;
-            
-            if (providerName.Equals(GamebaseAuthProvider.GUEST, StringComparison.Ordinal) == true)
-            {
-                vo.payload.idPInfo.accessToken = string.Format("GAMEBASE{0}", GamebaseSystemInfo.UUID);
-            }
-            else
-            {
-                vo.payload.idPInfo.accessToken = accessToken;
-            }
 
-            vo.payload.idPInfo.redirectUri = redirectUri;
-            vo.payload.idPInfo.authorizationCode = authorizationCode;
+            vo.payload.tokenInfo.idPCode = providerName;
+            vo.payload.tokenInfo.accessToken = accessToken;
+            vo.payload.tokenInfo.subCode = subCode;
+            vo.payload.tokenInfo.extraParams = extraParams;
 
-            if (idpDic.ContainsKey(providerName))
-            {
-                vo.payload.idPInfo.clientId = idpDic[providerName].clientId;
-            }
-
-            vo.payload.idPInfo.idPCode = providerName;
             vo.payload.member.clientVersion = GamebaseUnitySDK.AppVersion;
             vo.payload.member.deviceCountryCode = GamebaseSystemInfo.CountryCode;
             vo.payload.member.deviceKey = GamebaseSystemInfo.DeviceKey;
@@ -108,7 +133,7 @@ namespace Toast.Gamebase.Internal.Single.Communicator
 
             var requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {
-                apiId = Lighthouse.API.Gateway.ID.IDP_LOGIN,
+                apiId = Lighthouse.API.Gateway.ID.TOKEN_LOGIN,
                 parameters = vo.parameter,
                 payload = JsonMapper.ToJson(vo.payload)
             };
@@ -118,16 +143,87 @@ namespace Toast.Gamebase.Internal.Single.Communicator
         
         public static WebSocketRequest.RequestVO GetLogoutMessage()
         {
-            var loginInfoVO = DataContainer.GetData<AuthResponse.LoginInfo>(VOKey.Auth.LOGIN_INFO);
             var vo = new AuthRequest.LogoutVO();
             vo.parameter.appId = GamebaseUnitySDK.AppID;
-            vo.parameter.userId = loginInfoVO.member.userId;
-            vo.parameter.accessToken = loginInfoVO.token.accessToken;
+            var authToken = DataContainer.GetData<GamebaseResponse.Auth.AuthToken>(PlatformKey.Auth.LOGIN_INFO);
+            if (authToken != null)
+            {
+                vo.parameter.userId = authToken.member.userId;
+                vo.parameter.accessToken = authToken.token.accessToken;    
+            }
 
             WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {
                 apiId = Lighthouse.API.Gateway.ID.LOGOUT,
                 parameters = vo.parameter
+            };
+
+            return requestVO;
+        }
+        
+        public static WebSocketRequest.RequestVO GetRemoveMappingMessage(string providerName)
+        {
+            var vo = new AuthRequest.RemoveMappingVO();
+            vo.parameter.idPCode = providerName;
+            var authToken = DataContainer.GetData<GamebaseResponse.Auth.AuthToken>(PlatformKey.Auth.LOGIN_INFO);
+            if (authToken != null)
+            {
+                vo.parameter.userId = authToken.member.userId;
+                vo.parameter.accessToken = authToken.token.accessToken;    
+            }
+
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.REMOVE_MAPPING,
+                parameters = vo.parameter
+            };
+
+            return requestVO;
+        }
+
+        public static WebSocketRequest.RequestVO GetAddMappingMessage(string loginPayload)
+        {
+            var vo = new AuthRequest.AddMappingVO();
+            var authToken = DataContainer.GetData<GamebaseResponse.Auth.AuthToken>(PlatformKey.Auth.LOGIN_INFO);
+            if (authToken != null)
+            {
+                vo.parameter.userId = authToken.member.userId;    
+            }
+            vo.parameter.forcing = false;
+
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.ADD_MAPPING,
+                parameters = vo.parameter,
+                payload = loginPayload
+            };
+
+            Debug.Log(requestVO.payload);
+            
+            return requestVO;
+        }
+
+        public static WebSocketRequest.RequestVO GetAddMappingForciblyMessage(
+            GamebaseResponse.Auth.ForcingMappingTicket forcingMappingTicket)
+        {
+            var vo = new AuthRequest.AddMappingForciblyVO();
+            var authToken = DataContainer.GetData<GamebaseResponse.Auth.AuthToken>(PlatformKey.Auth.LOGIN_INFO);
+            if (authToken != null)
+            {
+                vo.parameter.userId = authToken.member.userId;    
+            }
+            vo.parameter.forcingMappingKey = forcingMappingTicket.forcingMappingKey;
+            vo.parameter.mappedUserId = forcingMappingTicket.mappedUserId;
+            
+            AuthRequest.AddMappingForciblyVO.Payload payload = new AuthRequest.AddMappingForciblyVO.Payload();
+            payload.tokenInfo.accessToken = forcingMappingTicket.accessToken;
+            payload.tokenInfo.idPCode = forcingMappingTicket.idPCode;
+           
+            WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
+            {
+                apiId = Lighthouse.API.Gateway.ID.ADD_MAPPING_FORCIBLY,
+                parameters = vo.parameter,
+                payload = JsonMapper.ToJson(payload)
             };
 
             return requestVO;
@@ -175,17 +271,22 @@ namespace Toast.Gamebase.Internal.Single.Communicator
             return requestVO;
         }
 
-        public static WebSocketRequest.RequestVO GetIssueShortTermTicketMessage(string purpose, int expiresIn)
+        public static WebSocketRequest.RequestVO GetIssueShortTermTicketMessage(string userID, string purpose, int expiresIn)
         {
-            AuthRequest.IssueShortTermTicketVO vo = new AuthRequest.IssueShortTermTicketVO();
-
-            vo.parameter.userId = Gamebase.GetUserID();
+            ShortTermTicketRequest.IssueShortTermTicketVO vo = new ShortTermTicketRequest.IssueShortTermTicketVO();
+            vo.parameter.userId = userID;
             vo.parameter.purpose = purpose;
             vo.parameter.expiresIn = expiresIn;
+            
+            string apiId = Lighthouse.API.Gateway.ID.ISSUE_SHORT_TERM_TICKET; 
+            if (purpose.Equals(ShortTermTicketConst.PURPOSE_OPEN_CONTACT_FOR_BANNED_USER))
+            {
+                apiId = Lighthouse.API.Gateway.ID.ISSUE_SHORT_TERM_TICKET_WITHOUT_LOGIN;
+            }
 
             WebSocketRequest.RequestVO requestVO = new WebSocketRequest.RequestVO(Lighthouse.API.Gateway.PRODUCT_ID, Lighthouse.API.VERSION, GamebaseUnitySDK.AppID)
             {
-                apiId = Lighthouse.API.Gateway.ID.ISSUE_SHORT_TERM_TICKET,
+                apiId = apiId,
                 parameters = vo.parameter
             };
 
